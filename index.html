@@ -484,14 +484,22 @@
                   </select>
                 </div>
                 <div class="form-group">
+                  <label class="form-label" for="ctrl-width-mode">Width Sizing Mode</label>
+                  <select id="ctrl-width-mode" class="form-select">
+                    <option value="responsive">Responsive (Fluid with Max Width)</option>
+                    <option value="fixed">Fixed Width (Exact px)</option>
+                  </select>
+                </div>
+                <div class="form-group">
                   <label class="form-label">
-                    <span>Max Width</span>
+                    <span id="lbl-max-width">Max Width</span>
                     <span id="val-max-width" class="range-val">680px</span>
                   </label>
                   <div class="range-group">
-                    <input type="range" id="ctrl-max-width" class="range-input" min="320" max="760" step="10" value="680" />
+                    <input type="range" id="ctrl-max-width" class="range-input" min="300" max="760" step="10" value="680" />
                   </div>
                 </div>
+
                 <div class="form-group">
                   <label class="form-label">
                     <span>Corner Radius</span>

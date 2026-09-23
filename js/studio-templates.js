@@ -100,6 +100,7 @@ export const BUTTON_ICON_MAP = {
 
 export const DEFAULT_SIGNATURE_STATE = {
   layout: 'landscape-v2', // 'landscape-v2' | 'compact-card' | 'minimal-row'
+  widthMode: 'responsive', // 'responsive' | 'fixed'
   maxWidth: 680,
   borderRadius: 16,
   fullName: 'Ezekiel P. Villadolid',
@@ -238,17 +239,37 @@ function renderActionButtons(buttons, state) {
 }
 
 /**
+ * Computes table width attribute and inline CSS based on widthMode.
+ */
+function getTableWidthConfig(state, defaultWidth = 680, minResponsiveWidth = 280) {
+  const isFixed = state.widthMode === 'fixed';
+  const widthVal = state.maxWidth || defaultWidth;
+
+  if (isFixed) {
+    return {
+      widthAttr: `${widthVal}`,
+      widthStyle: `width: ${widthVal}px !important; max-width: ${widthVal}px; min-width: ${widthVal}px;`
+    };
+  }
+
+  return {
+    widthAttr: '100%',
+    widthStyle: `width: 100% !important; max-width: ${widthVal}px; min-width: ${minResponsiveWidth}px;`
+  };
+}
+
+/**
  * Renders Landscape V2 Layout
  */
 function renderLandscapeV2(state) {
   const bgStyle = getBackgroundStyle(state);
-  const maxWidth = state.maxWidth || 680;
+  const widthCfg = getTableWidthConfig(state, 680, 280);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
   const contactRows = renderContactRows(state.contactFields, state.accentColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
 
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="auto" style="width: auto !important; max-width: ${maxWidth}px; min-width: 280px; margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
   <tr>
     <td style="padding: 16px 22px 16px 22px; border-radius: ${radius}px;">
       <!-- Top Section: Name/Title on Left, Logo on Right -->
@@ -292,13 +313,14 @@ function renderLandscapeV2(state) {
  */
 function renderCompactCard(state) {
   const bgStyle = getBackgroundStyle(state);
-  const maxWidth = (state.maxWidth && state.maxWidth !== 680) ? Math.min(state.maxWidth, 440) : 420;
+  const targetWidth = (state.maxWidth && state.maxWidth !== 680) ? Math.min(state.maxWidth, 440) : 420;
+  const widthCfg = getTableWidthConfig({ ...state, maxWidth: targetWidth }, targetWidth, 260);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
   const contactRows = renderContactRows(state.contactFields, state.accentColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
 
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="auto" style="width: auto !important; max-width: ${maxWidth}px; min-width: 260px; margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
   <tr>
     <td style="padding: 20px; border-radius: ${radius}px; text-align: center;">
       ${state.logoUrl ? `
@@ -336,13 +358,13 @@ function renderCompactCard(state) {
  */
 function renderMinimalRow(state) {
   const bgStyle = getBackgroundStyle(state);
-  const maxWidth = state.maxWidth || 680;
+  const widthCfg = getTableWidthConfig(state, 680, 280);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 10;
   const contactRows = renderContactRows(state.contactFields, state.accentColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
 
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="auto" style="width: auto !important; max-width: ${maxWidth}px; min-width: 280px; margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
   <tr>
     <td style="padding: 14px 18px; border-radius: ${radius}px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">

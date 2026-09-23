@@ -87,3 +87,12 @@ test('loadPresetByCardId maps card IDs to valid states', () => {
   assert.equal(card3.layout, 'landscape-v2');
   assert.equal(card3.accentColor, '#38bdf8');
 });
+
+test('store manages widthMode switching', () => {
+  const store = createStudioStore();
+  assert.equal(store.getState().widthMode, 'responsive');
+
+  store.setField('widthMode', 'fixed');
+  assert.equal(store.getState().widthMode, 'fixed');
+});
+

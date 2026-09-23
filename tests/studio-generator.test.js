@@ -60,3 +60,26 @@ test('renderSignatureHTML collapses cleanly when 0 buttons are provided', () => 
   assert.ok(!html.includes('GitHub'));
   assert.ok(!html.includes('Download CV'));
 });
+
+test('renderSignatureHTML supports widthMode responsive (width="100%" and max-width)', () => {
+  const html = renderSignatureHTML({
+    ...DEFAULT_SIGNATURE_STATE,
+    widthMode: 'responsive',
+    maxWidth: 640
+  });
+  assert.ok(html.includes('width="100%"'));
+  assert.ok(html.includes('width: 100% !important'));
+  assert.ok(html.includes('max-width: 640px'));
+});
+
+test('renderSignatureHTML supports widthMode fixed (exact width and min-width/max-width locked)', () => {
+  const html = renderSignatureHTML({
+    ...DEFAULT_SIGNATURE_STATE,
+    widthMode: 'fixed',
+    maxWidth: 550
+  });
+  assert.ok(html.includes('width="550"'));
+  assert.ok(html.includes('width: 550px !important'));
+  assert.ok(html.includes('min-width: 550px'));
+});
+

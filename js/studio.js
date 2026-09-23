@@ -405,6 +405,7 @@ function syncControlsWithState(state) {
   };
 
   setVal('ctrl-layout', state.layout);
+  setVal('ctrl-width-mode', state.widthMode || 'responsive');
   setVal('ctrl-max-width', state.maxWidth);
   setVal('ctrl-border-radius', state.borderRadius);
   setVal('ctrl-full-name', state.fullName);
@@ -417,7 +418,11 @@ function syncControlsWithState(state) {
   setVal('ctrl-text-primary', state.textColorPrimary);
   setVal('ctrl-text-secondary', state.textColorSecondary);
 
-  // Update slider display numbers
+  // Update slider label and display numbers
+  const lblWidth = document.getElementById('lbl-max-width');
+  if (lblWidth) {
+    lblWidth.textContent = state.widthMode === 'fixed' ? 'Fixed Width' : 'Max Width';
+  }
   const wVal = document.getElementById('val-max-width');
   if (wVal) wVal.textContent = state.maxWidth + 'px';
   const rVal = document.getElementById('val-border-radius');
@@ -492,6 +497,11 @@ export function initStudio() {
   };
 
   bindInput('ctrl-layout', 'layout');
+  bindInput('ctrl-width-mode', 'widthMode', (mode) => {
+    const lbl = document.getElementById('lbl-max-width');
+    if (lbl) lbl.textContent = mode === 'fixed' ? 'Fixed Width' : 'Max Width';
+    return mode;
+  });
   bindInput('ctrl-max-width', 'maxWidth', Number);
   bindInput('ctrl-border-radius', 'borderRadius', Number);
   bindInput('ctrl-full-name', 'fullName');
