@@ -1,3 +1,4 @@
 *.b64
 scratch/
 node_modules/
+.superpowers/
