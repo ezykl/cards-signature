@@ -10,7 +10,9 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="css/studio.css" />
     <style>
+
       :root {
         --bg: #07090e;
         --card-bg: rgba(16, 22, 36, 0.7);
@@ -399,7 +401,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="view-mode-studio">
     <div class="container">
       <!-- Header -->
       <header>
@@ -415,10 +417,9 @@
           ></span>
           EMAIL SIGNATURE SUITE
         </div>
-        <h1>Cards Signature Gallery</h1>
+        <h1>Cards Signature Suite</h1>
         <p class="subtitle">
-          Responsive, cross-client HTML email signatures crafted for Ezekiel P.
-          Villadolid. Preview, test, and copy with one click.
+          Interactive Signature Studio &amp; gallery of responsive, cross-client HTML email signatures crafted for Ezekiel P. Villadolid.
         </p>
         <div class="header-links">
           <a
@@ -450,8 +451,222 @@
         </div>
       </header>
 
-      <!-- Cards Showcase Grid -->
-      <div class="grid">
+      <!-- Top Navigation Tabs (Studio Customizer vs Template Gallery) -->
+      <div class="top-nav-tabs-wrapper">
+        <div class="top-nav-tabs">
+          <button type="button" class="nav-tab active" id="tab-btn-studio">
+            ✦ Studio Customizer
+          </button>
+          <button type="button" class="nav-tab" id="tab-btn-gallery">
+            🗂 Template Gallery
+          </button>
+        </div>
+      </div>
+
+      <!-- STUDIO CUSTOMIZER VIEW -->
+      <div id="studio-view">
+        <div class="studio-layout">
+          <!-- Left: Customizer Controls -->
+          <div class="studio-sidebar">
+            <!-- Section 1: Layout & Sizing -->
+            <div class="control-section">
+              <div class="control-header">
+                <div class="control-title"><span class="control-icon">📐</span> Layout &amp; Formats</div>
+                <span class="chevron-icon">▼</span>
+              </div>
+              <div class="control-body">
+                <div class="form-group">
+                  <label class="form-label" for="ctrl-layout">Signature Layout</label>
+                  <select id="ctrl-layout" class="form-select">
+                    <option value="landscape-v2">Landscape V2 (Developer Banner)</option>
+                    <option value="compact-card">Compact Card (Vertical Portrait)</option>
+                    <option value="minimal-row">Minimal Row (Compact Row)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">
+                    <span>Max Width</span>
+                    <span id="val-max-width" class="range-val">680px</span>
+                  </label>
+                  <div class="range-group">
+                    <input type="range" id="ctrl-max-width" class="range-input" min="320" max="760" step="10" value="680" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">
+                    <span>Corner Radius</span>
+                    <span id="val-border-radius" class="range-val">16px</span>
+                  </label>
+                  <div class="range-group">
+                    <input type="range" id="ctrl-border-radius" class="range-input" min="0" max="32" step="2" value="16" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Profile Info -->
+            <div class="control-section">
+              <div class="control-header">
+                <div class="control-title"><span class="control-icon">👤</span> Profile Details</div>
+                <span class="chevron-icon">▼</span>
+              </div>
+              <div class="control-body">
+                <div class="form-group">
+                  <label class="form-label" for="ctrl-full-name">Full Name</label>
+                  <input type="text" id="ctrl-full-name" class="form-input" placeholder="Your Name" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ctrl-job-title">Job Title / Tagline</label>
+                  <input type="text" id="ctrl-job-title" class="form-input" placeholder="Software Developer + UI/UX" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="ctrl-logo-url">Logo / Avatar URL</label>
+                  <input type="text" id="ctrl-logo-url" class="form-input" placeholder="https://..." />
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 3: Dynamic Contact Fields -->
+            <div class="control-section">
+              <div class="control-header">
+                <div class="control-title"><span class="control-icon">📱</span> Dynamic Contacts</div>
+                <span class="chevron-icon">▼</span>
+              </div>
+              <div class="control-body">
+                <div id="contact-fields-list" class="dynamic-items-container">
+                  <!-- Populated dynamically by studio.js -->
+                </div>
+                <button type="button" id="btn-add-contact-field" class="btn-add-item">
+                  + Add Contact Field
+                </button>
+              </div>
+            </div>
+
+            <!-- Section 4: Themes & Backgrounds -->
+            <div class="control-section">
+              <div class="control-header">
+                <div class="control-title"><span class="control-icon">🎨</span> Themes &amp; Colors</div>
+                <span class="chevron-icon">▼</span>
+              </div>
+              <div class="control-body">
+                <div class="form-group">
+                  <label class="form-label">Theme Presets</label>
+                  <div class="theme-chip-group">
+                    <button type="button" class="theme-chip active" data-preset="developer-cyan">
+                      <span class="theme-chip-dot" style="background: #38bdf8;"></span> Developer Cyan
+                    </button>
+                    <button type="button" class="theme-chip" data-preset="cosmic-blue">
+                      <span class="theme-chip-dot" style="background: #60a5fa;"></span> Cosmic Blue
+                    </button>
+                    <button type="button" class="theme-chip" data-preset="slate-tech">
+                      <span class="theme-chip-dot" style="background: #94a3b8;"></span> Slate Tech
+                    </button>
+                    <button type="button" class="theme-chip" data-preset="royal-indigo">
+                      <span class="theme-chip-dot" style="background: #c084fc;"></span> Royal Indigo
+                    </button>
+                    <button type="button" class="theme-chip" data-preset="emerald-neon">
+                      <span class="theme-chip-dot" style="background: #34d399;"></span> Emerald Neon
+                    </button>
+                    <button type="button" class="theme-chip" data-preset="minimal-light">
+                      <span class="theme-chip-dot" style="background: #0284c7;"></span> Minimal Light
+                    </button>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="ctrl-accent-color">Accent Tint</label>
+                    <div class="color-picker-row">
+                      <input type="color" id="ctrl-accent-color" class="color-swatch-input" value="#38bdf8" />
+                      <span style="font-size: 12px; color: #94a3b8;">Icon Tint</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="ctrl-bg-color">Background</label>
+                    <div class="color-picker-row">
+                      <input type="color" id="ctrl-bg-color" class="color-swatch-input" value="#000440" />
+                      <select id="ctrl-bg-type" class="form-select" style="padding: 6px 10px; font-size: 12px;">
+                        <option value="solid">Solid</option>
+                        <option value="gradient">Gradient</option>
+                        <option value="ambient">Ambient</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label" for="ctrl-text-primary">Name Color</label>
+                    <div class="color-picker-row">
+                      <input type="color" id="ctrl-text-primary" class="color-swatch-input" value="#ffffff" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="ctrl-text-secondary">Title Color</label>
+                    <div class="color-picker-row">
+                      <input type="color" id="ctrl-text-secondary" class="color-swatch-input" value="#93c5fd" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 5: Modular Buttons -->
+            <div class="control-section">
+              <div class="control-header">
+                <div class="control-title"><span class="control-icon">🔘</span> Modular Buttons</div>
+                <span class="chevron-icon">▼</span>
+              </div>
+              <div class="control-body">
+                <div id="action-buttons-list" class="dynamic-items-container">
+                  <!-- Populated dynamically by studio.js -->
+                </div>
+                <button type="button" id="btn-add-button" class="btn-add-item">
+                  + Add Action Button
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Sticky Live Preview Canvas -->
+          <div class="studio-preview-pane">
+            <div class="preview-top-bar">
+              <div class="preview-status">
+                <span class="pulse-dot"></span>
+                <span>Live Signature Rendering</span>
+              </div>
+              <div class="viewport-toggle">
+                <button type="button" id="btn-vp-desktop" class="viewport-btn active">💻 Desktop</button>
+                <button type="button" id="btn-vp-mobile" class="viewport-btn">📱 Mobile</button>
+              </div>
+            </div>
+
+            <div id="studio-canvas-wrapper" class="preview-card-canvas">
+              <div id="studio-preview-card">
+                <!-- Rendered live by studio.js -->
+              </div>
+            </div>
+
+            <div class="studio-action-bar">
+              <button type="button" id="btn-studio-copy-primary" class="btn-copy-primary">
+                <span>📋</span> Copy for Gmail / Outlook
+              </button>
+              <div class="studio-sub-actions">
+                <button type="button" id="btn-studio-copy-html" class="btn-action-sub">
+                  <span>‹/›</span> Copy HTML
+                </button>
+                <button type="button" id="btn-studio-download" class="btn-action-sub">
+                  <span>⬇</span> Download HTML
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEMPLATE GALLERY VIEW -->
+      <div id="gallery-view">
+        <!-- Cards Showcase Grid -->
+        <div class="grid">
+
         <!-- Card 4: Developer Landscape V2 (Featured Top) -->
         <div class="card-panel card-panel-full">
           <div class="panel-header">
@@ -471,8 +686,12 @@
                 Inline Action Pills
               </div>
             </div>
-            <span class="pill-theme pill-cyan">Developer V2</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="pill-theme pill-cyan">Developer V2</span>
+              <button type="button" class="btn-open-studio" onclick="loadTemplateIntoStudio(3)">✦ Open in Studio</button>
+            </div>
           </div>
+
 
           <!-- Rendered Card Container -->
           <div class="preview-canvas" id="preview-card-4">
@@ -952,8 +1171,12 @@
                 Buttons
               </div>
             </div>
-            <span class="pill-theme pill-landscape">Landscape V1</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="pill-theme pill-landscape">Landscape V1</span>
+              <button type="button" class="btn-open-studio" onclick="loadTemplateIntoStudio(4)">✦ Open in Studio</button>
+            </div>
           </div>
+
 
           <!-- Rendered Card Container -->
           <div class="preview-canvas" id="preview-card-3">
@@ -1435,8 +1658,12 @@
                 Standard Ratio &bull; Stacked CTA
               </div>
             </div>
-            <span class="pill-theme pill-cosmic">Cosmic Navy</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="pill-theme pill-cosmic">Cosmic Navy</span>
+              <button type="button" class="btn-open-studio" onclick="loadTemplateIntoStudio(1)">✦ Open in Studio</button>
+            </div>
           </div>
+
 
           <!-- Rendered Card Container -->
           <div class="preview-canvas" id="preview-card-1">
@@ -1946,8 +2173,12 @@
                 Corporate Slate &bull; Platinum Icons
               </div>
             </div>
-            <span class="pill-theme pill-slate">Executive Slate</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="pill-theme pill-slate">Executive Slate</span>
+              <button type="button" class="btn-open-studio" onclick="loadTemplateIntoStudio(2)">✦ Open in Studio</button>
+            </div>
           </div>
+
 
           <!-- Rendered Card Container -->
           <div class="preview-canvas" id="preview-card-2">
@@ -2478,6 +2709,8 @@
           </div>
         </div>
       </div>
+      <!-- End of Gallery View -->
+      </div>
     </div>
 
     <!-- Toast Notification -->
@@ -2487,6 +2720,9 @@
         >Signature copied! Ready to paste into Gmail or Outlook.</span
       >
     </div>
+
+    <!-- Studio Customizer Controller -->
+    <script type="module" src="js/studio.js"></script>
 
     <script>
       function showToast(message) {
