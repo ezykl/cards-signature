@@ -1,675 +1,119 @@
-/**
- * Signature Studio - State Controller & UI Pipeline
- * Controls dynamic contact fields, action buttons, theme presets, live preview, and clipboard copying.
- */
+/** Signature Studio: accessible editor, local draft persistence, and exports. */
+import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from './studio-templates.js';
 
-import {
-  renderSignatureHTML,
-  DEFAULT_SIGNATURE_STATE,
-  THEME_PRESETS,
-  CONTACT_ICON_MAP,
-  BUTTON_ICON_MAP
-} from './studio-templates.js';
+const DRAFT_KEY = 'signature-studio-draft-v2';
+const clone = value => JSON.parse(JSON.stringify(value));
+const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' })[char]);
+const isSafeUrl = value => !value || /^(https?:|mailto:|tel:)/i.test(String(value).trim());
 
-/**
- * Creates an isolated studio reactive state store.
- */
 export function createStudioStore(initialState = DEFAULT_SIGNATURE_STATE) {
-  let state = JSON.parse(JSON.stringify(initialState));
+  let state = clone(initialState);
+  let past = [];
+  let future = [];
   const listeners = new Set();
-
-  function notify() {
-    listeners.forEach(fn => fn(state));
-  }
-
+  const commit = next => { past.push(clone(state)); if (past.length > 40) past.shift(); state = clone(next); future = []; notify(); };
+  const notify = () => listeners.forEach(listener => listener(clone(state)));
   return {
-    getState() {
-      return JSON.parse(JSON.stringify(state));
-    },
-
-    setState(newState) {
-      state = JSON.parse(JSON.stringify(newState));
-      notify();
-    },
-
-    setField(key, value) {
-      state[key] = value;
-      notify();
-    },
-
-    addContactField(field = {}) {
-      const id = 'c_' + Math.random().toString(36).substring(2, 9);
-      const newField = {
-        id,
-        type: field.type || 'phone',
-        label: field.label || 'Contact',
-        value: field.value || '',
-        href: field.href || ''
-      };
-      if (!Array.isArray(state.contactFields)) {
-        state.contactFields = [];
-      }
-      state.contactFields.push(newField);
-      notify();
-      return newField;
-    },
-
-    updateContactField(id, patch) {
-      if (!Array.isArray(state.contactFields)) return;
-      const index = state.contactFields.findIndex(f => f.id === id);
-      if (index !== -1) {
-        state.contactFields[index] = { ...state.contactFields[index], ...patch };
-        notify();
-      }
-    },
-
-    removeContactField(id) {
-      if (!Array.isArray(state.contactFields)) return;
-      state.contactFields = state.contactFields.filter(f => f.id !== id);
-      notify();
-    },
-
-    addButton(btn = {}) {
-      const id = 'b_' + Math.random().toString(36).substring(2, 9);
-      const newBtn = {
-        id,
-        icon: btn.icon || 'globe',
-        label: btn.label || 'Website',
-        url: btn.url || 'https://',
-        style: btn.style || 'dark'
-      };
-      if (!Array.isArray(state.buttons)) {
-        state.buttons = [];
-      }
-      state.buttons.push(newBtn);
-      notify();
-      return newBtn;
-    },
-
-    updateButton(id, patch) {
-      if (!Array.isArray(state.buttons)) return;
-      const index = state.buttons.findIndex(b => b.id === id);
-      if (index !== -1) {
-        state.buttons[index] = { ...state.buttons[index], ...patch };
-        notify();
-      }
-    },
-
-    removeButton(id) {
-      if (!Array.isArray(state.buttons)) return;
-      state.buttons = state.buttons.filter(b => b.id !== id);
-      notify();
-    },
-
-    applyThemePreset(presetKey) {
-      const preset = THEME_PRESETS[presetKey];
-      if (!preset) return;
-      state.themePreset = presetKey;
-      state.bgColor = preset.bgColor;
-      state.bgType = preset.bgType;
-      state.bgGradientEnd = preset.bgGradientEnd;
-      state.accentColor = preset.accentColor;
-      state.textColorPrimary = preset.textColorPrimary;
-      state.textColorSecondary = preset.textColorSecondary;
-      state.textColorMuted = preset.textColorMuted;
-      state.buttonBg = preset.buttonBg;
-      state.buttonBorder = preset.buttonBorder;
-      notify();
-    },
-
-    subscribe(fn) {
-      listeners.add(fn);
-      return () => listeners.delete(fn);
-    }
+    getState: () => clone(state),
+    canUndo: () => past.length > 0, canRedo: () => future.length > 0,
+    setState: next => commit(next),
+    setField: (key, value) => commit({ ...state, [key]: value }),
+    addContactField: (field = {}) => { const item = { id:`c_${cryptoId()}`, type:field.type || 'phone', label:field.label || 'Contact', value:field.value || '', href:field.href || '' }; commit({ ...state, contactFields:[...(state.contactFields || []), item] }); return item; },
+    updateContactField: (id, patch) => commit({ ...state, contactFields:state.contactFields.map(field => field.id === id ? { ...field, ...patch } : field) }),
+    removeContactField: id => commit({ ...state, contactFields:state.contactFields.filter(field => field.id !== id) }),
+    addButton: (button = {}) => { const item = { id:`b_${cryptoId()}`, icon:button.icon || 'globe', label:button.label || 'Website', url:button.url || 'https://', style:button.style || 'dark' }; commit({ ...state, buttons:[...(state.buttons || []), item] }); return item; },
+    updateButton: (id, patch) => commit({ ...state, buttons:state.buttons.map(button => button.id === id ? { ...button, ...patch } : button) }),
+    removeButton: id => commit({ ...state, buttons:state.buttons.filter(button => button.id !== id) }),
+    applyThemePreset: key => { const preset = THEME_PRESETS[key]; if (preset) commit({ ...state, ...preset, themePreset:key }); },
+    undo: () => { if (!past.length) return; future.push(clone(state)); state = past.pop(); notify(); },
+    redo: () => { if (!future.length) return; past.push(clone(state)); state = future.pop(); notify(); },
+    subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); }
   };
 }
 
-/**
- * Maps existing card IDs (1 to 4) into state presets for Studio.
- */
+function cryptoId() { return globalThis.crypto?.randomUUID?.().slice(0, 8) || Math.random().toString(36).slice(2, 10); }
+
 export function loadPresetByCardId(cardId) {
-  const base = JSON.parse(JSON.stringify(DEFAULT_SIGNATURE_STATE));
-
-  switch (Number(cardId)) {
-    case 1: // Standard Card (Compact Vertical)
-      return {
-        ...base,
-        layout: 'compact-card',
-        maxWidth: 420,
-        borderRadius: 16,
-        themePreset: 'developer-cyan',
-        bgColor: '#000440',
-        bgType: 'solid',
-        accentColor: '#38bdf8'
-      };
-
-    case 2: // Minimal Row
-      return {
-        ...base,
-        layout: 'minimal-row',
-        maxWidth: 680,
-        borderRadius: 12,
-        themePreset: 'slate-tech',
-        bgColor: '#0f172a',
-        bgType: 'solid',
-        accentColor: '#38bdf8',
-        buttons: base.buttons.slice(0, 2)
-      };
-
-    case 4: // Landscape Studio V1 (Cosmic Blue)
-      return {
-        ...base,
-        layout: 'landscape-v2',
-        maxWidth: 680,
-        borderRadius: 16,
-        themePreset: 'cosmic-blue',
-        bgColor: '#070913',
-        bgType: 'gradient',
-        bgGradientEnd: '#1e1b4b',
-        accentColor: '#60a5fa'
-      };
-
-    case 3: // Developer Landscape V2 (Default Studio)
-    default:
-      return {
-        ...base,
-        layout: 'landscape-v2',
-        maxWidth: 680,
-        borderRadius: 16,
-        themePreset: 'developer-cyan',
-        bgColor: '#000440',
-        bgType: 'solid',
-        accentColor: '#38bdf8'
-      };
-  }
-}
-
-/* ========================================================
-   BROWSER DOM CONTROLLER
-   ======================================================== */
-
-let studioStore = null;
-
-/**
- * Toast notification helper.
- */
-export function showStudioToast(message) {
-  const toast = document.getElementById('toast');
-  const msg = document.getElementById('toast-msg');
-  if (toast && msg) {
-    msg.textContent = message;
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3500);
-  } else {
-    console.log('[Toast]', message);
-  }
-}
-
-/**
- * Copies live-rendered signature DOM markup to clipboard.
- */
-export async function copyStudioSignature() {
-  const previewEl = document.getElementById('studio-preview-card');
-  if (!previewEl) return;
-  const html = previewEl.innerHTML.trim();
-  if (!html) return;
-
-  try {
-    if (navigator.clipboard && window.ClipboardItem) {
-      const textBlob = new Blob(['Email Signature - Ezekiel P. Villadolid'], { type: 'text/plain' });
-      const htmlBlob = new Blob([html], { type: 'text/html' });
-      const item = new ClipboardItem({
-        'text/html': htmlBlob,
-        'text/plain': textBlob
-      });
-      await navigator.clipboard.write([item]);
-      showStudioToast('Rich Signature Copied! Paste (Ctrl+V) into Gmail or Outlook.');
-      return;
-    }
-  } catch (err) {
-    console.warn('ClipboardItem write failed, using selection copy:', err);
-  }
-
-  // Selection fallback
-  try {
-    const range = document.createRange();
-    range.selectNodeContents(previewEl);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
-    document.execCommand('copy');
-    selection.removeAllRanges();
-    showStudioToast('Signature Copied! Ready to paste into email.');
-  } catch (fallbackErr) {
-    navigator.clipboard.writeText(html).then(() => {
-      showStudioToast('Raw HTML copied to clipboard.');
-    });
-  }
-}
-
-/**
- * Copies raw HTML string to clipboard.
- */
-export async function copyRawHTML() {
-  const previewEl = document.getElementById('studio-preview-card');
-  if (!previewEl) return;
-  const html = previewEl.innerHTML.trim();
-  try {
-    await navigator.clipboard.writeText(html);
-    showStudioToast('Raw HTML copied to clipboard!');
-  } catch (err) {
-    showStudioToast('Could not copy HTML: ' + err.message);
-  }
-}
-
-/**
- * Downloads signature as standalone HTML file.
- */
-export function downloadHTML() {
-  const previewEl = document.getElementById('studio-preview-card');
-  if (!previewEl) return;
-  const html = previewEl.innerHTML.trim();
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'signature-studio-export.html';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  showStudioToast('Downloaded signature-studio-export.html');
-}
-
-/**
- * Switches between Studio Customizer and Template Gallery views.
- */
-export function switchViewMode(mode) {
-  document.body.classList.remove('view-mode-studio', 'view-mode-gallery');
-  document.body.classList.add(mode === 'gallery' ? 'view-mode-gallery' : 'view-mode-studio');
-
-  const tabStudio = document.getElementById('tab-btn-studio');
-  const tabGallery = document.getElementById('tab-btn-gallery');
-  if (tabStudio && tabGallery) {
-    if (mode === 'gallery') {
-      tabGallery.classList.add('active');
-      tabStudio.classList.remove('active');
-    } else {
-      tabStudio.classList.add('active');
-      tabGallery.classList.remove('active');
-    }
-  }
-}
-
-/**
- * Loads a card template into Studio and switches to Studio view.
- */
-export function loadTemplateIntoStudio(cardId) {
-  if (!studioStore) return;
-  const newState = loadPresetByCardId(cardId);
-  studioStore.setState(newState);
-  syncControlsWithState(newState);
-  switchViewMode('studio');
-  showStudioToast(`Loaded Template ${cardId} into Studio!`);
-}
-
-/**
- * Re-renders the dynamic contact fields list in the sidebar.
- */
-function renderContactFieldsList(store) {
-  const container = document.getElementById('contact-fields-list');
-  if (!container) return;
-
-  const state = store.getState();
-  container.innerHTML = '';
-
-  state.contactFields.forEach((field, index) => {
-    const card = document.createElement('div');
-    card.className = 'dynamic-item-card';
-
-    card.innerHTML = `
-      <div class="dynamic-item-header">
-        <select class="form-select field-type-select" data-id="${field.id}" style="width: 130px; padding: 4px 8px; font-size: 12px;">
-          <option value="phone" ${field.type === 'phone' ? 'selected' : ''}>📞 Phone</option>
-          <option value="email" ${field.type === 'email' ? 'selected' : ''}>✉️ Email</option>
-          <option value="location" ${field.type === 'location' ? 'selected' : ''}>📍 Location</option>
-          <option value="website" ${field.type === 'website' ? 'selected' : ''}>🌐 Website</option>
-          <option value="calendar" ${field.type === 'calendar' ? 'selected' : ''}>📅 Calendar</option>
-          <option value="custom" ${field.type === 'custom' ? 'selected' : ''}>⭐ Custom</option>
-        </select>
-        <button type="button" class="btn-remove-item" data-action="remove-contact" data-id="${field.id}" title="Remove Field">✕</button>
-      </div>
-      <div class="form-row">
-        <input type="text" class="form-input field-val-input" data-id="${field.id}" placeholder="Display Text" value="${field.value || ''}" style="font-size: 12px; padding: 6px 10px;" />
-        <input type="text" class="form-input field-href-input" data-id="${field.id}" placeholder="Link (tel:, mailto:, https://)" value="${field.href || ''}" style="font-size: 12px; padding: 6px 10px;" />
-      </div>
-    `;
-
-    container.appendChild(card);
-  });
-}
-
-/**
- * Re-renders the dynamic action buttons list in the sidebar.
- */
-function renderActionButtonsList(store) {
-  const container = document.getElementById('action-buttons-list');
-  if (!container) return;
-
-  const state = store.getState();
-  container.innerHTML = '';
-
-  state.buttons.forEach((btn, index) => {
-    const card = document.createElement('div');
-    card.className = 'dynamic-item-card';
-
-    card.innerHTML = `
-      <div class="dynamic-item-header">
-        <div style="display: flex; gap: 6px; flex: 1;">
-          <select class="form-select btn-icon-select" data-id="${btn.id}" style="width: 110px; padding: 4px 8px; font-size: 12px;">
-            <option value="github" ${btn.icon === 'github' ? 'selected' : ''}>GitHub</option>
-            <option value="linkedin" ${btn.icon === 'linkedin' ? 'selected' : ''}>LinkedIn</option>
-            <option value="download" ${btn.icon === 'download' ? 'selected' : ''}>Download</option>
-            <option value="globe" ${btn.icon === 'globe' ? 'selected' : ''}>Globe</option>
-            <option value="calendar" ${btn.icon === 'calendar' ? 'selected' : ''}>Calendar</option>
-            <option value="twitter" ${btn.icon === 'twitter' ? 'selected' : ''}>Twitter</option>
-            <option value="none" ${btn.icon === 'none' ? 'selected' : ''}>No Icon</option>
-          </select>
-          <select class="form-select btn-style-select" data-id="${btn.id}" style="width: 100px; padding: 4px 8px; font-size: 12px;">
-            <option value="dark" ${btn.style === 'dark' ? 'selected' : ''}>Dark</option>
-            <option value="brand" ${btn.style === 'brand' ? 'selected' : ''}>Brand</option>
-            <option value="accent" ${btn.style === 'accent' ? 'selected' : ''}>Accent</option>
-          </select>
-        </div>
-        <button type="button" class="btn-remove-item" data-action="remove-btn" data-id="${btn.id}" title="Remove Button">✕</button>
-      </div>
-      <div class="form-row">
-        <input type="text" class="form-input btn-label-input" data-id="${btn.id}" placeholder="Button Label" value="${btn.label || ''}" style="font-size: 12px; padding: 6px 10px;" />
-        <input type="text" class="form-input btn-url-input" data-id="${btn.id}" placeholder="URL (https://...)" value="${btn.url || ''}" style="font-size: 12px; padding: 6px 10px;" />
-      </div>
-    `;
-
-    container.appendChild(card);
-  });
-}
-
-/**
- * Synchronizes DOM form control values with the current state.
- */
-function syncControlsWithState(state) {
-  const setVal = (id, val) => {
-    const el = document.getElementById(id);
-    if (el && val !== undefined) el.value = val;
+  const base = clone(DEFAULT_SIGNATURE_STATE);
+  const variants = {
+    1:{ layout:'compact-card', maxWidth:420, borderRadius:16, themePreset:'minimal-light' },
+    2:{ layout:'minimal-row', maxWidth:680, borderRadius:10, themePreset:'slate-tech', buttons:base.buttons.slice(0, 2) },
+    3:{ layout:'landscape-v2', maxWidth:680, borderRadius:16, themePreset:'developer-cyan' }
   };
-
-  setVal('ctrl-layout', state.layout);
-  setVal('ctrl-width-mode', state.widthMode || 'responsive');
-  setVal('ctrl-max-width', state.maxWidth);
-  setVal('ctrl-border-radius', state.borderRadius);
-  setVal('ctrl-full-name', state.fullName);
-  setVal('ctrl-job-title', state.jobTitle);
-  setVal('ctrl-logo-url', state.logoUrl);
-  setVal('ctrl-bg-color', state.bgColor);
-  setVal('ctrl-bg-type', state.bgType);
-  setVal('ctrl-bg-gradient-end', state.bgGradientEnd);
-  setVal('ctrl-accent-color', state.accentColor);
-  setVal('ctrl-text-primary', state.textColorPrimary);
-  setVal('ctrl-text-secondary', state.textColorSecondary);
-
-  // Update slider label and display numbers
-  const lblWidth = document.getElementById('lbl-max-width');
-  if (lblWidth) {
-    lblWidth.textContent = state.widthMode === 'fixed' ? 'Fixed Width' : 'Max Width';
-  }
-  const wVal = document.getElementById('val-max-width');
-  if (wVal) wVal.textContent = state.maxWidth + 'px';
-  const rVal = document.getElementById('val-border-radius');
-  if (rVal) rVal.textContent = state.borderRadius + 'px';
-
-  // Highlight active theme preset chip
-  document.querySelectorAll('.theme-chip').forEach(chip => {
-    if (chip.getAttribute('data-preset') === state.themePreset) {
-      chip.classList.add('active');
-    } else {
-      chip.classList.remove('active');
-    }
-  });
-
-  renderContactFieldsList(studioStore);
-  renderActionButtonsList(studioStore);
+  const variant = variants[Number(cardId)] || variants[3];
+  return { ...base, ...THEME_PRESETS[variant.themePreset], ...variant };
 }
 
-/**
- * Initializes the entire Studio interactive environment.
- */
+let studioStore;
+let toastTimer;
+
+export function showStudioToast(message) { const toast = document.getElementById('toast'); const target = document.getElementById('toast-msg'); if (!toast || !target) return; target.textContent = message; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 3600); }
+
+function renderContactFields(state) {
+  const target = document.getElementById('contact-fields-list'); if (!target) return;
+  target.innerHTML = state.contactFields.map(field => `<article class="dynamic-item-card"><div class="dynamic-item-header"><label class="sr-only" for="type-${escapeHTML(field.id)}">Contact type</label><select id="type-${escapeHTML(field.id)}" class="form-select field-type-select" data-id="${escapeHTML(field.id)}"><option value="phone" ${field.type === 'phone' ? 'selected':''}>Phone</option><option value="email" ${field.type === 'email' ? 'selected':''}>Email</option><option value="location" ${field.type === 'location' ? 'selected':''}>Location</option><option value="website" ${field.type === 'website' ? 'selected':''}>Website</option><option value="calendar" ${field.type === 'calendar' ? 'selected':''}>Calendar</option><option value="custom" ${field.type === 'custom' ? 'selected':''}>Custom</option></select><button type="button" class="btn-remove-item" data-action="remove-contact" data-id="${escapeHTML(field.id)}" aria-label="Remove contact detail"><span class="material-symbols-rounded" aria-hidden="true">delete</span></button></div><div class="form-row"><label class="sr-only" for="value-${escapeHTML(field.id)}">Display text</label><input id="value-${escapeHTML(field.id)}" class="form-input field-val-input" data-id="${escapeHTML(field.id)}" placeholder="Display text" value="${escapeHTML(field.value)}" /><label class="sr-only" for="link-${escapeHTML(field.id)}">Link</label><input id="link-${escapeHTML(field.id)}" class="form-input field-href-input" data-id="${escapeHTML(field.id)}" placeholder="tel:, mailto:, or https://" value="${escapeHTML(field.href)}" /></div></article>`).join('');
+}
+
+function renderActionButtons(state) {
+  const target = document.getElementById('action-buttons-list'); if (!target) return;
+  target.innerHTML = state.buttons.map(button => `<article class="dynamic-item-card"><div class="dynamic-item-header"><label class="sr-only" for="icon-${escapeHTML(button.id)}">Button icon</label><select id="icon-${escapeHTML(button.id)}" class="form-select btn-icon-select" data-id="${escapeHTML(button.id)}"><option value="github" ${button.icon === 'github' ? 'selected':''}>GitHub</option><option value="linkedin" ${button.icon === 'linkedin' ? 'selected':''}>LinkedIn</option><option value="download" ${button.icon === 'download' ? 'selected':''}>Download</option><option value="globe" ${button.icon === 'globe' ? 'selected':''}>Website</option><option value="calendar" ${button.icon === 'calendar' ? 'selected':''}>Calendar</option><option value="twitter" ${button.icon === 'twitter' ? 'selected':''}>X / Twitter</option><option value="none" ${button.icon === 'none' ? 'selected':''}>No icon</option></select><label class="sr-only" for="style-${escapeHTML(button.id)}">Button color</label><select id="style-${escapeHTML(button.id)}" class="form-select btn-style-select" data-id="${escapeHTML(button.id)}"><option value="dark" ${button.style === 'dark' ? 'selected':''}>Dark</option><option value="brand" ${button.style === 'brand' ? 'selected':''}>Brand</option><option value="accent" ${button.style === 'accent' ? 'selected':''}>Accent</option></select><button type="button" class="btn-remove-item" data-action="remove-btn" data-id="${escapeHTML(button.id)}" aria-label="Remove action link"><span class="material-symbols-rounded" aria-hidden="true">delete</span></button></div><div class="form-row"><label class="sr-only" for="label-${escapeHTML(button.id)}">Button label</label><input id="label-${escapeHTML(button.id)}" class="form-input btn-label-input" data-id="${escapeHTML(button.id)}" placeholder="Button label" value="${escapeHTML(button.label)}" /><label class="sr-only" for="url-${escapeHTML(button.id)}">Button URL</label><input id="url-${escapeHTML(button.id)}" class="form-input btn-url-input" data-id="${escapeHTML(button.id)}" placeholder="https://..." value="${escapeHTML(button.url)}" /></div></article>`).join('');
+}
+
+function syncControls(state) {
+  const values = { 'ctrl-layout':state.layout, 'ctrl-width-mode':state.widthMode, 'ctrl-max-width':state.maxWidth, 'ctrl-border-radius':state.borderRadius, 'ctrl-full-name':state.fullName, 'ctrl-job-title':state.jobTitle, 'ctrl-logo-url':state.logoUrl, 'ctrl-bg-color':state.bgColor, 'ctrl-bg-type':state.bgType, 'ctrl-bg-gradient-end':state.bgGradientEnd, 'ctrl-accent-color':state.accentColor, 'ctrl-text-primary':state.textColorPrimary, 'ctrl-text-secondary':state.textColorSecondary };
+  Object.entries(values).forEach(([id,value]) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; });
+  const fixed = state.widthMode === 'fixed'; const widthLabel = document.getElementById('lbl-max-width'); if (widthLabel) widthLabel.textContent = fixed ? 'Fixed width' : 'Maximum width';
+  document.getElementById('val-max-width').value = `${state.maxWidth}px`; document.getElementById('val-border-radius').value = `${state.borderRadius}px`;
+  document.querySelectorAll('.theme-chip').forEach(chip => chip.classList.toggle('active', chip.dataset.preset === state.themePreset));
+  document.getElementById('btn-undo').disabled = !studioStore.canUndo(); document.getElementById('btn-redo').disabled = !studioStore.canRedo();
+  const complete = [state.fullName,state.jobTitle,state.contactFields?.some(field => field.value)].filter(Boolean).length; document.getElementById('completion-status').textContent = `Profile ${Math.round(complete / 3 * 100)}% complete`;
+  const contactTarget = document.getElementById('contact-fields-list');
+  const buttonTarget = document.getElementById('action-buttons-list');
+  if (!contactTarget?.contains(document.activeElement)) renderContactFields(state);
+  if (!buttonTarget?.contains(document.activeElement)) renderActionButtons(state);
+}
+
+function validate(state, focus = false) {
+  const issues = []; const name = document.getElementById('ctrl-full-name'); const logo = document.getElementById('ctrl-logo-url');
+  name?.setAttribute('aria-invalid', String(!state.fullName.trim())); logo?.setAttribute('aria-invalid', String(!isSafeUrl(state.logoUrl)));
+  if (!state.fullName.trim()) issues.push('Enter the name you want recipients to see.');
+  if (!isSafeUrl(state.logoUrl)) issues.push('Use a full http(s) URL for the logo image.');
+  const summary = document.getElementById('form-error-summary'); summary.hidden = !issues.length; summary.textContent = issues.join(' '); if (issues.length && focus) summary.focus(); return !issues.length;
+}
+
+function renderGallery() { const target = document.getElementById('template-gallery'); if (!target) return; const cards = [{ id:3,name:'Developer landscape',description:'A confident, wide signature for portfolio and technical roles.',layout:'Landscape' },{ id:1,name:'Minimal card',description:'A centered profile presentation with a compact visual footprint.',layout:'Compact card' },{ id:2,name:'Executive row',description:'A concise layout designed for high-volume professional email.',layout:'Minimal row' }]; target.innerHTML = cards.map(card => `<article class="template-card"><div class="template-card-preview">${renderSignatureHTML(loadPresetByCardId(card.id))}</div><div><h2>${card.name}</h2><p>${card.description}</p></div><div class="template-card-footer"><span>${card.layout}</span><button type="button" class="button button-secondary" data-template="${card.id}">Use template <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></button></div></article>`).join(''); }
+
+function setView(view) { ['home','studio','gallery'].forEach(name => { const section = document.getElementById(`${name}-view`); if (section) section.hidden = name !== view; }); document.body.className = `view-mode-${view}`; if (view === 'home') document.getElementById('home').scrollIntoView({ behavior:'smooth' }); else window.scrollTo({ top:0, behavior:'smooth' }); }
+
+async function copyRichSignature() { const preview = document.getElementById('studio-preview-card'); if (!preview || !validate(studioStore.getState(), true)) return; const html = preview.innerHTML.trim(); try { if (navigator.clipboard && window.ClipboardItem) { await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([html],{type:'text/html'}), 'text/plain':new Blob(['Email signature'],{type:'text/plain'}) })]); showStudioToast('Signature copied. Paste it into your email settings.'); return; } throw new Error('Rich clipboard unavailable'); } catch { const range = document.createRange(); range.selectNodeContents(preview); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); document.execCommand('copy'); selection.removeAllRanges(); showStudioToast('Signature copied. Paste it into your email settings.'); } }
+function copyRawHTML() { navigator.clipboard.writeText(document.getElementById('studio-preview-card').innerHTML.trim()).then(() => showStudioToast('HTML copied to clipboard.')).catch(() => showStudioToast('Copy failed. Please try again.')); }
+function downloadHTML() { if (!validate(studioStore.getState(), true)) return; const blob = new Blob([document.getElementById('studio-preview-card').innerHTML.trim()],{type:'text/html;charset=utf-8'}); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'),{href:url,download:'email-signature.html'}); link.click(); URL.revokeObjectURL(url); showStudioToast('HTML file downloaded.'); }
+function exportDraft() { const blob = new Blob([JSON.stringify(studioStore.getState(),null,2)],{type:'application/json'}); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'),{href:url,download:'signature-studio-draft.json'}); link.click(); URL.revokeObjectURL(url); showStudioToast('Editable draft exported.'); }
+function importDraft(file) { if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const data = JSON.parse(reader.result); if (!data || typeof data !== 'object' || !Array.isArray(data.contactFields) || !Array.isArray(data.buttons)) throw new Error(); studioStore.setState({ ...clone(DEFAULT_SIGNATURE_STATE), ...data }); showStudioToast('Draft imported.'); } catch { showStudioToast('That file is not a valid Signature Studio draft.'); } }; reader.readAsText(file); }
+
 export function initStudio() {
-  studioStore = createStudioStore(DEFAULT_SIGNATURE_STATE);
-
-  // Global window references for HTML event hooks
-  window.studioStore = studioStore;
-  window.loadTemplateIntoStudio = loadTemplateIntoStudio;
-  window.switchViewMode = switchViewMode;
-  window.copyStudioSignature = copyStudioSignature;
-  window.copyRawHTML = copyRawHTML;
-  window.downloadHTML = downloadHTML;
-
-  const previewCard = document.getElementById('studio-preview-card');
-  const canvasWrapper = document.getElementById('studio-canvas-wrapper');
-
-  // Preview update listener
-  function updatePreview() {
-    if (previewCard) {
-      const state = studioStore.getState();
-      previewCard.innerHTML = renderSignatureHTML(state);
-    }
-  }
-
-  studioStore.subscribe(updatePreview);
-
-  // Initial render
-  updatePreview();
-  syncControlsWithState(studioStore.getState());
-
-  // Navigation tab event listeners
-  const tabStudio = document.getElementById('tab-btn-studio');
-  const tabGallery = document.getElementById('tab-btn-gallery');
-  if (tabStudio) tabStudio.addEventListener('click', () => switchViewMode('studio'));
-  if (tabGallery) tabGallery.addEventListener('click', () => switchViewMode('gallery'));
-
-  // Collapsible accordion sections
-  document.querySelectorAll('.control-header').forEach(header => {
-    header.addEventListener('click', () => {
-      const section = header.closest('.control-section');
-      if (section) section.classList.toggle('collapsed');
-    });
-  });
-
-  // Top-level input bindings
-  const bindInput = (id, key, transform = (v) => v) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const evt = el.type === 'range' || el.type === 'text' || el.type === 'color' ? 'input' : 'change';
-    el.addEventListener(evt, (e) => {
-      studioStore.setField(key, transform(e.target.value));
-    });
-  };
-
-  bindInput('ctrl-layout', 'layout');
-  bindInput('ctrl-width-mode', 'widthMode', (mode) => {
-    const lbl = document.getElementById('lbl-max-width');
-    if (lbl) lbl.textContent = mode === 'fixed' ? 'Fixed Width' : 'Max Width';
-    return mode;
-  });
-  bindInput('ctrl-max-width', 'maxWidth', Number);
-  bindInput('ctrl-border-radius', 'borderRadius', Number);
-  bindInput('ctrl-full-name', 'fullName');
-  bindInput('ctrl-job-title', 'jobTitle');
-  bindInput('ctrl-logo-url', 'logoUrl');
-  bindInput('ctrl-bg-color', 'bgColor');
-  bindInput('ctrl-bg-type', 'bgType');
-  bindInput('ctrl-bg-gradient-end', 'bgGradientEnd');
-  bindInput('ctrl-accent-color', 'accentColor');
-  bindInput('ctrl-text-primary', 'textColorPrimary');
-  bindInput('ctrl-text-secondary', 'textColorSecondary');
-
-  // Live slider display counters
-  const sliderWidth = document.getElementById('ctrl-max-width');
-  if (sliderWidth) {
-    sliderWidth.addEventListener('input', (e) => {
-      const el = document.getElementById('val-max-width');
-      if (el) el.textContent = e.target.value + 'px';
-    });
-  }
-
-  const sliderRadius = document.getElementById('ctrl-border-radius');
-  if (sliderRadius) {
-    sliderRadius.addEventListener('input', (e) => {
-      const el = document.getElementById('val-border-radius');
-      if (el) el.textContent = e.target.value + 'px';
-    });
-  }
-
-  // Theme preset chips
-  document.querySelectorAll('.theme-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const presetKey = chip.getAttribute('data-preset');
-      studioStore.applyThemePreset(presetKey);
-      syncControlsWithState(studioStore.getState());
-    });
-  });
-
-  // Viewport switch
-  const btnVpDesktop = document.getElementById('btn-vp-desktop');
-  const btnVpMobile = document.getElementById('btn-vp-mobile');
-  if (btnVpDesktop && btnVpMobile && canvasWrapper) {
-    btnVpDesktop.addEventListener('click', () => {
-      btnVpDesktop.classList.add('active');
-      btnVpMobile.classList.remove('active');
-      canvasWrapper.classList.remove('viewport-mobile');
-    });
-    btnVpMobile.addEventListener('click', () => {
-      btnVpMobile.classList.add('active');
-      btnVpDesktop.classList.remove('active');
-      canvasWrapper.classList.add('viewport-mobile');
-    });
-  }
-
-  // Dynamic Contact Fields Delegation
-  const contactList = document.getElementById('contact-fields-list');
-  if (contactList) {
-    contactList.addEventListener('input', (e) => {
-      const id = e.target.getAttribute('data-id');
-      if (!id) return;
-      if (e.target.classList.contains('field-val-input')) {
-        studioStore.updateContactField(id, { value: e.target.value });
-      } else if (e.target.classList.contains('field-href-input')) {
-        studioStore.updateContactField(id, { href: e.target.value });
-      }
-    });
-
-    contactList.addEventListener('change', (e) => {
-      const id = e.target.getAttribute('data-id');
-      if (!id) return;
-      if (e.target.classList.contains('field-type-select')) {
-        const type = e.target.value;
-        let hrefPrefix = '';
-        if (type === 'phone') hrefPrefix = 'tel:';
-        if (type === 'email') hrefPrefix = 'mailto:';
-        if (type === 'website') hrefPrefix = 'https://';
-        studioStore.updateContactField(id, { type });
-      }
-    });
-
-    contactList.addEventListener('click', (e) => {
-      if (e.target.getAttribute('data-action') === 'remove-contact') {
-        const id = e.target.getAttribute('data-id');
-        studioStore.removeContactField(id);
-        renderContactFieldsList(studioStore);
-      }
-    });
-  }
-
-  const btnAddContact = document.getElementById('btn-add-contact-field');
-  if (btnAddContact) {
-    btnAddContact.addEventListener('click', () => {
-      studioStore.addContactField({
-        type: 'website',
-        label: 'Website',
-        value: 'https://',
-        href: 'https://'
-      });
-      renderContactFieldsList(studioStore);
-    });
-  }
-
-  // Dynamic Buttons Delegation
-  const buttonsList = document.getElementById('action-buttons-list');
-  if (buttonsList) {
-    buttonsList.addEventListener('input', (e) => {
-      const id = e.target.getAttribute('data-id');
-      if (!id) return;
-      if (e.target.classList.contains('btn-label-input')) {
-        studioStore.updateButton(id, { label: e.target.value });
-      } else if (e.target.classList.contains('btn-url-input')) {
-        studioStore.updateButton(id, { url: e.target.value });
-      }
-    });
-
-    buttonsList.addEventListener('change', (e) => {
-      const id = e.target.getAttribute('data-id');
-      if (!id) return;
-      if (e.target.classList.contains('btn-icon-select')) {
-        studioStore.updateButton(id, { icon: e.target.value });
-      } else if (e.target.classList.contains('btn-style-select')) {
-        studioStore.updateButton(id, { style: e.target.value });
-      }
-    });
-
-    buttonsList.addEventListener('click', (e) => {
-      if (e.target.getAttribute('data-action') === 'remove-btn') {
-        const id = e.target.getAttribute('data-id');
-        studioStore.removeButton(id);
-        renderActionButtonsList(studioStore);
-      }
-    });
-  }
-
-  const btnAddButton = document.getElementById('btn-add-button');
-  if (btnAddButton) {
-    btnAddButton.addEventListener('click', () => {
-      const state = studioStore.getState();
-      if (state.buttons && state.buttons.length >= 4) {
-        showStudioToast('Maximum 4 action buttons allowed for email layout.');
-        return;
-      }
-      studioStore.addButton({
-        icon: 'globe',
-        label: 'Website',
-        url: 'https://',
-        style: 'dark'
-      });
-      renderActionButtonsList(studioStore);
-    });
-  }
-
-  // Action Buttons
-  const btnCopyPrimary = document.getElementById('btn-studio-copy-primary');
-  if (btnCopyPrimary) btnCopyPrimary.addEventListener('click', copyStudioSignature);
-
-  const btnCopyHtml = document.getElementById('btn-studio-copy-html');
-  if (btnCopyHtml) btnCopyHtml.addEventListener('click', copyRawHTML);
-
-  const btnDownload = document.getElementById('btn-studio-download');
-  if (btnDownload) btnDownload.addEventListener('click', downloadHTML);
+  let saved; try { saved = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch { saved = null; }
+  studioStore = createStudioStore(saved && typeof saved === 'object' ? { ...clone(DEFAULT_SIGNATURE_STATE), ...saved } : DEFAULT_SIGNATURE_STATE);
+  const preview = document.getElementById('studio-preview-card'); const heroPreview = document.getElementById('hero-signature-preview'); const canvas = document.getElementById('studio-canvas-wrapper');
+  studioStore.subscribe(state => { if (preview) preview.innerHTML = renderSignatureHTML(state); if (heroPreview) heroPreview.innerHTML = renderSignatureHTML(state); try { localStorage.setItem(DRAFT_KEY,JSON.stringify(state)); } catch {} syncControls(state); validate(state); });
+  studioStore.setState(studioStore.getState()); renderGallery();
+  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
+  document.getElementById('template-gallery').addEventListener('click', event => { const button = event.target.closest('[data-template]'); if (!button) return; studioStore.setState(loadPresetByCardId(button.dataset.template)); setView('studio'); showStudioToast('Template loaded into the editor.'); });
+  const bindings = { 'ctrl-layout':'layout','ctrl-width-mode':'widthMode','ctrl-max-width':'maxWidth','ctrl-border-radius':'borderRadius','ctrl-full-name':'fullName','ctrl-job-title':'jobTitle','ctrl-logo-url':'logoUrl','ctrl-bg-color':'bgColor','ctrl-bg-type':'bgType','ctrl-bg-gradient-end':'bgGradientEnd','ctrl-accent-color':'accentColor','ctrl-text-primary':'textColorPrimary','ctrl-text-secondary':'textColorSecondary' };
+  Object.entries(bindings).forEach(([id,key]) => { const input = document.getElementById(id); input.addEventListener(input.type === 'select-one' ? 'change' : 'input', event => studioStore.setField(key, input.type === 'range' ? Number(event.target.value) : event.target.value)); input.addEventListener('blur', () => validate(studioStore.getState())); });
+  document.querySelectorAll('.theme-chip').forEach(chip => chip.addEventListener('click', () => studioStore.applyThemePreset(chip.dataset.preset)));
+  document.getElementById('contact-fields-list').addEventListener('input', event => { const id = event.target.dataset.id; if (event.target.matches('.field-val-input')) studioStore.updateContactField(id,{value:event.target.value}); if (event.target.matches('.field-href-input')) studioStore.updateContactField(id,{href:event.target.value}); });
+  document.getElementById('contact-fields-list').addEventListener('change', event => { if (event.target.matches('.field-type-select')) studioStore.updateContactField(event.target.dataset.id,{type:event.target.value}); });
+  document.getElementById('contact-fields-list').addEventListener('click', event => { const button = event.target.closest('[data-action="remove-contact"]'); if (button) { studioStore.removeContactField(button.dataset.id); renderContactFields(studioStore.getState()); } });
+  document.getElementById('action-buttons-list').addEventListener('input', event => { const id = event.target.dataset.id; if (event.target.matches('.btn-label-input')) studioStore.updateButton(id,{label:event.target.value}); if (event.target.matches('.btn-url-input')) studioStore.updateButton(id,{url:event.target.value}); });
+  document.getElementById('action-buttons-list').addEventListener('change', event => { const id = event.target.dataset.id; if (event.target.matches('.btn-icon-select')) studioStore.updateButton(id,{icon:event.target.value}); if (event.target.matches('.btn-style-select')) studioStore.updateButton(id,{style:event.target.value}); });
+  document.getElementById('action-buttons-list').addEventListener('click', event => { const button = event.target.closest('[data-action="remove-btn"]'); if (button) { studioStore.removeButton(button.dataset.id); renderActionButtons(studioStore.getState()); } });
+  document.getElementById('btn-add-contact-field').addEventListener('click', () => studioStore.addContactField({type:'website',label:'Website',value:'',href:'https://'}));
+  document.getElementById('btn-add-button').addEventListener('click', () => { if (studioStore.getState().buttons.length >= 4) return showStudioToast('A signature can include up to four action links.'); studioStore.addButton(); });
+  document.getElementById('btn-vp-desktop').addEventListener('click', () => { canvas.classList.remove('viewport-mobile'); document.getElementById('btn-vp-desktop').classList.add('active'); document.getElementById('btn-vp-mobile').classList.remove('active'); });
+  document.getElementById('btn-vp-mobile').addEventListener('click', () => { canvas.classList.add('viewport-mobile'); document.getElementById('btn-vp-mobile').classList.add('active'); document.getElementById('btn-vp-desktop').classList.remove('active'); });
+  document.getElementById('btn-undo').addEventListener('click', () => studioStore.undo()); document.getElementById('btn-redo').addEventListener('click', () => studioStore.redo()); document.getElementById('btn-reset').addEventListener('click', () => { if (confirm('Reset this draft to the default signature? Your saved browser draft will be replaced.')) { studioStore.setState(DEFAULT_SIGNATURE_STATE); showStudioToast('Draft reset to the default signature.'); } });
+  document.getElementById('btn-studio-copy-primary').addEventListener('click', copyRichSignature); document.getElementById('btn-studio-copy-html').addEventListener('click', copyRawHTML); document.getElementById('btn-studio-download').addEventListener('click', downloadHTML); document.getElementById('btn-export-draft').addEventListener('click', exportDraft); document.getElementById('input-import-draft').addEventListener('change', event => importDraft(event.target.files[0]));
 }
 
-// Auto-initialize if running in browser
-if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initStudio);
-  } else {
-    initStudio();
-  }
-}
+if (typeof window !== 'undefined' && typeof document !== 'undefined') document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initStudio) : initStudio();

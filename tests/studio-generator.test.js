@@ -83,3 +83,16 @@ test('renderSignatureHTML supports widthMode fixed (exact width and min-width/ma
   assert.ok(html.includes('min-width: 550px'));
 });
 
+test('renderSignatureHTML escapes text and strips unsafe URLs from public editor input', () => {
+  const html = renderSignatureHTML({
+    ...DEFAULT_SIGNATURE_STATE,
+    fullName: '<img src=x onerror=alert(1)>',
+    logoUrl: 'javascript:alert(1)',
+    contactFields: [{ id: 'c1', type: 'website', label: 'Site', value: '<script>', href: 'javascript:alert(1)' }]
+  });
+  assert.ok(html.includes('&lt;img src=x onerror=alert(1)&gt;'));
+  assert.ok(html.includes('&lt;script&gt;'));
+  assert.ok(!html.includes('javascript:alert'));
+  assert.ok(!html.includes('<img src=x onerror'));
+});
+

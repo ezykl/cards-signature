@@ -96,3 +96,14 @@ test('store manages widthMode switching', () => {
   assert.equal(store.getState().widthMode, 'fixed');
 });
 
+test('store supports undo and redo for editor changes', () => {
+  const store = createStudioStore();
+  const originalName = store.getState().fullName;
+  store.setField('fullName', 'Jordan Lee');
+  assert.equal(store.canUndo(), true);
+  store.undo();
+  assert.equal(store.getState().fullName, originalName);
+  store.redo();
+  assert.equal(store.getState().fullName, 'Jordan Lee');
+});
+

@@ -128,20 +128,37 @@ export const DEFAULT_SIGNATURE_STATE = {
   buttonBorder: 'rgba(255, 255, 255, 0.16)'
 };
 
+/** Escape user-provided text before it becomes part of exported HTML. */
+function escapeHTML(value = '') {
+  return String(value).replace(/[&<>'"]/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[character]);
+}
+
+/** Only allow URL schemes supported by email clients and this editor. */
+function safeUrl(value, fallback = '') {
+  const url = String(value || '').trim();
+  if (!url) return fallback;
+  return /^(https?:|mailto:|tel:)/i.test(url) ? escapeHTML(url) : fallback;
+}
+
+function safeHex(value, fallback) {
+  return /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : fallback;
+}
+
 /**
  * Strips '#' from hex code for URL interpolation.
  */
 function cleanHex(color) {
-  if (!color) return '38bdf8';
-  return color.replace('#', '').trim();
+  return safeHex(color, '#38bdf8').slice(1);
 }
 
 /**
  * Computes background inline CSS safely without SVG data URIs.
  */
 function getBackgroundStyle(state) {
-  const bg = state.bgColor || '#000440';
-  const end = state.bgGradientEnd || '#00086b';
+  const bg = safeHex(state.bgColor, '#000440');
+  const end = safeHex(state.bgGradientEnd, '#00086b');
 
   if (state.bgType === 'gradient') {
     return `background-color: ${bg}; background-image: linear-gradient(135deg, ${bg} 0%, ${end} 100%);`;
@@ -163,20 +180,21 @@ function renderContactRows(contactFields, accentColor) {
     const iconFile = CONTACT_ICON_MAP[field.type] || 'star.png';
     const iconUrl = `https://img.icons8.com/material-rounded/48/${hex}/${iconFile}`;
 
-    const textContent = field.href ? `
-      <a href="${field.href}" style="font-size: 11.5px; color: #e2e8f0; text-decoration: none; font-weight: 500; word-break: break-all;">
-        ${field.value}
+    const href = safeUrl(field.href);
+    const textContent = href ? `
+      <a href="${href}" style="font-size: 11.5px; color: #e2e8f0; text-decoration: none; font-weight: 500; word-break: break-all;">
+        ${escapeHTML(field.value)}
       </a>
     ` : `
       <span style="font-size: 11.5px; color: #cbd5e1; font-weight: 400; line-height: 1.3;">
-        ${field.value}
+        ${escapeHTML(field.value)}
       </span>
     `;
 
     return `
       <tr>
         <td style="width: 20px; padding: 2.5px 0; vertical-align: middle;">
-          <img src="${iconUrl}" width="13" height="13" alt="${field.label || field.type}" style="display: block; border: 0; outline: none; width: 13px; height: 13px;" />
+          <img src="${iconUrl}" width="13" height="13" alt="${escapeHTML(field.label || field.type)}" style="display: block; border: 0; outline: none; width: 13px; height: 13px;" />
         </td>
         <td style="padding: 2.5px 0 2.5px 6px; vertical-align: middle;">
           ${textContent.trim()}
@@ -211,19 +229,19 @@ function renderActionButtons(buttons, state) {
     if (btn.style === 'brand') {
       bgStyle = 'background-color: #0a66c2; background-image: linear-gradient(180deg, #0d73d9 0%, #0855a4 100%); border: 1px solid #1f82e5; color: #ffffff;';
     } else if (btn.style === 'accent') {
-      const accent = state.accentColor || '#38bdf8';
+      const accent = safeHex(state.accentColor, '#38bdf8');
       bgStyle = `background-color: ${accent}; background-image: linear-gradient(180deg, ${accent} 0%, rgba(0, 0, 0, 0.35) 100%); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;`;
     }
 
     const iconFile = BUTTON_ICON_MAP[btn.icon] || (btn.icon ? `${btn.icon}.png` : null);
     const iconTag = (iconFile && btn.icon !== 'none') ? `
-      <img src="https://img.icons8.com/material-rounded/48/ffffff/${iconFile}" alt="${btn.label}" width="12" height="12" style="display: inline-block; vertical-align: -2px; margin-right: 4px; width: 12px; height: 12px; border: 0;" />
+      <img src="https://img.icons8.com/material-rounded/48/ffffff/${iconFile}" alt="${escapeHTML(btn.label)}" width="12" height="12" style="display: inline-block; vertical-align: -2px; margin-right: 4px; width: 12px; height: 12px; border: 0;" />
     ` : '';
 
     return `
       <td style="${paddingStyle} width: ${colWidth}; vertical-align: middle;">
-        <a href="${btn.url || '#'}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; ${bgStyle} font-size: 10.5px; font-weight: 600; text-decoration: none; padding: 7px 6px; border-radius: 7px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); line-height: 14px; white-space: nowrap;">
-          ${iconTag.trim()}${btn.label}
+        <a href="${safeUrl(btn.url, '#')}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; ${bgStyle} font-size: 10.5px; font-weight: 600; text-decoration: none; padding: 7px 6px; border-radius: 7px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); line-height: 14px; white-space: nowrap;">
+          ${iconTag.trim()}${escapeHTML(btn.label)}
         </a>
       </td>
     `;
@@ -278,16 +296,16 @@ function renderLandscapeV2(state) {
           <!-- Name & Title -->
           <td style="vertical-align: middle;">
             <h1 style="margin: 0 0 2px 0; font-size: 19px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; letter-spacing: -0.2px; line-height: 1.2;">
-              ${state.fullName || ''}
+              ${escapeHTML(state.fullName)}
             </h1>
             <span style="display: inline-block; font-size: 12px; color: ${state.textColorSecondary || '#93c5fd'}; font-weight: 600; letter-spacing: 0.2px;">
-              ${state.jobTitle || ''}
+              ${escapeHTML(state.jobTitle)}
             </span>
           </td>
-          ${state.logoUrl ? `
+          ${safeUrl(state.logoUrl) ? `
           <!-- Logo (Top Right) -->
           <td align="right" style="vertical-align: middle; padding-left: 14px; width: 70px;">
-            <img src="${state.logoUrl}" alt="Logo" width="70" height="46" style="display: block; border: 0; outline: none; max-width: 70px; width: 100%; height: auto;" />
+            <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="70" height="46" style="display: block; border: 0; outline: none; max-width: 70px; width: 100%; height: auto;" />
           </td>
           ` : ''}
         </tr>
@@ -323,21 +341,21 @@ function renderCompactCard(state) {
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
   <tr>
     <td style="padding: 20px; border-radius: ${radius}px; text-align: center;">
-      ${state.logoUrl ? `
+      ${safeUrl(state.logoUrl) ? `
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
         <tr>
           <td align="center" style="padding-bottom: 12px;">
-            <img src="${state.logoUrl}" alt="Logo" width="60" height="40" style="display: block; margin: 0 auto; border: 0; outline: none; max-width: 60px; height: auto;" />
+            <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="60" height="40" style="display: block; margin: 0 auto; border: 0; outline: none; max-width: 60px; height: auto;" />
           </td>
         </tr>
       </table>
       ` : ''}
 
       <h1 style="margin: 0 0 4px 0; font-size: 18px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
-        ${state.fullName || ''}
+        ${escapeHTML(state.fullName)}
       </h1>
       <span style="display: inline-block; font-size: 12px; color: ${state.textColorSecondary || '#93c5fd'}; font-weight: 600; margin-bottom: 12px;">
-        ${state.jobTitle || ''}
+        ${escapeHTML(state.jobTitle)}
       </span>
 
       ${contactRows ? `
@@ -369,17 +387,17 @@ function renderMinimalRow(state) {
     <td style="padding: 14px 18px; border-radius: ${radius}px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
         <tr>
-          ${state.logoUrl ? `
+          ${safeUrl(state.logoUrl) ? `
           <td style="vertical-align: middle; padding-right: 14px; width: 50px;">
-            <img src="${state.logoUrl}" alt="Logo" width="50" height="34" style="display: block; border: 0; outline: none; max-width: 50px; height: auto;" />
+            <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="50" height="34" style="display: block; border: 0; outline: none; max-width: 50px; height: auto;" />
           </td>
           ` : ''}
           <td style="vertical-align: middle;">
             <div style="font-size: 17px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
-              ${state.fullName || ''}
+              ${escapeHTML(state.fullName)}
             </div>
             <div style="font-size: 11.5px; color: ${state.textColorSecondary || '#93c5fd'}; font-weight: 600; margin-top: 2px;">
-              ${state.jobTitle || ''}
+              ${escapeHTML(state.jobTitle)}
             </div>
           </td>
         </tr>
@@ -402,15 +420,29 @@ function renderMinimalRow(state) {
  * Main export function: transforms SignatureState into email-safe table markup.
  */
 export function renderSignatureHTML(state = DEFAULT_SIGNATURE_STATE) {
-  const layout = state.layout || 'landscape-v2';
+  const safeState = {
+    ...DEFAULT_SIGNATURE_STATE,
+    ...state,
+    maxWidth: Math.max(280, Math.min(720, Number(state.maxWidth) || DEFAULT_SIGNATURE_STATE.maxWidth)),
+    borderRadius: Math.max(0, Math.min(32, Number.isFinite(Number(state.borderRadius)) ? Number(state.borderRadius) : DEFAULT_SIGNATURE_STATE.borderRadius)),
+    bgColor: safeHex(state.bgColor, DEFAULT_SIGNATURE_STATE.bgColor),
+    bgGradientEnd: safeHex(state.bgGradientEnd, DEFAULT_SIGNATURE_STATE.bgGradientEnd),
+    accentColor: safeHex(state.accentColor, DEFAULT_SIGNATURE_STATE.accentColor),
+    textColorPrimary: safeHex(state.textColorPrimary, DEFAULT_SIGNATURE_STATE.textColorPrimary),
+    textColorSecondary: safeHex(state.textColorSecondary, DEFAULT_SIGNATURE_STATE.textColorSecondary),
+    textColorMuted: safeHex(state.textColorMuted, DEFAULT_SIGNATURE_STATE.textColorMuted),
+    bgType: ['solid', 'gradient', 'ambient'].includes(state.bgType) ? state.bgType : 'solid',
+    widthMode: state.widthMode === 'fixed' ? 'fixed' : 'responsive'
+  };
+  const layout = safeState.layout || 'landscape-v2';
 
   switch (layout) {
     case 'compact-card':
-      return renderCompactCard(state);
+      return renderCompactCard(safeState);
     case 'minimal-row':
-      return renderMinimalRow(state);
+      return renderMinimalRow(safeState);
     case 'landscape-v2':
     default:
-      return renderLandscapeV2(state);
+      return renderLandscapeV2(safeState);
   }
 }
