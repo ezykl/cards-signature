@@ -110,6 +110,20 @@ export function initStudio() {
   document.getElementById('action-buttons-list').addEventListener('click', event => { const button = event.target.closest('[data-action="remove-btn"]'); if (button) { studioStore.removeButton(button.dataset.id); renderActionButtons(studioStore.getState()); } });
   document.getElementById('btn-add-contact-field').addEventListener('click', () => studioStore.addContactField({type:'website',label:'Website',value:'',href:'https://'}));
   document.getElementById('btn-add-button').addEventListener('click', () => { if (studioStore.getState().buttons.length >= 4) return showStudioToast('A signature can include up to four action links.'); studioStore.addButton(); });
+
+// Dark mode toggle implementation
+const darkToggle = document.getElementById('btn-toggle-dark');
+if (darkToggle) {
+  const saved = localStorage.getItem('darkMode');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = saved ? JSON.parse(saved) : prefersDark;
+  if (isDark) document.body.classList.add('dark-mode');
+  darkToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const nowDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', nowDark);
+  });
+}
   document.getElementById('btn-vp-desktop').addEventListener('click', () => { canvas.classList.remove('viewport-mobile'); document.getElementById('btn-vp-desktop').classList.add('active'); document.getElementById('btn-vp-mobile').classList.remove('active'); });
   document.getElementById('btn-vp-mobile').addEventListener('click', () => { canvas.classList.add('viewport-mobile'); document.getElementById('btn-vp-mobile').classList.add('active'); document.getElementById('btn-vp-desktop').classList.remove('active'); });
   document.getElementById('btn-undo').addEventListener('click', () => studioStore.undo()); document.getElementById('btn-redo').addEventListener('click', () => studioStore.redo()); document.getElementById('btn-reset').addEventListener('click', () => { if (confirm('Reset this draft to the default signature? Your saved browser draft will be replaced.')) { studioStore.setState(DEFAULT_SIGNATURE_STATE); showStudioToast('Draft reset to the default signature.'); } });
