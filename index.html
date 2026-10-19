@@ -37,7 +37,13 @@
     </ul>
   </div>
   <div class="hero-preview" aria-label="Example email signature preview">
-    <div class="preview-window-bar"><span class="preview-window-icon material-symbols-rounded" aria-hidden="true">mail</span><p>New message &bull; Preview</p></div>
+    <div class="preview-window-bar preview-tab-bar" role="tablist" aria-label="Composer preview tabs">
+      <div class="preview-tab preview-tab-active" role="tab" aria-selected="true">
+        <span class="preview-tab-icon material-symbols-rounded" aria-hidden="true">tab</span>
+        <span class="preview-tab-title">New message &bull; Preview</span>
+        <span class="preview-tab-close material-symbols-rounded" aria-hidden="true">close</span>
+      </div>
+    </div>
     <div class="hero-signature" id="hero-signature-preview"></div>
   </div>
 </div>

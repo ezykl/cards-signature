@@ -602,27 +602,30 @@ button[disabled] {
     0 28px 60px -12px rgba(0, 0, 0, 0.6),
     0 0 0 1px rgba(255, 255, 255, 0.04) inset;
 }
-.dark-mode .preview-window-bar {
+.dark-mode .preview-window-bar,
+.dark-mode .preview-tab-bar {
   border-bottom-color: rgba(255, 255, 255, 0.12);
 }
-.dark-mode .preview-window-bar span {
-  background: rgba(255, 255, 255, 0.28);
+.dark-mode .preview-tab {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(255, 255, 255, 0.14);
+  border-bottom-color: rgba(15, 23, 42, 0.9);
+  color: #e2e8f0;
+  box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.4);
 }
-.dark-mode .preview-window-bar span:nth-child(1) {
-  background: #f87171;
+.dark-mode .preview-tab-icon {
+  color: #38bdf8;
 }
-.dark-mode .preview-window-bar span:nth-child(2) {
-  background: #fbbf24;
+.dark-mode .preview-tab-close {
+  color: #64748b;
 }
-.dark-mode .preview-window-bar span:nth-child(3) {
-  background: #4ade80;
-}
-.dark-mode .preview-window-bar p {
+.dark-mode .preview-tab-close:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: #cbd5e1;
 }
 .dark-mode .hero-signature {
   background: rgba(2, 6, 23, 0.35);
-  border-radius: 10px;
+  border-radius: 0 0 10px 10px;
 }
 /* Same adaptive treatment for the studio preview + template previews */
 .dark-mode .preview-card-canvas {
