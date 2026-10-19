@@ -150,3 +150,20 @@ test('getContrastRatio calculates WCAG 2.1 relative luminance contrast accuratel
   const sameColor = getContrastRatio('#3b82f6', '#3b82f6');
   assert.equal(Math.round(sameColor), 1);
 });
+
+test('renderSignatureHTML renders action buttons with streamlined core icon set', () => {
+  const customState = {
+    ...DEFAULT_SIGNATURE_STATE,
+    buttons: [
+      { id: 'b1', icon: 'github', label: 'GitHub', url: 'https://github.com/test' },
+      { id: 'b2', icon: 'linkedin', label: 'LinkedIn', url: 'https://linkedin.com/in/test' },
+      { id: 'b3', icon: 'download', label: 'CV', url: 'https://test.com/cv.pdf' },
+      { id: 'b4', icon: 'none', label: 'Plain', url: 'https://plain.com' }
+    ]
+  };
+  const html = renderSignatureHTML(customState);
+  assert.ok(html.includes('github.png'));
+  assert.ok(html.includes('linkedin--v1.png'));
+  assert.ok(html.includes('download.png'));
+  assert.ok(!html.includes('none.png'));
+});
