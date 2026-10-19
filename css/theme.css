@@ -147,94 +147,6 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
   position: relative;
   isolation: isolate;
 }
-/* CSS gradient blobs (no images): two soft morphing orbs behind the hero */
-.hero-glass::before,
-.hero-glass::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  pointer-events: none;
-  border-radius: 62% 38% 55% 45% / 48% 58% 42% 52%;
-  filter: blur(46px);
-  will-change: transform, border-radius;
-}
-.hero-glass::before {
-  width: min(520px, 60%);
-  aspect-ratio: 1;
-  right: -4%;
-  top: 6%;
-  background: radial-gradient(
-    circle at 30% 30%,
-    hsl(228 90% 62% / 0.85),
-    hsl(262 80% 58% / 0.55) 55%,
-    transparent 75%
-  );
-  animation: blobMorph 16s ease-in-out infinite alternate;
-}
-.hero-glass::after {
-  width: min(380px, 44%);
-  aspect-ratio: 1;
-  right: 22%;
-  bottom: -2%;
-  background: radial-gradient(
-    circle at 60% 40%,
-    hsl(190 95% 60% / 0.65),
-    hsl(215 90% 60% / 0.35) 60%,
-    transparent 78%
-  );
-  animation: blobMorph 20s ease-in-out -6s infinite alternate-reverse;
-}
-.dark-mode .hero-glass::before {
-  background: radial-gradient(
-    circle at 30% 30%,
-    hsl(235 85% 58% / 0.6),
-    hsl(268 75% 50% / 0.4) 55%,
-    transparent 75%
-  );
-}
-.dark-mode .hero-glass::after {
-  background: radial-gradient(
-    circle at 60% 40%,
-    hsl(190 90% 50% / 0.4),
-    hsl(220 85% 52% / 0.25) 60%,
-    transparent 78%
-  );
-}
-@keyframes blobMorph {
-  0% {
-    border-radius: 62% 38% 55% 45% / 48% 58% 42% 52%;
-    transform: translate(0, 0) rotate(0deg) scale(1);
-  }
-  50% {
-    border-radius: 40% 60% 42% 58% / 58% 40% 60% 42%;
-    transform: translate(-18px, 14px) rotate(14deg) scale(1.06);
-  }
-  100% {
-    border-radius: 55% 45% 62% 38% / 42% 56% 44% 58%;
-    transform: translate(12px, -10px) rotate(-8deg) scale(0.96);
-  }
-}
-@media (max-width: 1000px) {
-  .hero-glass::before {
-    right: -25%;
-    top: 40%;
-    width: 80%;
-    opacity: 0.7;
-  }
-  .hero-glass::after {
-    right: auto;
-    left: -15%;
-    bottom: 0;
-    width: 60%;
-    opacity: 0.7;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-glass::before,
-  .hero-glass::after {
-    animation: none;
-  }
-}
 /* Hero layout (.hero-glass replaced .hero-shell in the markup) */
 .hero-glass {
   min-height: 560px;
@@ -359,19 +271,10 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
   transform: translateY(-1px) scale(1.02);
   transition: transform 120ms ease;
 }
-/* Focus ring */
+/* Focus ring: clean, calm, high-contrast outline */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 3px solid var(--blue);
   outline-offset: 2px;
-  animation: focusPulse 1s infinite;
-}
-@keyframes focusPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
-  }
 }
 
 /* Preview: let the signature table resolve width:100% against the canvas, not its own content */
@@ -512,7 +415,7 @@ button[disabled] {
   width: fit-content;
   background: rgba(37, 99, 235, 0.08);
   border: 1px solid rgba(37, 99, 235, 0.18);
-  border-radius: 999px;
+  border-radius: 8px;
 }
 .dark-mode .eyebrow {
   background: rgba(147, 197, 253, 0.12);
@@ -523,7 +426,7 @@ button[disabled] {
   padding: 4px 10px;
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 8px;
 }
 .dark-mode .trust-list li {
   background: rgba(255, 255, 255, 0.06);
@@ -683,8 +586,7 @@ button[disabled] {
 
 /* Adaptive "New message" preview window (follows light/dark) */
 .hero-preview {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.98);
 }
 .hero-signature {
   background: transparent;
@@ -692,14 +594,13 @@ button[disabled] {
 .dark-mode .hero-preview {
   background: linear-gradient(
     160deg,
-    rgba(30, 41, 59, 0.78),
-    rgba(15, 23, 42, 0.88)
+    rgba(30, 41, 59, 0.94),
+    rgba(15, 23, 42, 0.98)
   );
   border-color: rgba(255, 255, 255, 0.14);
   box-shadow:
     0 28px 60px -12px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-    0 0 60px -10px hsl(235 85% 58% / 0.35);
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
 }
 .dark-mode .preview-window-bar {
   border-bottom-color: rgba(255, 255, 255, 0.12);
@@ -740,12 +641,8 @@ button[disabled] {
 }
 
 /* ============================================================
-   Phase 1: simplified background + layout/control fixes
+   Layout and control refinements
    ============================================================ */
-
-/* 1. Simple background: blobs hidden for clean aesthetic */
-.hero-glass::before,
-.hero-glass::after { display: none; }
 
 /* 2. Live preview: center the signature inside its container */
 .preview-card-canvas { align-items: center; justify-content: center; }

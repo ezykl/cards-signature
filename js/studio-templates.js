@@ -603,6 +603,8 @@ export function renderSignatureHTML(state = DEFAULT_SIGNATURE_STATE) {
   const safeState = {
     ...DEFAULT_SIGNATURE_STATE,
     ...state,
+    fullName: (typeof state.fullName === 'string' && state.fullName.trim() !== '') ? state.fullName : (state.fullName === '' ? 'Your Name' : DEFAULT_SIGNATURE_STATE.fullName),
+    jobTitle: (typeof state.jobTitle === 'string' && state.jobTitle.trim() !== '') ? state.jobTitle : (state.jobTitle === '' ? 'Role or Team' : DEFAULT_SIGNATURE_STATE.jobTitle),
     maxWidth: Math.max(280, Math.min(720, Number(state.maxWidth) || DEFAULT_SIGNATURE_STATE.maxWidth)),
     borderRadius: Math.max(0, Math.min(32, Number.isFinite(Number(state.borderRadius)) ? Number(state.borderRadius) : DEFAULT_SIGNATURE_STATE.borderRadius)),
     bgColor: safeHex(state.bgColor, DEFAULT_SIGNATURE_STATE.bgColor),

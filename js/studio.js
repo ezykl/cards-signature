@@ -133,7 +133,7 @@ function validate(state, focus = false) {
   const summary = document.getElementById('form-error-summary'); summary.hidden = !issues.length; summary.textContent = issues.join(' '); if (issues.length && focus) summary.focus(); return !issues.length;
 }
 
-function renderGallery() { const target = document.getElementById('template-gallery'); if (!target) return; const cards = [{ id:3,name:'Developer landscape',description:'A confident, wide signature for portfolio and technical roles.',layout:'Landscape' },{ id:1,name:'Minimal card',description:'A centered profile presentation with a compact visual footprint.',layout:'Compact card' },{ id:2,name:'Executive row',description:'A concise layout designed for high-volume professional email.',layout:'Minimal row' }]; target.innerHTML = cards.map(card => `<article class="template-card"><div class="template-card-preview">${renderSignatureHTML(loadPresetByCardId(card.id))}</div><div><h2>${card.name}</h2><p>${card.description}</p></div><div class="template-card-footer"><span>${card.layout}</span><button type="button" class="button button-secondary" data-template="${card.id}">Use template <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></button></div></article>`).join(''); }
+function renderGallery() { const target = document.getElementById('template-gallery'); if (!target) return; const cards = [{ id:3,name:'Developer landscape',description:'A confident, wide signature for portfolio and technical roles.',layout:'Landscape' },{ id:1,name:'Minimal card',description:'A centered profile presentation with a compact visual footprint.',layout:'Compact card' },{ id:2,name:'Executive row',description:'A concise layout designed for high-volume professional email.',layout:'Minimal row' }]; target.innerHTML = cards.map(card => `<article class="template-card"><div class="template-card-preview">${renderSignatureHTML(loadPresetByCardId(card.id))}</div><div><h2>${card.name}</h2><p>${card.description}</p></div><div class="template-card-footer"><span>${card.layout}</span><button type="button" class="button button-secondary" data-template="${card.id}">Use template</button></div></article>`).join(''); }
 
 function setView(view) { ['home','studio','gallery'].forEach(name => { const section = document.getElementById(`${name}-view`); if (section) section.hidden = name !== view; }); [...document.body.classList].filter(name => name.startsWith('view-mode-')).forEach(name => document.body.classList.remove(name)); document.body.classList.add(`view-mode-${view}`); if (view === 'home') document.getElementById('home').scrollIntoView({ behavior:'smooth' }); else window.scrollTo({ top:0, behavior:'smooth' }); }
 
@@ -150,6 +150,13 @@ export function initStudio() {
   studioStore.subscribe(state => { if (preview) preview.innerHTML = renderSignatureHTML(state); if (heroPreview) heroPreview.innerHTML = renderSignatureHTML(state); try { localStorage.setItem(DRAFT_KEY,JSON.stringify(state)); } catch {} syncControls(state); validate(state); });
   studioStore.setState(studioStore.getState()); renderGallery();
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
+  document.querySelectorAll('a[data-nav="how-it-works"]').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      setView('home');
+      document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
   document.getElementById('template-gallery').addEventListener('click', event => { const button = event.target.closest('[data-template]'); if (!button) return; studioStore.setState(loadPresetByCardId(button.dataset.template)); setView('studio'); showStudioToast('Template loaded into the editor.'); });
   const bindings = { 'ctrl-layout':'layout','ctrl-width-mode':'widthMode','ctrl-max-width':'maxWidth','ctrl-border-radius':'borderRadius','ctrl-full-name':'fullName','ctrl-job-title':'jobTitle','ctrl-logo-url':'logoUrl','ctrl-bg-color':'bgColor','ctrl-bg-type':'bgType','ctrl-bg-gradient-end':'bgGradientEnd','ctrl-bg-gradient-angle':'bgGradientAngle','ctrl-accent-color':'accentColor','ctrl-text-primary':'textColorPrimary','ctrl-text-secondary':'textColorSecondary' };
   Object.entries(bindings).forEach(([id,key]) => { const input = document.getElementById(id); if (input) { input.addEventListener(input.type === 'select-one' ? 'change' : 'input', event => studioStore.setField(key, input.type === 'range' ? Number(event.target.value) : event.target.value)); input.addEventListener('blur', () => validate(studioStore.getState())); } });
@@ -171,19 +178,30 @@ export function initStudio() {
   document.getElementById('btn-add-contact-field').addEventListener('click', () => studioStore.addContactField({type:'website',label:'Website',value:'',href:'https://'}));
   document.getElementById('btn-add-button').addEventListener('click', () => { if (studioStore.getState().buttons.length >= 4) return showStudioToast('A signature can include up to four action links.'); studioStore.addButton(); });
 
-// Dark mode toggle implementation
-const darkToggle = document.getElementById('btn-toggle-dark');
-if (darkToggle) {
-  const saved = localStorage.getItem('darkMode');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const isDark = saved ? JSON.parse(saved) : prefersDark;
-  if (isDark) document.body.classList.add('dark-mode');
-  darkToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    const nowDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', nowDark);
-  });
-}
+  // Accessible theme toggle with dynamic state & ARIA attributes
+  const darkToggle = document.getElementById('btn-toggle-dark');
+  if (darkToggle) {
+    const saved = localStorage.getItem('darkMode');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved ? JSON.parse(saved) : prefersDark;
+
+    const updateThemeUI = (dark) => {
+      document.body.classList.toggle('dark-mode', dark);
+      darkToggle.setAttribute('aria-pressed', String(dark));
+      darkToggle.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+      darkToggle.setAttribute('title', dark ? 'Switch to light theme' : 'Switch to dark theme');
+      const icon = darkToggle.querySelector('.theme-toggle-icon');
+      if (icon) icon.textContent = dark ? 'light_mode' : 'dark_mode';
+    };
+
+    updateThemeUI(isDark);
+
+    darkToggle.addEventListener('click', () => {
+      const nextDark = !document.body.classList.contains('dark-mode');
+      updateThemeUI(nextDark);
+      localStorage.setItem('darkMode', JSON.stringify(nextDark));
+    });
+  }
   document.getElementById('btn-vp-desktop').addEventListener('click', () => { canvas.classList.remove('viewport-mobile'); document.getElementById('btn-vp-desktop').classList.add('active'); document.getElementById('btn-vp-mobile').classList.remove('active'); });
   document.getElementById('btn-vp-mobile').addEventListener('click', () => { canvas.classList.add('viewport-mobile'); document.getElementById('btn-vp-mobile').classList.add('active'); document.getElementById('btn-vp-desktop').classList.remove('active'); });
   document.getElementById('btn-undo').addEventListener('click', () => studioStore.undo()); document.getElementById('btn-redo').addEventListener('click', () => studioStore.redo()); document.getElementById('btn-reset').addEventListener('click', () => { if (confirm('Reset this draft to the default signature? Your saved browser draft will be replaced.')) { studioStore.setState(DEFAULT_SIGNATURE_STATE); showStudioToast('Draft reset to the default signature.'); } });
