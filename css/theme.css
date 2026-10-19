@@ -678,6 +678,29 @@ button[disabled] {
 .dynamic-item-card > * { min-width: 0; }
 .dynamic-item-header { min-width: 0; }
 .dynamic-item-header .form-select { flex: 1 1 0; min-width: 0; width: 100%; }
+.dynamic-item-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 8px;
+  background: var(--soft);
+  color: var(--navy);
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+  transition: all var(--dur-fast) ease;
+}
+.dynamic-item-icon-badge .material-symbols-rounded {
+  font-size: 20px;
+}
+.dark-mode .dynamic-item-icon-badge {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #38bdf8;
+}
 .form-row { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .form-row > .form-input { width: 100%; min-width: 0; max-width: 100%; }
 .control-body, .control-section { min-width: 0; }

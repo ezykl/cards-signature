@@ -167,3 +167,21 @@ test('renderSignatureHTML renders action buttons with streamlined core icon set'
   assert.ok(html.includes('download.png'));
   assert.ok(!html.includes('none.png'));
 });
+
+test('renderSignatureHTML renders hosted icons for email, location, phone, and aliases', () => {
+  const customState = {
+    ...DEFAULT_SIGNATURE_STATE,
+    contactFields: [
+      { id: 'c1', type: 'email', label: 'Email', value: 'hello@test.com', href: 'mailto:hello@test.com' },
+      { id: 'c2', type: 'location', label: 'Location', value: 'Manila, Philippines', href: '' },
+      { id: 'c3', type: 'address', label: 'Address', value: 'Cebu, Philippines', href: '' },
+      { id: 'c4', type: 'mobile', label: 'Mobile', value: '+63 900 000 0000', href: 'tel:+639000000000' }
+    ]
+  };
+  const html = renderSignatureHTML(customState);
+  assert.ok(html.includes('mail.png'));
+  assert.ok(html.includes('marker.png'));
+  assert.ok(html.includes('phone.png'));
+  assert.ok(html.includes('Manila, Philippines'));
+  assert.ok(html.includes('Cebu, Philippines'));
+});

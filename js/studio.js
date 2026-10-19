@@ -57,17 +57,121 @@ let toastTimer;
 
 export function showStudioToast(message) { const toast = document.getElementById('toast'); const target = document.getElementById('toast-msg'); if (!toast || !target) return; target.textContent = message; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 3600); }
 
+export function getContactSymbol(type) {
+  switch (type) {
+    case 'email': return 'mail';
+    case 'location':
+    case 'address':
+    case 'map': return 'location_on';
+    case 'phone':
+    case 'mobile': return 'call';
+    case 'website':
+    case 'portfolio': return 'language';
+    case 'calendar': return 'calendar_month';
+    case 'linkedin': return 'badge';
+    case 'github': return 'code';
+    default: return 'star';
+  }
+}
+
+export function getContactPlaceholders(type) {
+  switch (type) {
+    case 'email':
+      return { val: 'Email address (e.g. name@domain.com)', href: 'mailto:name@domain.com' };
+    case 'location':
+    case 'address':
+      return { val: 'Location (e.g. San Roque, Cebu City)', href: 'Optional map link (https://...)' };
+    case 'phone':
+      return { val: 'Phone number (e.g. +63 993 938 9798)', href: 'tel:+639939389798' };
+    case 'website':
+      return { val: 'Website text (e.g. portfolio.dev)', href: 'https://portfolio.dev' };
+    case 'calendar':
+      return { val: 'Meeting text (e.g. Book 15m chat)', href: 'https://cal.com/your-name' };
+    default:
+      return { val: 'Display text', href: 'tel:, mailto:, or https://' };
+  }
+}
+
+export function getButtonSymbol(icon) {
+  switch (icon) {
+    case 'github': return 'code';
+    case 'linkedin': return 'badge';
+    case 'download': return 'download';
+    case 'globe':
+    case 'website': return 'language';
+    case 'calendar': return 'calendar_month';
+    case 'twitter': return 'tag';
+    case 'none': return 'link_off';
+    default: return 'link';
+  }
+}
+
 function renderContactFields(state) {
   const target = document.getElementById('contact-fields-list'); if (!target) return;
-  target.innerHTML = state.contactFields.map(field => `<article class="dynamic-item-card"><div class="dynamic-item-header"><label class="sr-only" for="type-${escapeHTML(field.id)}">Contact type</label><select id="type-${escapeHTML(field.id)}" class="form-select field-type-select" data-id="${escapeHTML(field.id)}"><option value="phone" ${field.type === 'phone' ? 'selected':''}>Phone</option><option value="email" ${field.type === 'email' ? 'selected':''}>Email</option><option value="location" ${field.type === 'location' ? 'selected':''}>Location</option><option value="website" ${field.type === 'website' ? 'selected':''}>Website</option><option value="calendar" ${field.type === 'calendar' ? 'selected':''}>Calendar</option><option value="custom" ${field.type === 'custom' ? 'selected':''}>Custom</option></select><button type="button" class="btn-remove-item" data-action="remove-contact" data-id="${escapeHTML(field.id)}" aria-label="Remove contact detail"><span class="material-symbols-rounded" aria-hidden="true">delete</span></button></div><div class="form-row"><label class="sr-only" for="value-${escapeHTML(field.id)}">Display text</label><input id="value-${escapeHTML(field.id)}" class="form-input field-val-input" data-id="${escapeHTML(field.id)}" placeholder="Display text" value="${escapeHTML(field.value)}" /><label class="sr-only" for="link-${escapeHTML(field.id)}">Link</label><input id="link-${escapeHTML(field.id)}" class="form-input field-href-input" data-id="${escapeHTML(field.id)}" placeholder="tel:, mailto:, or https://" value="${escapeHTML(field.href)}" /></div></article>`).join('');
+  target.innerHTML = state.contactFields.map(field => {
+    const symbol = getContactSymbol(field.type);
+    const placeholders = getContactPlaceholders(field.type);
+    return `<article class="dynamic-item-card">
+      <div class="dynamic-item-header">
+        <span class="dynamic-item-icon-badge" title="${escapeHTML(field.type)}" aria-hidden="true"><span class="material-symbols-rounded">${symbol}</span></span>
+        <label class="sr-only" for="type-${escapeHTML(field.id)}">Contact type</label>
+        <select id="type-${escapeHTML(field.id)}" class="form-select field-type-select" data-id="${escapeHTML(field.id)}">
+          <option value="phone" ${field.type === 'phone' ? 'selected':''}>Phone</option>
+          <option value="email" ${field.type === 'email' ? 'selected':''}>Email</option>
+          <option value="location" ${field.type === 'location' ? 'selected':''}>Location</option>
+          <option value="website" ${field.type === 'website' ? 'selected':''}>Website</option>
+          <option value="calendar" ${field.type === 'calendar' ? 'selected':''}>Calendar</option>
+          <option value="custom" ${field.type === 'custom' ? 'selected':''}>Custom</option>
+        </select>
+        <button type="button" class="btn-remove-item" data-action="remove-contact" data-id="${escapeHTML(field.id)}" aria-label="Remove contact detail">
+          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+        </button>
+      </div>
+      <div class="form-row">
+        <label class="sr-only" for="value-${escapeHTML(field.id)}">Display text</label>
+        <input id="value-${escapeHTML(field.id)}" class="form-input field-val-input" data-id="${escapeHTML(field.id)}" placeholder="${placeholders.val}" value="${escapeHTML(field.value)}" />
+        <label class="sr-only" for="link-${escapeHTML(field.id)}">Link</label>
+        <input id="link-${escapeHTML(field.id)}" class="form-input field-href-input" data-id="${escapeHTML(field.id)}" placeholder="${placeholders.href}" value="${escapeHTML(field.href)}" />
+      </div>
+    </article>`;
+  }).join('');
 }
 
 function renderActionButtons(state) {
   const target = document.getElementById('action-buttons-list'); if (!target) return;
   target.innerHTML = state.buttons.map(button => {
+    const symbol = getButtonSymbol(button.icon);
     const isCustom = button.icon && !['github', 'linkedin', 'download', 'globe', 'website', 'none'].includes(button.icon);
     const customOption = isCustom ? `<option value="${escapeHTML(button.icon)}" selected>${escapeHTML(button.icon.charAt(0).toUpperCase() + button.icon.slice(1))}</option>` : '';
-    return `<article class="dynamic-item-card"><div class="dynamic-item-header"><label class="sr-only" for="icon-${escapeHTML(button.id)}">Button icon</label><select id="icon-${escapeHTML(button.id)}" class="form-select btn-icon-select" data-id="${escapeHTML(button.id)}"><option value="github" ${button.icon === 'github' ? 'selected':''}>GitHub</option><option value="linkedin" ${button.icon === 'linkedin' ? 'selected':''}>LinkedIn</option><option value="download" ${button.icon === 'download' ? 'selected':''}>Download</option><option value="globe" ${button.icon === 'globe' || button.icon === 'website' ? 'selected':''}>Website</option>${customOption}<option value="none" ${button.icon === 'none' ? 'selected':''}>No icon</option></select><label class="sr-only" for="style-${escapeHTML(button.id)}">Button color</label><select id="style-${escapeHTML(button.id)}" class="form-select btn-style-select" data-id="${escapeHTML(button.id)}"><option value="dark" ${button.style === 'dark' ? 'selected':''}>Dark</option><option value="brand" ${button.style === 'brand' ? 'selected':''}>Brand</option><option value="accent" ${button.style === 'accent' ? 'selected':''}>Accent</option></select><button type="button" class="btn-remove-item" data-action="remove-btn" data-id="${escapeHTML(button.id)}" aria-label="Remove action link"><span class="material-symbols-rounded" aria-hidden="true">delete</span></button></div><div class="form-row"><label class="sr-only" for="label-${escapeHTML(button.id)}">Button label</label><input id="label-${escapeHTML(button.id)}" class="form-input btn-label-input" data-id="${escapeHTML(button.id)}" placeholder="Button label" value="${escapeHTML(button.label)}" /><label class="sr-only" for="url-${escapeHTML(button.id)}">Button URL</label><input id="url-${escapeHTML(button.id)}" class="form-input btn-url-input" data-id="${escapeHTML(button.id)}" placeholder="https://..." value="${escapeHTML(button.url)}" /></div></article>`;
+    return `<article class="dynamic-item-card">
+      <div class="dynamic-item-header">
+        <span class="dynamic-item-icon-badge" title="${escapeHTML(button.label || button.icon)}" aria-hidden="true"><span class="material-symbols-rounded">${symbol}</span></span>
+        <label class="sr-only" for="icon-${escapeHTML(button.id)}">Button icon</label>
+        <select id="icon-${escapeHTML(button.id)}" class="form-select btn-icon-select" data-id="${escapeHTML(button.id)}">
+          <option value="github" ${button.icon === 'github' ? 'selected':''}>GitHub</option>
+          <option value="linkedin" ${button.icon === 'linkedin' ? 'selected':''}>LinkedIn</option>
+          <option value="download" ${button.icon === 'download' ? 'selected':''}>Download</option>
+          <option value="globe" ${button.icon === 'globe' || button.icon === 'website' ? 'selected':''}>Website</option>
+          ${customOption}
+          <option value="none" ${button.icon === 'none' ? 'selected':''}>No icon</option>
+        </select>
+        <label class="sr-only" for="style-${escapeHTML(button.id)}">Button color</label>
+        <select id="style-${escapeHTML(button.id)}" class="form-select btn-style-select" data-id="${escapeHTML(button.id)}">
+          <option value="dark" ${button.style === 'dark' ? 'selected':''}>Dark</option>
+          <option value="brand" ${button.style === 'brand' ? 'selected':''}>Brand</option>
+          <option value="accent" ${button.style === 'accent' ? 'selected':''}>Accent</option>
+        </select>
+        <button type="button" class="btn-remove-item" data-action="remove-btn" data-id="${escapeHTML(button.id)}" aria-label="Remove action link">
+          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+        </button>
+      </div>
+      <div class="form-row">
+        <label class="sr-only" for="label-${escapeHTML(button.id)}">Button label</label>
+        <input id="label-${escapeHTML(button.id)}" class="form-input btn-label-input" data-id="${escapeHTML(button.id)}" placeholder="Button label" value="${escapeHTML(button.label)}" />
+        <label class="sr-only" for="url-${escapeHTML(button.id)}">Button URL</label>
+        <input id="url-${escapeHTML(button.id)}" class="form-input btn-url-input" data-id="${escapeHTML(button.id)}" placeholder="https://..." value="${escapeHTML(button.url)}" />
+      </div>
+    </article>`;
   }).join('');
 }
 
@@ -174,10 +278,34 @@ export function initStudio() {
     showStudioToast(`Applied palette: ${THEME_PRESETS[key]?.name || key}`);
   });
   document.getElementById('contact-fields-list').addEventListener('input', event => { const id = event.target.dataset.id; if (event.target.matches('.field-val-input')) studioStore.updateContactField(id,{value:event.target.value}); if (event.target.matches('.field-href-input')) studioStore.updateContactField(id,{href:event.target.value}); });
-  document.getElementById('contact-fields-list').addEventListener('change', event => { if (event.target.matches('.field-type-select')) studioStore.updateContactField(event.target.dataset.id,{type:event.target.value}); });
+  document.getElementById('contact-fields-list').addEventListener('change', event => {
+    if (event.target.matches('.field-type-select')) {
+      const newType = event.target.value;
+      const card = event.target.closest('.dynamic-item-card');
+      const badge = card?.querySelector('.dynamic-item-icon-badge .material-symbols-rounded');
+      if (badge) badge.textContent = getContactSymbol(newType);
+      const valInput = card?.querySelector('.field-val-input');
+      const hrefInput = card?.querySelector('.field-href-input');
+      const placeholders = getContactPlaceholders(newType);
+      if (valInput) valInput.placeholder = placeholders.val;
+      if (hrefInput) hrefInput.placeholder = placeholders.href;
+      studioStore.updateContactField(event.target.dataset.id, { type: newType });
+    }
+  });
   document.getElementById('contact-fields-list').addEventListener('click', event => { const button = event.target.closest('[data-action="remove-contact"]'); if (button) { studioStore.removeContactField(button.dataset.id); renderContactFields(studioStore.getState()); } });
   document.getElementById('action-buttons-list').addEventListener('input', event => { const id = event.target.dataset.id; if (event.target.matches('.btn-label-input')) studioStore.updateButton(id,{label:event.target.value}); if (event.target.matches('.btn-url-input')) studioStore.updateButton(id,{url:event.target.value}); });
-  document.getElementById('action-buttons-list').addEventListener('change', event => { const id = event.target.dataset.id; if (event.target.matches('.btn-icon-select')) studioStore.updateButton(id,{icon:event.target.value}); if (event.target.matches('.btn-style-select')) studioStore.updateButton(id,{style:event.target.value}); });
+  document.getElementById('action-buttons-list').addEventListener('change', event => {
+    const id = event.target.dataset.id;
+    if (event.target.matches('.btn-icon-select')) {
+      const card = event.target.closest('.dynamic-item-card');
+      const badge = card?.querySelector('.dynamic-item-icon-badge .material-symbols-rounded');
+      if (badge) badge.textContent = getButtonSymbol(event.target.value);
+      studioStore.updateButton(id, { icon: event.target.value });
+    }
+    if (event.target.matches('.btn-style-select')) {
+      studioStore.updateButton(id, { style: event.target.value });
+    }
+  });
   document.getElementById('action-buttons-list').addEventListener('click', event => { const button = event.target.closest('[data-action="remove-btn"]'); if (button) { studioStore.removeButton(button.dataset.id); renderActionButtons(studioStore.getState()); } });
   document.getElementById('btn-add-contact-field').addEventListener('click', () => studioStore.addContactField({type:'website',label:'Website',value:'',href:'https://'}));
   document.getElementById('btn-add-button').addEventListener('click', () => { if (studioStore.getState().buttons.length >= 4) return showStudioToast('A signature can include up to four action links.'); studioStore.addButton(); });

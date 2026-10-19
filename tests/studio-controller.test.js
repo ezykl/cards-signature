@@ -2,7 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createStudioStore,
-  loadPresetByCardId
+  loadPresetByCardId,
+  getContactSymbol,
+  getContactPlaceholders,
+  getButtonSymbol
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -105,5 +108,42 @@ test('store supports undo and redo for editor changes', () => {
   assert.equal(store.getState().fullName, originalName);
   store.redo();
   assert.equal(store.getState().fullName, 'Jordan Lee');
+});
+
+test('getContactSymbol and getContactPlaceholders return correct symbols and hints for contact types', () => {
+  assert.equal(getContactSymbol('email'), 'mail');
+  assert.equal(getContactSymbol('location'), 'location_on');
+  assert.equal(getContactSymbol('address'), 'location_on');
+  assert.equal(getContactSymbol('map'), 'location_on');
+  assert.equal(getContactSymbol('phone'), 'call');
+  assert.equal(getContactSymbol('mobile'), 'call');
+  assert.equal(getContactSymbol('website'), 'language');
+  assert.equal(getContactSymbol('calendar'), 'calendar_month');
+  assert.equal(getContactSymbol('linkedin'), 'badge');
+  assert.equal(getContactSymbol('github'), 'code');
+  assert.equal(getContactSymbol('custom'), 'star');
+
+  const emailHint = getContactPlaceholders('email');
+  assert.ok(emailHint.val.includes('name@domain.com'));
+  assert.ok(emailHint.href.includes('mailto:'));
+
+  const locHint = getContactPlaceholders('location');
+  assert.ok(locHint.val.includes('Cebu City'));
+  assert.ok(locHint.href.includes('Optional map link'));
+
+  const phoneHint = getContactPlaceholders('phone');
+  assert.ok(phoneHint.val.includes('Phone number'));
+  assert.ok(phoneHint.href.startsWith('tel:'));
+});
+
+test('getButtonSymbol returns expected symbols for button icons', () => {
+  assert.equal(getButtonSymbol('github'), 'code');
+  assert.equal(getButtonSymbol('linkedin'), 'badge');
+  assert.equal(getButtonSymbol('download'), 'download');
+  assert.equal(getButtonSymbol('globe'), 'language');
+  assert.equal(getButtonSymbol('website'), 'language');
+  assert.equal(getButtonSymbol('calendar'), 'calendar_month');
+  assert.equal(getButtonSymbol('none'), 'link_off');
+  assert.equal(getButtonSymbol('other'), 'link');
 });
 

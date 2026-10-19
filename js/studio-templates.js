@@ -216,10 +216,15 @@ export const THEME_PRESETS = {
 
 export const CONTACT_ICON_MAP = {
   phone: 'phone.png',
+  mobile: 'phone.png',
   email: 'mail.png',
   location: 'marker.png',
+  address: 'marker.png',
+  map: 'marker.png',
   website: 'domain.png',
   calendar: 'calendar.png',
+  linkedin: 'linkedin--v1.png',
+  github: 'github.png',
   custom: 'star.png',
   portfolio: 'domain.png'
 };
