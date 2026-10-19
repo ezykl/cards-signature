@@ -9,6 +9,7 @@ export const THEME_PRESETS = {
     bgColor: '#000440',
     bgType: 'solid',
     bgGradientEnd: '#00086b',
+    bgGradientAngle: 135,
     accentColor: '#38bdf8',
     textColorPrimary: '#ffffff',
     textColorSecondary: '#93c5fd',
@@ -21,6 +22,7 @@ export const THEME_PRESETS = {
     bgColor: '#070913',
     bgType: 'gradient',
     bgGradientEnd: '#1e1b4b',
+    bgGradientAngle: 135,
     accentColor: '#60a5fa',
     textColorPrimary: '#ffffff',
     textColorSecondary: '#bfdbfe',
@@ -33,6 +35,7 @@ export const THEME_PRESETS = {
     bgColor: '#0f172a',
     bgType: 'solid',
     bgGradientEnd: '#1e293b',
+    bgGradientAngle: 135,
     accentColor: '#38bdf8',
     textColorPrimary: '#f8fafc',
     textColorSecondary: '#94a3b8',
@@ -45,6 +48,7 @@ export const THEME_PRESETS = {
     bgColor: '#180033',
     bgType: 'gradient',
     bgGradientEnd: '#3b0764',
+    bgGradientAngle: 135,
     accentColor: '#c084fc',
     textColorPrimary: '#ffffff',
     textColorSecondary: '#e9d5ff',
@@ -57,6 +61,7 @@ export const THEME_PRESETS = {
     bgColor: '#022c22',
     bgType: 'solid',
     bgGradientEnd: '#064e3b',
+    bgGradientAngle: 135,
     accentColor: '#34d399',
     textColorPrimary: '#ffffff',
     textColorSecondary: '#a7f3d0',
@@ -69,12 +74,143 @@ export const THEME_PRESETS = {
     bgColor: '#ffffff',
     bgType: 'solid',
     bgGradientEnd: '#f1f5f9',
+    bgGradientAngle: 135,
     accentColor: '#0284c7',
     textColorPrimary: '#0f172a',
     textColorSecondary: '#475569',
     textColorMuted: '#64748b',
     buttonBg: '#f8fafc',
     buttonBorder: '#cbd5e1'
+  },
+  'sunset-crimson': {
+    name: 'Sunset Crimson',
+    bgColor: '#1c0712',
+    bgType: 'gradient',
+    bgGradientEnd: '#4c0519',
+    bgGradientAngle: 135,
+    accentColor: '#fb7185',
+    textColorPrimary: '#ffffff',
+    textColorSecondary: '#fecdd3',
+    textColorMuted: '#fda4af',
+    buttonBg: '#3b0717',
+    buttonBorder: 'rgba(251, 113, 133, 0.35)'
+  },
+  'cyber-amber': {
+    name: 'Cyber Amber',
+    bgColor: '#181204',
+    bgType: 'gradient',
+    bgGradientEnd: '#362106',
+    bgGradientAngle: 135,
+    accentColor: '#fbbf24',
+    textColorPrimary: '#ffffff',
+    textColorSecondary: '#fde68a',
+    textColorMuted: '#f59e0b',
+    buttonBg: '#291804',
+    buttonBorder: 'rgba(251, 191, 36, 0.35)'
+  },
+  'rose-gold': {
+    name: 'Rose Gold',
+    bgColor: '#180f15',
+    bgType: 'mesh',
+    bgGradientEnd: '#36182a',
+    bgGradientAngle: 135,
+    accentColor: '#f472b6',
+    textColorPrimary: '#ffffff',
+    textColorSecondary: '#fbcfe8',
+    textColorMuted: '#f43f5e',
+    buttonBg: '#2e1324',
+    buttonBorder: 'rgba(244, 114, 182, 0.35)'
+  },
+  'nordic-frost': {
+    name: 'Nordic Frost',
+    bgColor: '#061626',
+    bgType: 'ambient',
+    bgGradientEnd: '#0f2942',
+    bgGradientAngle: 135,
+    accentColor: '#38bdf8',
+    textColorPrimary: '#f0f9ff',
+    textColorSecondary: '#bae6fd',
+    textColorMuted: '#7dd3fc',
+    buttonBg: '#0c2338',
+    buttonBorder: 'rgba(56, 189, 248, 0.35)'
+  },
+  'aurora-green': {
+    name: 'Aurora Green',
+    bgColor: '#031c18',
+    bgType: 'mesh',
+    bgGradientEnd: '#073d32',
+    bgGradientAngle: 135,
+    accentColor: '#4ade80',
+    textColorPrimary: '#ffffff',
+    textColorSecondary: '#bbf7d0',
+    textColorMuted: '#86efac',
+    buttonBg: '#0a3028',
+    buttonBorder: 'rgba(74, 222, 128, 0.35)'
+  },
+  'monochrome-pro': {
+    name: 'Monochrome Pro',
+    bgColor: '#09090b',
+    bgType: 'lines',
+    bgGradientEnd: '#18181b',
+    bgGradientAngle: 135,
+    accentColor: '#e4e4e7',
+    textColorPrimary: '#fafafa',
+    textColorSecondary: '#d4d4d8',
+    textColorMuted: '#a1a1aa',
+    buttonBg: '#18181b',
+    buttonBorder: 'rgba(255, 255, 255, 0.2)'
+  },
+  'terracotta-warm': {
+    name: 'Terracotta Warm',
+    bgColor: '#1a0d0a',
+    bgType: 'gradient',
+    bgGradientEnd: '#3d1c14',
+    bgGradientAngle: 135,
+    accentColor: '#fb923c',
+    textColorPrimary: '#ffffff',
+    textColorSecondary: '#fed7aa',
+    textColorMuted: '#f97316',
+    buttonBg: '#2d140e',
+    buttonBorder: 'rgba(251, 146, 60, 0.35)'
+  },
+  'neo-tokyo': {
+    name: 'Neo Tokyo',
+    bgColor: '#140524',
+    bgType: 'gradient',
+    bgGradientEnd: '#29064a',
+    bgGradientAngle: 135,
+    accentColor: '#ec4899',
+    textColorPrimary: '#ffffff',
+    textColorSecondary: '#f5d0fe',
+    textColorMuted: '#e879f9',
+    buttonBg: '#22083d',
+    buttonBorder: 'rgba(236, 72, 153, 0.35)'
+  },
+  'sand-dune': {
+    name: 'Sand Dune',
+    bgColor: '#fefce8',
+    bgType: 'solid',
+    bgGradientEnd: '#fef08a',
+    bgGradientAngle: 135,
+    accentColor: '#b45309',
+    textColorPrimary: '#1c1917',
+    textColorSecondary: '#57534e',
+    textColorMuted: '#78716c',
+    buttonBg: '#ffffff',
+    buttonBorder: '#e7e5e4'
+  },
+  'ocean-abyss': {
+    name: 'Ocean Abyss',
+    bgColor: '#02182b',
+    bgType: 'dots',
+    bgGradientEnd: '#06355c',
+    bgGradientAngle: 135,
+    accentColor: '#2dd4bf',
+    textColorPrimary: '#ffffff',
+    textColorSecondary: '#99f6e4',
+    textColorMuted: '#5eead4',
+    buttonBg: '#052b4a',
+    buttonBorder: 'rgba(45, 212, 191, 0.35)'
   }
 };
 
@@ -118,8 +254,9 @@ export const DEFAULT_SIGNATURE_STATE = {
   ],
   themePreset: 'developer-cyan',
   bgColor: '#000440',
-  bgType: 'solid', // 'solid' | 'gradient' | 'ambient'
+  bgType: 'solid', // 'solid' | 'gradient' | 'ambient' | 'mesh' | 'dots' | 'grid' | 'lines'
   bgGradientEnd: '#00086b',
+  bgGradientAngle: 135,
   accentColor: '#38bdf8',
   textColorPrimary: '#ffffff',
   textColorSecondary: '#93c5fd',
@@ -154,19 +291,62 @@ function cleanHex(color) {
 }
 
 /**
- * Computes background inline CSS safely without SVG data URIs.
+ * Calculates WCAG 2.1 relative luminance and contrast ratio between two hex colors.
+ */
+export function getContrastRatio(hex1, hex2) {
+  const lum1 = getLuminance(hex1);
+  const lum2 = getLuminance(hex2);
+  const brightest = Math.max(lum1, lum2);
+  const darkest = Math.min(lum1, lum2);
+  return (brightest + 0.05) / (darkest + 0.05);
+}
+
+function getLuminance(hex) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return 0.5;
+  const a = [rgb.r, rgb.g, rgb.b].map(v => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+}
+
+function hexToRgb(hex) {
+  const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex || '').trim());
+  if (!match) return null;
+  return {
+    r: parseInt(match[1], 16),
+    g: parseInt(match[2], 16),
+    b: parseInt(match[3], 16)
+  };
+}
+
+/**
+ * Computes background inline CSS safely with bulletproof fallback for email clients.
  */
 function getBackgroundStyle(state) {
   const bg = safeHex(state.bgColor, '#000440');
   const end = safeHex(state.bgGradientEnd, '#00086b');
+  const accent = safeHex(state.accentColor, '#38bdf8');
+  const angle = Number.isFinite(Number(state.bgGradientAngle)) ? Math.max(0, Math.min(360, Number(state.bgGradientAngle))) : 135;
 
-  if (state.bgType === 'gradient') {
-    return `background-color: ${bg}; background-image: linear-gradient(135deg, ${bg} 0%, ${end} 100%);`;
+  switch (state.bgType) {
+    case 'gradient':
+      return `background-color: ${bg}; background-image: linear-gradient(${angle}deg, ${bg} 0%, ${end} 100%);`;
+    case 'ambient':
+      return `background-color: ${bg}; background-image: radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.12) 0%, transparent 60%), linear-gradient(${angle}deg, ${bg} 0%, ${end} 100%);`;
+    case 'mesh':
+      return `background-color: ${bg}; background-image: radial-gradient(at 0% 0%, ${accent}33 0px, transparent 55%), radial-gradient(at 100% 100%, ${end}88 0px, transparent 55%), linear-gradient(${angle}deg, ${bg} 0%, ${bg} 100%);`;
+    case 'dots':
+      return `background-color: ${bg}; background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px), linear-gradient(${angle}deg, ${bg} 0%, ${end} 100%); background-size: 14px 14px, 100% 100%;`;
+    case 'grid':
+      return `background-color: ${bg}; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px), linear-gradient(${angle}deg, ${bg} 0%, ${end} 100%); background-size: 20px 20px, 20px 20px, 100% 100%;`;
+    case 'lines':
+      return `background-color: ${bg}; background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04) 2px, transparent 2px, transparent 12px), linear-gradient(${angle}deg, ${bg} 0%, ${end} 100%);`;
+    case 'solid':
+    default:
+      return `background-color: ${bg};`;
   }
-  if (state.bgType === 'ambient') {
-    return `background-color: ${bg}; background-image: radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.08) 0%, transparent 60%), linear-gradient(180deg, ${bg} 0%, ${end} 100%);`;
-  }
-  return `background-color: ${bg};`;
 }
 
 /**
@@ -331,7 +511,7 @@ function renderLandscapeV2(state) {
  */
 function renderCompactCard(state) {
   const bgStyle = getBackgroundStyle(state);
-  const targetWidth = (state.maxWidth && state.maxWidth !== 680) ? Math.min(state.maxWidth, 440) : 420;
+  const targetWidth = (state.maxWidth && state.maxWidth !== 680) ? state.maxWidth : 420;
   const widthCfg = getTableWidthConfig({ ...state, maxWidth: targetWidth }, targetWidth, 260);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
   const contactRows = renderContactRows(state.contactFields, state.accentColor);
@@ -431,7 +611,8 @@ export function renderSignatureHTML(state = DEFAULT_SIGNATURE_STATE) {
     textColorPrimary: safeHex(state.textColorPrimary, DEFAULT_SIGNATURE_STATE.textColorPrimary),
     textColorSecondary: safeHex(state.textColorSecondary, DEFAULT_SIGNATURE_STATE.textColorSecondary),
     textColorMuted: safeHex(state.textColorMuted, DEFAULT_SIGNATURE_STATE.textColorMuted),
-    bgType: ['solid', 'gradient', 'ambient'].includes(state.bgType) ? state.bgType : 'solid',
+    bgType: ['solid', 'gradient', 'ambient', 'mesh', 'dots', 'grid', 'lines'].includes(state.bgType) ? state.bgType : 'solid',
+    bgGradientAngle: Number.isFinite(Number(state.bgGradientAngle)) ? Math.max(0, Math.min(360, Math.round(Number(state.bgGradientAngle)))) : 135,
     widthMode: state.widthMode === 'fixed' ? 'fixed' : 'responsive'
   };
   const layout = safeState.layout || 'landscape-v2';

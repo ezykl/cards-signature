@@ -1,21 +1,6 @@
 :root { --navy:#1e3a5f; --blue:#2563eb; --green:#16a34a; --ink:#0f172a; --muted:#475569; --surface:#fff; --canvas:#f8fafc; --line:#cbd5e1; --soft:#e9eef5; --danger:#b91c1c; --shadow:0 18px 45px rgba(15,23,42,.10); }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --navy:#1e1e2f;
-    --blue:#3b82f6;
-    --green:#10b981;
-    --ink:#e5e7eb;
-    --muted:#9ca3af;
-    --surface:#1f2937;
-    --canvas:#111827;
-    --line:#374151;
-    --soft:#1e293b;
-    --danger:#f87171;
-    --shadow:0 18px 45px rgba(255,255,255,.10);
-  }
-  body { background: var(--canvas); color: var(--ink); }
-}
+/* Dark palette is applied via the .dark-mode class (see css/theme.css), toggled in js/studio.js. */
 
 .dark-mode { background: var(--canvas); color: var(--ink); }
 * { box-sizing:border-box; }

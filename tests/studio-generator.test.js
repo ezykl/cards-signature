@@ -96,3 +96,57 @@ test('renderSignatureHTML escapes text and strips unsafe URLs from public editor
   assert.ok(!html.includes('<img src=x onerror'));
 });
 
+
+test('compact-card responsive mode honors the max width chosen by the user (no hidden 440px cap)', () => {
+  const html = renderSignatureHTML({
+    ...DEFAULT_SIGNATURE_STATE,
+    layout: 'compact-card',
+    widthMode: 'responsive',
+    maxWidth: 600
+  });
+  assert.ok(html.includes('max-width: 600px'));
+  assert.ok(!html.includes('max-width: 440px'));
+});
+
+test('THEME_PRESETS contains 16 curated aesthetic presets with required styling properties', async () => {
+  const { THEME_PRESETS } = await import('../js/studio-templates.js');
+  const keys = Object.keys(THEME_PRESETS);
+  assert.ok(keys.length >= 16, 'Expected >= 16 presets, got ' + keys.length);
+  keys.forEach(k => {
+    const p = THEME_PRESETS[k];
+    assert.ok(p.name, 'Preset ' + k + ' missing name');
+    assert.ok(p.bgColor, 'Preset ' + k + ' missing bgColor');
+    assert.ok(p.accentColor, 'Preset ' + k + ' missing accentColor');
+    assert.ok(p.textColorPrimary, 'Preset ' + k + ' missing textColorPrimary');
+  });
+});
+
+test('renderSignatureHTML supports all 7 background types with solid background-color fallback', () => {
+  const types = ['solid', 'gradient', 'ambient', 'mesh', 'dots', 'grid', 'lines'];
+  types.forEach(type => {
+    const html = renderSignatureHTML({
+      ...DEFAULT_SIGNATURE_STATE,
+      bgType: type,
+      bgColor: '#101828',
+      bgGradientEnd: '#1e293b',
+      accentColor: '#38bdf8',
+      bgGradientAngle: 180
+    });
+    assert.ok(html.includes('background-color: #101828'), 'Type ' + type + ' must include solid fallback background-color');
+    if (type !== 'solid') {
+      assert.ok(html.includes('background-image:'), 'Type ' + type + ' must include background-image');
+    }
+    if (['gradient', 'ambient', 'mesh', 'dots', 'grid', 'lines'].includes(type)) {
+      assert.ok(html.includes('180deg'), 'Type ' + type + ' must interpolate angle');
+    }
+  });
+});
+
+test('getContrastRatio calculates WCAG 2.1 relative luminance contrast accurately', async () => {
+  const { getContrastRatio } = await import('../js/studio-templates.js');
+  assert.ok(typeof getContrastRatio === 'function');
+  const blackAndWhite = getContrastRatio('#000000', '#ffffff');
+  assert.equal(Math.round(blackAndWhite), 21);
+  const sameColor = getContrastRatio('#3b82f6', '#3b82f6');
+  assert.equal(Math.round(sameColor), 1);
+});

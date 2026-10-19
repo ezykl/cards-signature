@@ -1,5 +1,5 @@
 /** Signature Studio: accessible editor, local draft persistence, and exports. */
-import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from './studio-templates.js';
+import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS, getContrastRatio } from './studio-templates.js';
 
 const DRAFT_KEY = 'signature-studio-draft-v2';
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -25,6 +25,14 @@ export function createStudioStore(initialState = DEFAULT_SIGNATURE_STATE) {
     updateButton: (id, patch) => commit({ ...state, buttons:state.buttons.map(button => button.id === id ? { ...button, ...patch } : button) }),
     removeButton: id => commit({ ...state, buttons:state.buttons.filter(button => button.id !== id) }),
     applyThemePreset: key => { const preset = THEME_PRESETS[key]; if (preset) commit({ ...state, ...preset, themePreset:key }); },
+    shuffleThemePreset: () => {
+      const keys = Object.keys(THEME_PRESETS);
+      const available = keys.filter(k => k !== state.themePreset);
+      const nextKey = available[Math.floor(Math.random() * available.length)] || keys[0];
+      const preset = THEME_PRESETS[nextKey];
+      if (preset) commit({ ...state, ...preset, themePreset: nextKey });
+      return nextKey;
+    },
     undo: () => { if (!past.length) return; future.push(clone(state)); state = past.pop(); notify(); },
     redo: () => { if (!future.length) return; past.push(clone(state)); state = future.pop(); notify(); },
     subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); }
@@ -59,14 +67,58 @@ function renderActionButtons(state) {
   target.innerHTML = state.buttons.map(button => `<article class="dynamic-item-card"><div class="dynamic-item-header"><label class="sr-only" for="icon-${escapeHTML(button.id)}">Button icon</label><select id="icon-${escapeHTML(button.id)}" class="form-select btn-icon-select" data-id="${escapeHTML(button.id)}"><option value="github" ${button.icon === 'github' ? 'selected':''}>GitHub</option><option value="linkedin" ${button.icon === 'linkedin' ? 'selected':''}>LinkedIn</option><option value="download" ${button.icon === 'download' ? 'selected':''}>Download</option><option value="globe" ${button.icon === 'globe' ? 'selected':''}>Website</option><option value="calendar" ${button.icon === 'calendar' ? 'selected':''}>Calendar</option><option value="twitter" ${button.icon === 'twitter' ? 'selected':''}>X / Twitter</option><option value="none" ${button.icon === 'none' ? 'selected':''}>No icon</option></select><label class="sr-only" for="style-${escapeHTML(button.id)}">Button color</label><select id="style-${escapeHTML(button.id)}" class="form-select btn-style-select" data-id="${escapeHTML(button.id)}"><option value="dark" ${button.style === 'dark' ? 'selected':''}>Dark</option><option value="brand" ${button.style === 'brand' ? 'selected':''}>Brand</option><option value="accent" ${button.style === 'accent' ? 'selected':''}>Accent</option></select><button type="button" class="btn-remove-item" data-action="remove-btn" data-id="${escapeHTML(button.id)}" aria-label="Remove action link"><span class="material-symbols-rounded" aria-hidden="true">delete</span></button></div><div class="form-row"><label class="sr-only" for="label-${escapeHTML(button.id)}">Button label</label><input id="label-${escapeHTML(button.id)}" class="form-input btn-label-input" data-id="${escapeHTML(button.id)}" placeholder="Button label" value="${escapeHTML(button.label)}" /><label class="sr-only" for="url-${escapeHTML(button.id)}">Button URL</label><input id="url-${escapeHTML(button.id)}" class="form-input btn-url-input" data-id="${escapeHTML(button.id)}" placeholder="https://..." value="${escapeHTML(button.url)}" /></div></article>`).join('');
 }
 
+function renderThemeChips(state) {
+  const container = document.querySelector('.theme-chip-group');
+  if (!container) return;
+  if (!container.dataset.rendered) {
+    container.innerHTML = Object.entries(THEME_PRESETS).map(([key, preset]) => {
+      const base = preset.bgColor;
+      const end = preset.bgGradientEnd || preset.bgColor;
+      const accent = preset.accentColor;
+      return `<button type="button" class="theme-chip ${state.themePreset === key ? 'active' : ''}" data-preset="${key}" title="${escapeHTML(preset.name)}">
+        <span class="swatch-dots" aria-hidden="true">
+          <span class="swatch-dot" style="background:${base}"></span>
+          <span class="swatch-dot" style="background:${end}"></span>
+          <span class="swatch-dot" style="background:${accent}"></span>
+        </span>
+        <span class="theme-chip-name">${escapeHTML(preset.name)}</span>
+      </button>`;
+    }).join('');
+    container.dataset.rendered = 'true';
+  } else {
+    container.querySelectorAll('.theme-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.preset === state.themePreset);
+    });
+  }
+}
+
 function syncControls(state) {
-  const values = { 'ctrl-layout':state.layout, 'ctrl-width-mode':state.widthMode, 'ctrl-max-width':state.maxWidth, 'ctrl-border-radius':state.borderRadius, 'ctrl-full-name':state.fullName, 'ctrl-job-title':state.jobTitle, 'ctrl-logo-url':state.logoUrl, 'ctrl-bg-color':state.bgColor, 'ctrl-bg-type':state.bgType, 'ctrl-bg-gradient-end':state.bgGradientEnd, 'ctrl-accent-color':state.accentColor, 'ctrl-text-primary':state.textColorPrimary, 'ctrl-text-secondary':state.textColorSecondary };
+  const values = { 'ctrl-layout':state.layout, 'ctrl-width-mode':state.widthMode, 'ctrl-max-width':state.maxWidth, 'ctrl-border-radius':state.borderRadius, 'ctrl-full-name':state.fullName, 'ctrl-job-title':state.jobTitle, 'ctrl-logo-url':state.logoUrl, 'ctrl-bg-color':state.bgColor, 'ctrl-bg-type':state.bgType, 'ctrl-bg-gradient-end':state.bgGradientEnd, 'ctrl-bg-gradient-angle':state.bgGradientAngle, 'ctrl-accent-color':state.accentColor, 'ctrl-text-primary':state.textColorPrimary, 'ctrl-text-secondary':state.textColorSecondary };
   Object.entries(values).forEach(([id,value]) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; });
   const fixed = state.widthMode === 'fixed'; const widthLabel = document.getElementById('lbl-max-width'); if (widthLabel) widthLabel.textContent = fixed ? 'Fixed width' : 'Maximum width';
   document.getElementById('val-max-width').value = `${state.maxWidth}px`; document.getElementById('val-border-radius').value = `${state.borderRadius}px`;
-  document.querySelectorAll('.theme-chip').forEach(chip => chip.classList.toggle('active', chip.dataset.preset === state.themePreset));
+  
+  const angleVal = document.getElementById('val-bg-gradient-angle');
+  if (angleVal) angleVal.value = `${state.bgGradientAngle ?? 135}°`;
+  const angleGrp = document.getElementById('grp-bg-angle');
+  if (angleGrp) angleGrp.style.display = state.bgType === 'solid' ? 'none' : '';
+
+  const contrastBadge = document.getElementById('contrast-badge');
+  const contrastText = document.getElementById('contrast-text');
+  const contrastIcon = document.getElementById('contrast-icon');
+  if (contrastBadge && contrastText && state.bgColor && state.textColorPrimary) {
+    const ratio = getContrastRatio(state.bgColor, state.textColorPrimary);
+    const isGood = ratio >= 4.5;
+    contrastBadge.className = `contrast-badge ${isGood ? 'contrast-good' : 'contrast-warning'}`;
+    if (contrastIcon) contrastIcon.textContent = isGood ? 'verified' : 'warning';
+    contrastText.textContent = isGood
+      ? `WCAG AA Contrast: ${ratio.toFixed(1)}:1 (Good)`
+      : `Low Contrast: ${ratio.toFixed(1)}:1 (Recommend >= 4.5:1)`;
+  }
+
+  renderThemeChips(state);
   document.getElementById('btn-undo').disabled = !studioStore.canUndo(); document.getElementById('btn-redo').disabled = !studioStore.canRedo();
-  const complete = [state.fullName,state.jobTitle,state.contactFields?.some(field => field.value)].filter(Boolean).length; document.getElementById('completion-status').textContent = `Profile ${Math.round(complete / 3 * 100)}% complete`;
+  const complete = [state.fullName,state.jobTitle,state.contactFields?.some(field => field.value)].filter(Boolean).length; document.getElementById('completion-status').textContent = `Profile ${Math.round(complete / 3 * 100)}% complete`; document.querySelector('.editor-progress')?.style.setProperty('--progress', `${Math.round(complete / 3 * 100)}%`);
   const contactTarget = document.getElementById('contact-fields-list');
   const buttonTarget = document.getElementById('action-buttons-list');
   if (!contactTarget?.contains(document.activeElement)) renderContactFields(state);
@@ -83,7 +135,7 @@ function validate(state, focus = false) {
 
 function renderGallery() { const target = document.getElementById('template-gallery'); if (!target) return; const cards = [{ id:3,name:'Developer landscape',description:'A confident, wide signature for portfolio and technical roles.',layout:'Landscape' },{ id:1,name:'Minimal card',description:'A centered profile presentation with a compact visual footprint.',layout:'Compact card' },{ id:2,name:'Executive row',description:'A concise layout designed for high-volume professional email.',layout:'Minimal row' }]; target.innerHTML = cards.map(card => `<article class="template-card"><div class="template-card-preview">${renderSignatureHTML(loadPresetByCardId(card.id))}</div><div><h2>${card.name}</h2><p>${card.description}</p></div><div class="template-card-footer"><span>${card.layout}</span><button type="button" class="button button-secondary" data-template="${card.id}">Use template <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></button></div></article>`).join(''); }
 
-function setView(view) { ['home','studio','gallery'].forEach(name => { const section = document.getElementById(`${name}-view`); if (section) section.hidden = name !== view; }); document.body.className = `view-mode-${view}`; if (view === 'home') document.getElementById('home').scrollIntoView({ behavior:'smooth' }); else window.scrollTo({ top:0, behavior:'smooth' }); }
+function setView(view) { ['home','studio','gallery'].forEach(name => { const section = document.getElementById(`${name}-view`); if (section) section.hidden = name !== view; }); [...document.body.classList].filter(name => name.startsWith('view-mode-')).forEach(name => document.body.classList.remove(name)); document.body.classList.add(`view-mode-${view}`); if (view === 'home') document.getElementById('home').scrollIntoView({ behavior:'smooth' }); else window.scrollTo({ top:0, behavior:'smooth' }); }
 
 async function copyRichSignature() { const preview = document.getElementById('studio-preview-card'); if (!preview || !validate(studioStore.getState(), true)) return; const html = preview.innerHTML.trim(); try { if (navigator.clipboard && window.ClipboardItem) { await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([html],{type:'text/html'}), 'text/plain':new Blob(['Email signature'],{type:'text/plain'}) })]); showStudioToast('Signature copied. Paste it into your email settings.'); return; } throw new Error('Rich clipboard unavailable'); } catch { const range = document.createRange(); range.selectNodeContents(preview); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); document.execCommand('copy'); selection.removeAllRanges(); showStudioToast('Signature copied. Paste it into your email settings.'); } }
 function copyRawHTML() { navigator.clipboard.writeText(document.getElementById('studio-preview-card').innerHTML.trim()).then(() => showStudioToast('HTML copied to clipboard.')).catch(() => showStudioToast('Copy failed. Please try again.')); }
@@ -99,9 +151,17 @@ export function initStudio() {
   studioStore.setState(studioStore.getState()); renderGallery();
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
   document.getElementById('template-gallery').addEventListener('click', event => { const button = event.target.closest('[data-template]'); if (!button) return; studioStore.setState(loadPresetByCardId(button.dataset.template)); setView('studio'); showStudioToast('Template loaded into the editor.'); });
-  const bindings = { 'ctrl-layout':'layout','ctrl-width-mode':'widthMode','ctrl-max-width':'maxWidth','ctrl-border-radius':'borderRadius','ctrl-full-name':'fullName','ctrl-job-title':'jobTitle','ctrl-logo-url':'logoUrl','ctrl-bg-color':'bgColor','ctrl-bg-type':'bgType','ctrl-bg-gradient-end':'bgGradientEnd','ctrl-accent-color':'accentColor','ctrl-text-primary':'textColorPrimary','ctrl-text-secondary':'textColorSecondary' };
-  Object.entries(bindings).forEach(([id,key]) => { const input = document.getElementById(id); input.addEventListener(input.type === 'select-one' ? 'change' : 'input', event => studioStore.setField(key, input.type === 'range' ? Number(event.target.value) : event.target.value)); input.addEventListener('blur', () => validate(studioStore.getState())); });
-  document.querySelectorAll('.theme-chip').forEach(chip => chip.addEventListener('click', () => studioStore.applyThemePreset(chip.dataset.preset)));
+  const bindings = { 'ctrl-layout':'layout','ctrl-width-mode':'widthMode','ctrl-max-width':'maxWidth','ctrl-border-radius':'borderRadius','ctrl-full-name':'fullName','ctrl-job-title':'jobTitle','ctrl-logo-url':'logoUrl','ctrl-bg-color':'bgColor','ctrl-bg-type':'bgType','ctrl-bg-gradient-end':'bgGradientEnd','ctrl-bg-gradient-angle':'bgGradientAngle','ctrl-accent-color':'accentColor','ctrl-text-primary':'textColorPrimary','ctrl-text-secondary':'textColorSecondary' };
+  Object.entries(bindings).forEach(([id,key]) => { const input = document.getElementById(id); if (input) { input.addEventListener(input.type === 'select-one' ? 'change' : 'input', event => studioStore.setField(key, input.type === 'range' ? Number(event.target.value) : event.target.value)); input.addEventListener('blur', () => validate(studioStore.getState())); } });
+  document.querySelector('.theme-chip-group')?.addEventListener('click', event => {
+    const chip = event.target.closest('.theme-chip');
+    if (!chip || !chip.dataset.preset) return;
+    studioStore.applyThemePreset(chip.dataset.preset);
+  });
+  document.getElementById('btn-shuffle-theme')?.addEventListener('click', () => {
+    const key = studioStore.shuffleThemePreset();
+    showStudioToast(`Applied palette: ${THEME_PRESETS[key]?.name || key}`);
+  });
   document.getElementById('contact-fields-list').addEventListener('input', event => { const id = event.target.dataset.id; if (event.target.matches('.field-val-input')) studioStore.updateContactField(id,{value:event.target.value}); if (event.target.matches('.field-href-input')) studioStore.updateContactField(id,{href:event.target.value}); });
   document.getElementById('contact-fields-list').addEventListener('change', event => { if (event.target.matches('.field-type-select')) studioStore.updateContactField(event.target.dataset.id,{type:event.target.value}); });
   document.getElementById('contact-fields-list').addEventListener('click', event => { const button = event.target.closest('[data-action="remove-contact"]'); if (button) { studioStore.removeContactField(button.dataset.id); renderContactFields(studioStore.getState()); } });
