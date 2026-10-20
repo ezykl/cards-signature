@@ -1,5 +1,4 @@
-/** Signature Studio: accessible editor, local draft persistence, and exports. */
-import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS, getContrastRatio } from './studio-templates.js';
+import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS, getContrastRatio, getBackgroundStyle } from './studio-templates.js';
 
 const DRAFT_KEY = 'signature-studio-draft-v2';
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -239,29 +238,35 @@ function renderActionButtons(state) {
   }).join('');
 }
 
-function renderThemeChips(state) {
-  const container = document.querySelector('.theme-chip-group');
-  if (!container) return;
-  if (!container.dataset.rendered) {
-    container.innerHTML = Object.entries(THEME_PRESETS).map(([key, preset]) => {
-      const base = preset.bgColor;
-      const end = preset.bgGradientEnd || preset.bgColor;
-      const accent = preset.accentColor;
-      return `<button type="button" class="theme-chip ${state.themePreset === key ? 'active' : ''}" data-preset="${key}" title="${escapeHTML(preset.name)}">
-        <span class="swatch-dots" aria-hidden="true">
-          <span class="swatch-dot" style="background:${base}"></span>
-          <span class="swatch-dot" style="background:${end}"></span>
-          <span class="swatch-dot" style="background:${accent}"></span>
+export function renderThemeCards(state) {
+  return Object.entries(THEME_PRESETS).map(([key, preset]) => {
+    const isActive = state.themePreset === key;
+    const bgStyle = getBackgroundStyle(preset);
+    const accent = preset.accentColor;
+    const primary = preset.textColorPrimary;
+    const secondary = preset.textColorSecondary || preset.textColorMuted || '#94a3b8';
+    return `<button type="button" class="theme-preview-card ${isActive ? 'active' : ''}" data-preset="${escapeHTML(key)}" style="${bgStyle}; color:${escapeHTML(primary)};" aria-label="${escapeHTML(preset.name)} theme" aria-pressed="${isActive}">
+      <div class="theme-card-top">
+        <span class="theme-card-name">${escapeHTML(preset.name)}</span>
+        <span class="theme-card-badge" style="background:${escapeHTML(accent)}; color:${preset.bgColor};">Accent</span>
+      </div>
+      <div class="theme-card-body">
+        <span class="theme-card-role" style="color:${escapeHTML(secondary)};">Sample Preview</span>
+        <span class="theme-card-swatches">
+          <span class="theme-card-dot" style="background:${escapeHTML(preset.bgColor)}"></span>
+          <span class="theme-card-dot" style="background:${escapeHTML(preset.bgGradientEnd || preset.bgColor)}"></span>
+          <span class="theme-card-dot" style="background:${escapeHTML(accent)}"></span>
         </span>
-        <span class="theme-chip-name">${escapeHTML(preset.name)}</span>
-      </button>`;
-    }).join('');
-    container.dataset.rendered = 'true';
-  } else {
-    container.querySelectorAll('.theme-chip').forEach(chip => {
-      chip.classList.toggle('active', chip.dataset.preset === state.themePreset);
-    });
-  }
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function renderThemeChips(state) {
+  const cardsHtml = renderThemeCards(state);
+  document.querySelectorAll('.theme-card-grid, .theme-chip-group').forEach(container => {
+    container.innerHTML = cardsHtml;
+  });
 }
 
 function syncControls(state) {

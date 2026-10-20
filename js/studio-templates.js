@@ -397,7 +397,7 @@ function getBorderColor(state) {
 /**
  * Computes background inline CSS safely with bulletproof fallback for email clients.
  */
-function getBackgroundStyle(state) {
+export function getBackgroundStyle(state) {
   const bg = safeHex(state.bgColor, '#000440');
   const end = safeHex(state.bgGradientEnd, '#00086b');
   const accent = safeHex(state.accentColor, '#38bdf8');

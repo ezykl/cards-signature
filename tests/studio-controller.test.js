@@ -6,7 +6,8 @@ import {
   getContactSymbol,
   getContactPlaceholders,
   getButtonSymbol,
-  createSignatureSvgWrapper
+  createSignatureSvgWrapper,
+  renderThemeCards
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -198,5 +199,18 @@ test('store manages editorMode and wizardStep navigation', () => {
   store.prevWizardStep(); // Should clamp at 1
   assert.equal(store.getState().wizardStep, 1);
 });
+
+test('renderThemeCards generates rich preview cards with backgrounds and active state', () => {
+  const state = { ...DEFAULT_SIGNATURE_STATE, themePreset: 'cosmic-blue' };
+  const html = renderThemeCards(state);
+
+  assert.ok(html.includes('theme-preview-card'));
+  assert.ok(html.includes('Cosmic Blue'));
+  assert.ok(html.includes('data-preset="cosmic-blue"'));
+  assert.ok(html.includes('active')); // cosmic-blue should be active
+  assert.ok(html.includes('data-preset="developer-cyan"'));
+  assert.ok(html.includes('theme-card-badge'));
+});
+
 
 
