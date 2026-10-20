@@ -5,7 +5,8 @@ import {
   loadPresetByCardId,
   getContactSymbol,
   getContactPlaceholders,
-  getButtonSymbol
+  getButtonSymbol,
+  createSignatureSvgWrapper
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -89,6 +90,16 @@ test('loadPresetByCardId maps card IDs to valid states', () => {
   const card3 = loadPresetByCardId(3); // Developer Landscape V2
   assert.equal(card3.layout, 'landscape-v2');
   assert.equal(card3.accentColor, '#38bdf8');
+
+  const card4 = loadPresetByCardId(4); // Boardroom Accent
+  assert.equal(card4.layout, 'accent-bar');
+  assert.equal(card4.fontFamily, 'serif');
+  assert.equal(card4.buttonShape, 'sharp');
+
+  const card5 = loadPresetByCardId(5); // Creative Split
+  assert.equal(card5.layout, 'split-avatar');
+  assert.equal(card5.buttonShape, 'pill');
+  assert.equal(card5.titleStyle, 'uppercase');
 });
 
 test('store manages widthMode switching', () => {
@@ -143,7 +154,24 @@ test('getButtonSymbol returns expected symbols for button icons', () => {
   assert.equal(getButtonSymbol('globe'), 'language');
   assert.equal(getButtonSymbol('website'), 'language');
   assert.equal(getButtonSymbol('calendar'), 'calendar_month');
+  assert.equal(getButtonSymbol('calendly'), 'calendar_month');
+  assert.equal(getButtonSymbol('terminal'), 'terminal');
+  assert.equal(getButtonSymbol('figma'), 'draw');
+  assert.equal(getButtonSymbol('youtube'), 'smart_display');
+  assert.equal(getButtonSymbol('instagram'), 'photo_camera');
+  assert.equal(getButtonSymbol('whatsapp'), 'chat');
+  assert.equal(getButtonSymbol('discord'), 'forum');
   assert.equal(getButtonSymbol('none'), 'link_off');
   assert.equal(getButtonSymbol('other'), 'link');
+});
+
+test('createSignatureSvgWrapper wraps HTML in valid SVG foreignObject with dimensions', () => {
+  const html = '<table width="580"><tr><td>Test</td></tr></table>';
+  const svg = createSignatureSvgWrapper(html, 580, 240);
+  assert.ok(svg.includes('xmlns="http://www.w3.org/2000/svg"'));
+  assert.ok(svg.includes('width="580"'));
+  assert.ok(svg.includes('height="240"'));
+  assert.ok(svg.includes('<foreignObject'));
+  assert.ok(svg.includes('Test'));
 });
 

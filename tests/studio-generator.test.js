@@ -185,3 +185,43 @@ test('renderSignatureHTML renders hosted icons for email, location, phone, and a
   assert.ok(html.includes('Manila, Philippines'));
   assert.ok(html.includes('Cebu, Philippines'));
 });
+
+test('renderSignatureHTML respects typography settings (fontFamily, nameFontSize, titleStyle)', () => {
+  const customTypography = {
+    ...DEFAULT_SIGNATURE_STATE,
+    fontFamily: 'serif',
+    nameFontSize: 22,
+    titleStyle: 'uppercase'
+  };
+  const html = renderSignatureHTML(customTypography);
+  assert.match(html, /Georgia/);
+  assert.match(html, /font-size:\s*22px/);
+  assert.match(html, /text-transform:\s*uppercase/);
+});
+
+test('renderActionButtons renders button shapes (pill, sharp, rounded) and outline style', () => {
+  const state = {
+    ...DEFAULT_SIGNATURE_STATE,
+    buttonShape: 'pill',
+    accentColor: '#38bdf8',
+    buttons: [
+      { id: 'b1', label: 'Book Call', url: 'https://calendly.com', icon: 'calendly', style: 'outline' }
+    ]
+  };
+  const html = renderSignatureHTML(state);
+  assert.match(html, /border-radius:\s*999px/);
+  assert.match(html, /border:\s*1px solid #38bdf8/);
+  assert.match(html, /calendar\.png/);
+});
+
+test('renderSignatureHTML renders accent-bar and split-avatar layouts', () => {
+  const accentBarState = { ...DEFAULT_SIGNATURE_STATE, layout: 'accent-bar', accentColor: '#38bdf8' };
+  const splitAvatarState = { ...DEFAULT_SIGNATURE_STATE, layout: 'split-avatar' };
+  
+  const accentHtml = renderSignatureHTML(accentBarState);
+  assert.match(accentHtml, /border-left:\s*4px solid #38bdf8/);
+  
+  const splitHtml = renderSignatureHTML(splitAvatarState);
+  assert.match(splitHtml, /width="70"/);
+  assert.match(splitHtml, /border-radius:\s*50%/);
+});
