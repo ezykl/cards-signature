@@ -303,7 +303,9 @@ export const DEFAULT_SIGNATURE_STATE = {
   fontFamily: 'sans',
   nameFontSize: 19,
   titleStyle: 'regular',
-  buttonShape: 'rounded'
+  buttonShape: 'rounded',
+  editorMode: 'guided',
+  wizardStep: 1
 };
 
 export const FONT_STACKS = {

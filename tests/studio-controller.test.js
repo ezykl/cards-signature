@@ -175,3 +175,28 @@ test('createSignatureSvgWrapper wraps HTML in valid SVG foreignObject with dimen
   assert.ok(svg.includes('Test'));
 });
 
+test('store manages editorMode and wizardStep navigation', () => {
+  const store = createStudioStore();
+  assert.equal(store.getState().editorMode, 'guided');
+  assert.equal(store.getState().wizardStep, 1);
+
+  store.setEditorMode('advanced');
+  assert.equal(store.getState().editorMode, 'advanced');
+
+  store.setEditorMode('guided');
+  store.nextWizardStep();
+  assert.equal(store.getState().wizardStep, 2);
+
+  store.setWizardStep(5);
+  assert.equal(store.getState().wizardStep, 5);
+  store.nextWizardStep(); // Should clamp at 5
+  assert.equal(store.getState().wizardStep, 5);
+
+  store.prevWizardStep();
+  assert.equal(store.getState().wizardStep, 4);
+  store.setWizardStep(1);
+  store.prevWizardStep(); // Should clamp at 1
+  assert.equal(store.getState().wizardStep, 1);
+});
+
+

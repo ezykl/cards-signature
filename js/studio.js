@@ -25,6 +25,10 @@ export function createStudioStore(initialState = DEFAULT_SIGNATURE_STATE) {
     updateButton: (id, patch) => commit({ ...state, buttons:state.buttons.map(button => button.id === id ? { ...button, ...patch } : button) }),
     removeButton: id => commit({ ...state, buttons:state.buttons.filter(button => button.id !== id) }),
     applyThemePreset: key => { const preset = THEME_PRESETS[key]; if (preset) commit({ ...state, ...preset, themePreset:key }); },
+    setEditorMode: mode => commit({ ...state, editorMode: mode === 'advanced' ? 'advanced' : 'guided' }),
+    setWizardStep: step => commit({ ...state, wizardStep: Math.min(5, Math.max(1, Number(step) || 1)) }),
+    nextWizardStep: () => commit({ ...state, wizardStep: Math.min(5, (state.wizardStep || 1) + 1) }),
+    prevWizardStep: () => commit({ ...state, wizardStep: Math.max(1, (state.wizardStep || 1) - 1) }),
     shuffleThemePreset: () => {
       const keys = Object.keys(THEME_PRESETS);
       const available = keys.filter(k => k !== state.themePreset);
