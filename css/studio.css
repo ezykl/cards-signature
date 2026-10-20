@@ -1,4 +1,4 @@
-:root { --navy:#1e3a5f; --blue:#2563eb; --green:#16a34a; --ink:#0f172a; --muted:#475569; --surface:#fff; --canvas:#f8fafc; --line:#cbd5e1; --soft:#e9eef5; --danger:#b91c1c; --shadow:0 18px 45px rgba(15,23,42,.10); }
+﻿:root { --navy:#1e3a5f; --blue:#2563eb; --green:#16a34a; --ink:#0f172a; --muted:#475569; --surface:#fff; --canvas:#f8fafc; --line:#cbd5e1; --soft:#e9eef5; --danger:#b91c1c; --shadow:0 18px 45px rgba(15,23,42,.10); }
 
 /* Dark palette is applied via the .dark-mode class (see css/theme.css), toggled in js/studio.js. */
 
@@ -35,3 +35,10 @@ button { cursor:pointer; }
 .dark-mode .control-section { background:var(--surface); border-color:var(--line); }
 
 
+
+.template-card-preview { justify-content:center; align-items:center; overflow:hidden; }
+.template-card-preview table { transform-origin:center center; margin:0 auto !important; }
+
+/* Gallery: uniform preview stage with the sample centered both ways */
+.template-card-preview { display:grid; place-items:center; height:300px; min-height:300px; padding:0 12px; overflow:hidden; box-sizing:border-box; }
+.template-card-preview > table { width:100% !important; margin:0 auto !important; transform:scale(.86); transform-origin:center center; }
