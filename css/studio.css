@@ -42,3 +42,294 @@ button { cursor:pointer; }
 /* Gallery: uniform preview stage with the sample centered both ways */
 .template-card-preview { display:grid; place-items:center; height:300px; min-height:300px; padding:0 12px; overflow:hidden; box-sizing:border-box; }
 .template-card-preview > table { width:100% !important; margin:0 auto !important; transform:scale(.86); transform-origin:center center; }
+
+/* Studio Mode Toggle (Segmented Switcher) */
+.studio-mode-toggle {
+  display: flex;
+  background: var(--soft);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+  border: 1px solid var(--line);
+  margin-bottom: 2px;
+}
+.mode-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.mode-tab:hover {
+  color: var(--navy);
+}
+.mode-tab.active {
+  background: #ffffff;
+  color: var(--navy);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+.dark-mode .mode-tab.active {
+  background: var(--surface);
+  color: #60a5fa;
+}
+
+/* Hero Shuffle Button */
+.button-shuffle-hero {
+  width: 100%;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.button-shuffle-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+  filter: brightness(1.08);
+}
+.button-shuffle-hero:active {
+  transform: translateY(0);
+}
+.button-shuffle-hero .material-symbols-rounded {
+  font-size: 20px;
+}
+
+/* Theme Preview Card Grid & Cards */
+.theme-card-grid-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  margin-bottom: 2px;
+}
+.theme-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--soft);
+  background: rgba(248, 250, 252, 0.6);
+}
+.dark-mode .theme-card-grid {
+  background: rgba(15, 23, 42, 0.3);
+}
+.theme-preview-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 80px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, outline 0.18s ease;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+.theme-preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+.theme-preview-card.active {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+}
+.theme-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.theme-card-name {
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.theme-card-badge {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.theme-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.theme-card-role {
+  font-size: 11px;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.theme-card-swatches {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+.theme-card-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Guided Wizard Pane */
+.guided-wizard-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.wizard-step-header {
+  padding: 18px 20px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--soft);
+}
+.wizard-header-info {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.wizard-step-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.wizard-step-title {
+  margin: 0;
+  font: 600 17px/1.3 "Poppins", sans-serif;
+  color: var(--ink);
+}
+.wizard-progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.wizard-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), #60a5fa);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.wizard-step-panel {
+  display: flex;
+  flex-direction: column;
+}
+.wizard-step-panel[hidden] {
+  display: none !important;
+}
+.guided-wizard-pane[hidden],
+.advanced-controls-pane[hidden] {
+  display: none !important;
+}
+.wizard-step-desc {
+  padding: 14px 20px 0;
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.wizard-section-subhead {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--soft);
+}
+.wizard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+}
+.dark-mode .wizard-footer {
+  background: rgba(15, 23, 42, 0.4);
+}
+.wizard-celebration-card {
+  text-align: center;
+  padding: 24px 18px;
+  background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(16,185,129,0.06));
+  border: 1px dashed var(--blue);
+  border-radius: 10px;
+  margin: 16px 18px;
+}
+.wizard-celebrate-icon {
+  font-size: 40px;
+  color: var(--blue);
+  margin-bottom: 8px;
+  display: inline-block;
+}
+.wizard-celebration-card h3 {
+  margin: 0 0 6px;
+  font: 600 18px/1.3 "Poppins", sans-serif;
+  color: var(--ink);
+}
+.wizard-celebration-card p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.wizard-export-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 18px 18px;
+}
+.wizard-sub-export-row {
+  display: flex;
+  gap: 10px;
+}
+.wizard-sub-export-row .button {
+  flex: 1;
+  font-size: 13px;
+}

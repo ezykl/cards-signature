@@ -303,7 +303,9 @@ export const DEFAULT_SIGNATURE_STATE = {
   fontFamily: 'sans',
   nameFontSize: 19,
   titleStyle: 'regular',
-  buttonShape: 'rounded'
+  buttonShape: 'rounded',
+  editorMode: 'guided',
+  wizardStep: 1
 };
 
 export const FONT_STACKS = {
@@ -395,7 +397,7 @@ function getBorderColor(state) {
 /**
  * Computes background inline CSS safely with bulletproof fallback for email clients.
  */
-function getBackgroundStyle(state) {
+export function getBackgroundStyle(state) {
   const bg = safeHex(state.bgColor, '#000440');
   const end = safeHex(state.bgGradientEnd, '#00086b');
   const accent = safeHex(state.accentColor, '#38bdf8');

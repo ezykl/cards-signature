@@ -6,7 +6,9 @@ import {
   getContactSymbol,
   getContactPlaceholders,
   getButtonSymbol,
-  createSignatureSvgWrapper
+  createSignatureSvgWrapper,
+  renderThemeCards,
+  WIZARD_STEPS
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -174,4 +176,51 @@ test('createSignatureSvgWrapper wraps HTML in valid SVG foreignObject with dimen
   assert.ok(svg.includes('<foreignObject'));
   assert.ok(svg.includes('Test'));
 });
+
+test('store manages editorMode and wizardStep navigation', () => {
+  const store = createStudioStore();
+  assert.equal(store.getState().editorMode, 'guided');
+  assert.equal(store.getState().wizardStep, 1);
+
+  store.setEditorMode('advanced');
+  assert.equal(store.getState().editorMode, 'advanced');
+
+  store.setEditorMode('guided');
+  store.nextWizardStep();
+  assert.equal(store.getState().wizardStep, 2);
+
+  store.setWizardStep(5);
+  assert.equal(store.getState().wizardStep, 5);
+  store.nextWizardStep(); // Should clamp at 5
+  assert.equal(store.getState().wizardStep, 5);
+
+  store.prevWizardStep();
+  assert.equal(store.getState().wizardStep, 4);
+  store.setWizardStep(1);
+  store.prevWizardStep(); // Should clamp at 1
+  assert.equal(store.getState().wizardStep, 1);
+});
+
+test('renderThemeCards generates rich preview cards with backgrounds and active state', () => {
+  const state = { ...DEFAULT_SIGNATURE_STATE, themePreset: 'cosmic-blue' };
+  const html = renderThemeCards(state);
+
+  assert.ok(html.includes('theme-preview-card'));
+  assert.ok(html.includes('Cosmic Blue'));
+  assert.ok(html.includes('data-preset="cosmic-blue"'));
+  assert.ok(html.includes('active')); // cosmic-blue should be active
+  assert.ok(html.includes('data-preset="developer-cyan"'));
+  assert.ok(html.includes('theme-card-badge'));
+});
+
+test('step titles map correctly across 5 wizard steps', () => {
+  assert.equal(WIZARD_STEPS.length, 5);
+  assert.equal(WIZARD_STEPS[0].title, 'Identity & Profile');
+  assert.equal(WIZARD_STEPS[1].title, 'Theme & Palette');
+  assert.equal(WIZARD_STEPS[2].title, 'Layout & Typography');
+  assert.equal(WIZARD_STEPS[3].title, 'Contacts & Social Links');
+  assert.equal(WIZARD_STEPS[4].title, 'Final Output & Export');
+});
+
+
 
