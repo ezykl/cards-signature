@@ -5,6 +5,14 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' })[char]);
 const isSafeUrl = value => !value || /^(https?:|mailto:|tel:)/i.test(String(value).trim());
 
+export const WIZARD_STEPS = [
+  { step: 1, title: 'Identity & Profile', badge: 'Step 1 of 5' },
+  { step: 2, title: 'Theme & Palette', badge: 'Step 2 of 5' },
+  { step: 3, title: 'Layout & Typography', badge: 'Step 3 of 5' },
+  { step: 4, title: 'Contacts & Social Links', badge: 'Step 4 of 5' },
+  { step: 5, title: 'Final Output & Export', badge: 'Step 5 of 5' }
+];
+
 export function createStudioStore(initialState = DEFAULT_SIGNATURE_STATE) {
   let state = clone(initialState);
   let past = [];
@@ -133,8 +141,9 @@ export function getButtonSymbol(icon) {
 }
 
 function renderContactFields(state) {
-  const target = document.getElementById('contact-fields-list'); if (!target) return;
-  target.innerHTML = state.contactFields.map(field => {
+  const targets = [document.getElementById('contact-fields-list'), document.getElementById('wizard-contact-fields-list')].filter(Boolean);
+  if (!targets.length) return;
+  const html = state.contactFields.map(field => {
     const symbol = getContactSymbol(field.type);
     const placeholders = getContactPlaceholders(field.type);
     return `<article class="dynamic-item-card">
@@ -161,10 +170,14 @@ function renderContactFields(state) {
       </div>
     </article>`;
   }).join('');
+  targets.forEach(t => {
+    if (!t.contains(document.activeElement)) t.innerHTML = html;
+  });
 }
 
 function renderActionButtons(state) {
-  const target = document.getElementById('action-buttons-list'); if (!target) return;
+  const targets = [document.getElementById('action-buttons-list'), document.getElementById('wizard-action-buttons-list')].filter(Boolean);
+  if (!targets.length) return;
   const knownIcons = [
     'github', 'code', 'terminal', 'figma',
     'linkedin', 'x', 'twitter', 'youtube', 'instagram', 'dribbble', 'behance', 'medium', 'substack', 'spotify',
@@ -236,6 +249,9 @@ function renderActionButtons(state) {
       </div>
     </article>`;
   }).join('');
+  targets.forEach(t => {
+    if (!t.contains(document.activeElement)) t.innerHTML = html;
+  });
 }
 
 export function renderThemeCards(state) {
@@ -288,11 +304,19 @@ function syncControls(state) {
     'ctrl-font-family': state.fontFamily,
     'ctrl-name-font-size': state.nameFontSize,
     'ctrl-title-style': state.titleStyle,
-    'ctrl-button-shape': state.buttonShape
+    'ctrl-button-shape': state.buttonShape,
+    'wiz-full-name': state.fullName,
+    'wiz-job-title': state.jobTitle,
+    'wiz-logo-url': state.logoUrl,
+    'wiz-font-family': state.fontFamily,
+    'wiz-layout': state.layout,
+    'wiz-title-style': state.titleStyle,
+    'wiz-name-font-size': state.nameFontSize,
+    'wiz-button-shape': state.buttonShape
   };
   Object.entries(values).forEach(([id, value]) => {
     const el = document.getElementById(id);
-    if (el) el.value = value ?? '';
+    if (el && document.activeElement !== el) el.value = value ?? '';
   });
   const fixed = state.widthMode === 'fixed';
   const widthLabel = document.getElementById('lbl-max-width');
@@ -303,6 +327,8 @@ function syncControls(state) {
   if (radVal) radVal.value = `${state.borderRadius}px`;
   const nameSizeVal = document.getElementById('val-name-font-size');
   if (nameSizeVal) nameSizeVal.value = `${state.nameFontSize ?? 19}px`;
+  const wizNameSizeVal = document.getElementById('val-wiz-name-font-size');
+  if (wizNameSizeVal) wizNameSizeVal.value = `${state.nameFontSize ?? 19}px`;
   
   const angleVal = document.getElementById('val-bg-gradient-angle');
   if (angleVal) angleVal.value = `${state.bgGradientAngle ?? 135}°`;
@@ -322,13 +348,68 @@ function syncControls(state) {
       : `Low Contrast: ${ratio.toFixed(1)}:1 (Recommend >= 4.5:1)`;
   }
 
+  // Dual mode toggle visibility
+  const isGuided = state.editorMode !== 'advanced';
+  const guidedPane = document.getElementById('guided-mode-pane');
+  const advancedPane = document.getElementById('advanced-mode-pane');
+  const btnGuided = document.getElementById('btn-mode-guided');
+  const btnAdvanced = document.getElementById('btn-mode-advanced');
+  if (guidedPane) guidedPane.hidden = !isGuided;
+  if (advancedPane) advancedPane.hidden = isGuided;
+  if (btnGuided) {
+    btnGuided.classList.toggle('active', isGuided);
+    btnGuided.setAttribute('aria-selected', String(isGuided));
+  }
+  if (btnAdvanced) {
+    btnAdvanced.classList.toggle('active', !isGuided);
+    btnAdvanced.setAttribute('aria-selected', String(!isGuided));
+  }
+
+  // Wizard Step updates
+  const currentStep = Math.min(5, Math.max(1, state.wizardStep || 1));
+  const stepInfo = WIZARD_STEPS[currentStep - 1] || WIZARD_STEPS[0];
+  const stepBadge = document.getElementById('wizard-step-badge');
+  const stepTitle = document.getElementById('wizard-step-title');
+  const progressBar = document.getElementById('wizard-progress-bar');
+  if (stepBadge) stepBadge.textContent = stepInfo.badge;
+  if (stepTitle) stepTitle.textContent = stepInfo.title;
+  if (progressBar) progressBar.style.width = `${(currentStep / 5) * 100}%`;
+
+  for (let s = 1; s <= 5; s++) {
+    const panel = document.getElementById(`wizard-step-${s}`);
+    if (panel) panel.hidden = (s !== currentStep);
+  }
+
+  const prevBtn = document.getElementById('btn-wizard-prev');
+  const nextBtn = document.getElementById('btn-wizard-next');
+  if (prevBtn) prevBtn.disabled = currentStep === 1;
+  if (nextBtn) {
+    if (currentStep === 5) {
+      nextBtn.style.display = 'none';
+    } else {
+      nextBtn.style.display = '';
+      if (currentStep === 4) {
+        nextBtn.innerHTML = 'Finish & Export <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>';
+      } else {
+        const nextLabels = ['Theme', 'Layout', 'Contacts'];
+        const nextStepLabel = nextLabels[currentStep - 1] || 'Next';
+        nextBtn.innerHTML = `Next: ${nextStepLabel} <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>`;
+      }
+    }
+  }
+
   renderThemeChips(state);
-  document.getElementById('btn-undo').disabled = !studioStore.canUndo(); document.getElementById('btn-redo').disabled = !studioStore.canRedo();
-  const complete = [state.fullName,state.jobTitle,state.contactFields?.some(field => field.value)].filter(Boolean).length; document.getElementById('completion-status').textContent = `Profile ${Math.round(complete / 3 * 100)}% complete`; document.querySelector('.editor-progress')?.style.setProperty('--progress', `${Math.round(complete / 3 * 100)}%`);
-  const contactTarget = document.getElementById('contact-fields-list');
-  const buttonTarget = document.getElementById('action-buttons-list');
-  if (!contactTarget?.contains(document.activeElement)) renderContactFields(state);
-  if (!buttonTarget?.contains(document.activeElement)) renderActionButtons(state);
+  const undoBtn = document.getElementById('btn-undo');
+  const redoBtn = document.getElementById('btn-redo');
+  if (undoBtn) undoBtn.disabled = !studioStore.canUndo();
+  if (redoBtn) redoBtn.disabled = !studioStore.canRedo();
+  const complete = [state.fullName,state.jobTitle,state.contactFields?.some(field => field.value)].filter(Boolean).length;
+  const statusEl = document.getElementById('completion-status');
+  if (statusEl) statusEl.textContent = `Profile ${Math.round(complete / 3 * 100)}% complete`;
+  document.querySelector('.editor-progress')?.style.setProperty('--progress', `${Math.round(complete / 3 * 100)}%`);
+
+  renderContactFields(state);
+  renderActionButtons(state);
 }
 
 function validate(state, focus = false) {
@@ -507,47 +588,164 @@ export function initStudio() {
       if (out) out.value = `${event.target.value}px`;
     });
   }
-  document.querySelector('.theme-chip-group')?.addEventListener('click', event => {
-    const chip = event.target.closest('.theme-chip');
-    if (!chip || !chip.dataset.preset) return;
-    studioStore.applyThemePreset(chip.dataset.preset);
+
+  // Wizard mode switcher tabs
+  document.getElementById('btn-mode-guided')?.addEventListener('click', () => {
+    studioStore.setEditorMode('guided');
   });
-  document.getElementById('btn-shuffle-theme')?.addEventListener('click', () => {
+  document.getElementById('btn-mode-advanced')?.addEventListener('click', () => {
+    studioStore.setEditorMode('advanced');
+  });
+  document.getElementById('btn-wizard-to-advanced')?.addEventListener('click', () => {
+    studioStore.setEditorMode('advanced');
+  });
+
+  // Wizard step navigation
+  document.getElementById('btn-wizard-prev')?.addEventListener('click', () => {
+    studioStore.prevWizardStep();
+  });
+  document.getElementById('btn-wizard-next')?.addEventListener('click', () => {
+    const state = studioStore.getState();
+    const currentStep = state.wizardStep || 1;
+    if (currentStep === 1) {
+      if (!state.fullName?.trim()) {
+        const input = document.getElementById('wiz-full-name');
+        input?.focus();
+        showStudioToast('Please enter your full name before continuing.');
+        return;
+      }
+      if (!isSafeUrl(state.logoUrl)) {
+        const input = document.getElementById('wiz-logo-url');
+        input?.focus();
+        showStudioToast('Please enter a valid URL for your logo or avatar.');
+        return;
+      }
+    }
+    studioStore.nextWizardStep();
+  });
+
+  // Wizard inputs bindings
+  const wizardBindings = {
+    'wiz-full-name': 'fullName',
+    'wiz-job-title': 'jobTitle',
+    'wiz-logo-url': 'logoUrl',
+    'wiz-font-family': 'fontFamily',
+    'wiz-layout': 'layout',
+    'wiz-title-style': 'titleStyle',
+    'wiz-name-font-size': 'nameFontSize',
+    'wiz-button-shape': 'buttonShape'
+  };
+  Object.entries(wizardBindings).forEach(([id, key]) => {
+    const input = document.getElementById(id);
+    if (input) {
+      input.addEventListener(input.type === 'select-one' ? 'change' : 'input', event => {
+        studioStore.setField(key, input.type === 'range' ? Number(event.target.value) : event.target.value);
+      });
+      input.addEventListener('blur', () => validate(studioStore.getState()));
+    }
+  });
+  const wizNameSizeInput = document.getElementById('wiz-name-font-size');
+  if (wizNameSizeInput) {
+    wizNameSizeInput.addEventListener('input', event => {
+      const out = document.getElementById('val-wiz-name-font-size');
+      if (out) out.value = `${event.target.value}px`;
+    });
+  }
+
+  // Shuffle theme presets (Hero shuffle & header shuffle)
+  const handleShuffle = () => {
     const key = studioStore.shuffleThemePreset();
     showStudioToast(`Applied palette: ${THEME_PRESETS[key]?.name || key}`);
+  };
+  document.getElementById('btn-hero-shuffle')?.addEventListener('click', handleShuffle);
+  document.getElementById('btn-shuffle-theme-hero')?.addEventListener('click', handleShuffle);
+  document.getElementById('btn-shuffle-theme')?.addEventListener('click', handleShuffle);
+
+  // Theme cards click delegator (handles both wizard and advanced preview cards)
+  document.addEventListener('click', event => {
+    const card = event.target.closest('.theme-preview-card, .theme-chip');
+    if (!card || !card.dataset.preset) return;
+    studioStore.applyThemePreset(card.dataset.preset);
   });
-  document.getElementById('contact-fields-list').addEventListener('input', event => { const id = event.target.dataset.id; if (event.target.matches('.field-val-input')) studioStore.updateContactField(id,{value:event.target.value}); if (event.target.matches('.field-href-input')) studioStore.updateContactField(id,{href:event.target.value}); });
-  document.getElementById('contact-fields-list').addEventListener('change', event => {
-    if (event.target.matches('.field-type-select')) {
-      const newType = event.target.value;
-      const card = event.target.closest('.dynamic-item-card');
-      const badge = card?.querySelector('.dynamic-item-icon-badge .material-symbols-rounded');
-      if (badge) badge.textContent = getContactSymbol(newType);
-      const valInput = card?.querySelector('.field-val-input');
-      const hrefInput = card?.querySelector('.field-href-input');
-      const placeholders = getContactPlaceholders(newType);
-      if (valInput) valInput.placeholder = placeholders.val;
-      if (hrefInput) hrefInput.placeholder = placeholders.href;
-      studioStore.updateContactField(event.target.dataset.id, { type: newType });
-    }
+
+  // Dynamic items add buttons
+  document.getElementById('btn-add-contact-field')?.addEventListener('click', () => studioStore.addContactField({ type: 'website', label: 'Website', value: '', href: 'https://' }));
+  document.getElementById('btn-wiz-add-contact')?.addEventListener('click', () => studioStore.addContactField({ type: 'website', label: 'Website', value: '', href: 'https://' }));
+  document.getElementById('btn-add-button')?.addEventListener('click', () => {
+    if (studioStore.getState().buttons.length >= 4) return showStudioToast('A signature can include up to four action links.');
+    studioStore.addButton();
   });
-  document.getElementById('contact-fields-list').addEventListener('click', event => { const button = event.target.closest('[data-action="remove-contact"]'); if (button) { studioStore.removeContactField(button.dataset.id); renderContactFields(studioStore.getState()); } });
-  document.getElementById('action-buttons-list').addEventListener('input', event => { const id = event.target.dataset.id; if (event.target.matches('.btn-label-input')) studioStore.updateButton(id,{label:event.target.value}); if (event.target.matches('.btn-url-input')) studioStore.updateButton(id,{url:event.target.value}); });
-  document.getElementById('action-buttons-list').addEventListener('change', event => {
-    const id = event.target.dataset.id;
-    if (event.target.matches('.btn-icon-select')) {
-      const card = event.target.closest('.dynamic-item-card');
-      const badge = card?.querySelector('.dynamic-item-icon-badge .material-symbols-rounded');
-      if (badge) badge.textContent = getButtonSymbol(event.target.value);
-      studioStore.updateButton(id, { icon: event.target.value });
-    }
-    if (event.target.matches('.btn-style-select')) {
-      studioStore.updateButton(id, { style: event.target.value });
-    }
+  document.getElementById('btn-wiz-add-button')?.addEventListener('click', () => {
+    if (studioStore.getState().buttons.length >= 4) return showStudioToast('A signature can include up to four action links.');
+    studioStore.addButton();
   });
-  document.getElementById('action-buttons-list').addEventListener('click', event => { const button = event.target.closest('[data-action="remove-btn"]'); if (button) { studioStore.removeButton(button.dataset.id); renderActionButtons(studioStore.getState()); } });
-  document.getElementById('btn-add-contact-field').addEventListener('click', () => studioStore.addContactField({type:'website',label:'Website',value:'',href:'https://'}));
-  document.getElementById('btn-add-button').addEventListener('click', () => { if (studioStore.getState().buttons.length >= 4) return showStudioToast('A signature can include up to four action links.'); studioStore.addButton(); });
+
+  // Dynamic items event listeners for contact fields (both wizard and advanced)
+  ['contact-fields-list', 'wizard-contact-fields-list'].forEach(containerId => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener('input', event => {
+      const id = event.target.dataset.id;
+      if (event.target.matches('.field-val-input')) studioStore.updateContactField(id, { value: event.target.value });
+      if (event.target.matches('.field-href-input')) studioStore.updateContactField(id, { href: event.target.value });
+    });
+    container.addEventListener('change', event => {
+      if (event.target.matches('.field-type-select')) {
+        const newType = event.target.value;
+        const card = event.target.closest('.dynamic-item-card');
+        const badge = card?.querySelector('.dynamic-item-icon-badge .material-symbols-rounded');
+        if (badge) badge.textContent = getContactSymbol(newType);
+        const valInput = card?.querySelector('.field-val-input');
+        const hrefInput = card?.querySelector('.field-href-input');
+        const placeholders = getContactPlaceholders(newType);
+        if (valInput) valInput.placeholder = placeholders.val;
+        if (hrefInput) hrefInput.placeholder = placeholders.href;
+        studioStore.updateContactField(event.target.dataset.id, { type: newType });
+      }
+    });
+    container.addEventListener('click', event => {
+      const button = event.target.closest('[data-action="remove-contact"]');
+      if (button) {
+        studioStore.removeContactField(button.dataset.id);
+        renderContactFields(studioStore.getState());
+      }
+    });
+  });
+
+  // Dynamic items event listeners for action buttons (both wizard and advanced)
+  ['action-buttons-list', 'wizard-action-buttons-list'].forEach(containerId => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener('input', event => {
+      const id = event.target.dataset.id;
+      if (event.target.matches('.btn-label-input')) studioStore.updateButton(id, { label: event.target.value });
+      if (event.target.matches('.btn-url-input')) studioStore.updateButton(id, { url: event.target.value });
+    });
+    container.addEventListener('change', event => {
+      const id = event.target.dataset.id;
+      if (event.target.matches('.btn-icon-select')) {
+        const card = event.target.closest('.dynamic-item-card');
+        const badge = card?.querySelector('.dynamic-item-icon-badge .material-symbols-rounded');
+        if (badge) badge.textContent = getButtonSymbol(event.target.value);
+        studioStore.updateButton(id, { icon: event.target.value });
+      }
+      if (event.target.matches('.btn-style-select')) {
+        studioStore.updateButton(id, { style: event.target.value });
+      }
+    });
+    container.addEventListener('click', event => {
+      const button = event.target.closest('[data-action="remove-btn"]');
+      if (button) {
+        studioStore.removeButton(button.dataset.id);
+        renderActionButtons(studioStore.getState());
+      }
+    });
+  });
+
+  // Wizard Step 5 export actions
+  document.getElementById('btn-wiz-copy-primary')?.addEventListener('click', copyRichSignature);
+  document.getElementById('btn-wiz-download-png')?.addEventListener('click', exportSignaturePNG);
+  document.getElementById('btn-wiz-download-html')?.addEventListener('click', downloadHTML);
 
   // Accessible theme toggle with dynamic state & ARIA attributes
   const darkToggle = document.getElementById('btn-toggle-dark');

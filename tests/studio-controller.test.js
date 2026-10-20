@@ -7,7 +7,8 @@ import {
   getContactPlaceholders,
   getButtonSymbol,
   createSignatureSvgWrapper,
-  renderThemeCards
+  renderThemeCards,
+  WIZARD_STEPS
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -210,6 +211,15 @@ test('renderThemeCards generates rich preview cards with backgrounds and active 
   assert.ok(html.includes('active')); // cosmic-blue should be active
   assert.ok(html.includes('data-preset="developer-cyan"'));
   assert.ok(html.includes('theme-card-badge'));
+});
+
+test('step titles map correctly across 5 wizard steps', () => {
+  assert.equal(WIZARD_STEPS.length, 5);
+  assert.equal(WIZARD_STEPS[0].title, 'Identity & Profile');
+  assert.equal(WIZARD_STEPS[1].title, 'Theme & Palette');
+  assert.equal(WIZARD_STEPS[2].title, 'Layout & Typography');
+  assert.equal(WIZARD_STEPS[3].title, 'Contacts & Social Links');
+  assert.equal(WIZARD_STEPS[4].title, 'Final Output & Export');
 });
 
 
