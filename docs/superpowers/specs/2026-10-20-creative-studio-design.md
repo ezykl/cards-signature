@@ -1,122 +1,135 @@
-# Creative Studio: Block Engine, Template Library, Guardrails
+# Creative Studio Suite: Extended Typography, Button Customization, 25+ Icons, New Layouts & Retina PNG Export
 
-**Date:** 2026-10-20  **Status:** Draft for review  **Path:** Architectural
+**Date:** 2026-10-20  
+**Status:** Approved by User  
+**Path:** Architectural  
+**Commit Standard:** Conventional Commits (`feat(scope): concise imperative description`)
 
-## 1. Goal
+---
 
-Turn Signature Studio from 3 hardcoded layouts into a creative zone: a large
-curated template library plus a block editor that lets anyone remix a template,
-while the output stays safe in Gmail and Outlook.
+## 1. Goal & Overview
 
-In scope: template engine, template library, block editor, email-safety
-guardrails. Out of scope: personal library (save/share), free-form canvas.
+Expand Signature Studio into a versatile, creative zone with complete design customization freedom while preserving bulletproof email client rendering (Outlook, Gmail, Apple Mail, iOS, Android).
 
-## 2. Research findings that constrain the design
+### Core Deliverables:
+1. **High-Resolution 2x Retina PNG Export:** Client-side vector-to-canvas rendering for direct image signature download (`email-signature.png`).
+2. **Typography Customization Suite:** Email-safe font families (`Arial`, `Georgia`, `Courier New`, `Trebuchet MS`), name font size controls (16px–24px), and title styling toggles (Regular, Uppercase Tracked, Italic).
+3. **Button Customization Suite:** Button shapes (`Pill 999px`, `Rounded 8px`, `Sharp 2px`), outline & solid styling variants (`default`, `brand`, `accent`, `outline`), and expanded 25+ categorized icons.
+4. **Expanded Layouts:** Added `accent-bar` (executive vertical stripe) and `split-avatar` (modern personal bio) layouts.
+5. **Template Gallery Expansion:** Showcasing curated configurations for Executive, Creative, Developer, Minimal, and Sales roles.
 
-Sources: general email-signature design guides and email HTML best-practice articles (2025).
+---
 
-- Nested `<table>` layout only, with `role="presentation"`, `cellpadding/cellspacing/border="0"`,
-  and `valign`/`align` attributes (Outlook ignores some CSS alignment).
-- Keep width at 600px or less (default 520, hard cap 600; current 720 cap is lowered).
-- Inline CSS only, web-safe font stacks only: Arial/Helvetica, Georgia, Courier New.
-  Google Fonts fall back to Times New Roman in Outlook.
-- Critical info (name, title, phone, email) must be live text, never an image.
-- Every `<img>` gets explicit `width`, `height`, `alt` and `display:block`. Export at 2x.
-- One primary call to action per signature (warn when more than 1 prominent CTA).
-- Gradients, rounded corners, shadows are enhancements only. Always emit a solid fallback.
-- Avoid pure black text on dark backgrounds and pure white on light (dark-mode resilience).
-- 4 to 6 lines of text maximum is the sweet spot.
+## 2. Technical Architecture & Data Model
 
-## 3. Architecture
+### 2.1 State Schema Extensions (`studioStore`)
+In `js/studio-templates.js`, extend `DEFAULT_SIGNATURE_STATE`:
+
+```javascript
+export const DEFAULT_SIGNATURE_STATE = {
+  // Existing fields
+  fullName: 'Ezekiel P. Villadolid',
+  jobTitle: 'Software Developer + UI/UX | Graphic Design',
+  logoUrl: 'https://raw.githubusercontent.com/ezykl/cards-signature/main/cards/ezekiel-villadolid/img/logo-ezekiel.png',
+  layout: 'landscape-v2', // 'landscape-v2' | 'compact-card' | 'minimal-row' | 'accent-bar' | 'split-avatar'
+  widthMode: 'responsive',
+  maxWidth: 580,
+  borderRadius: 16,
+  themePreset: 'developer-cyan',
+  bgColor: '#000440',
+  bgGradientEnd: '#00086b',
+  bgGradientAngle: 135,
+  bgType: 'solid',
+  accentColor: '#38bdf8',
+  textColorPrimary: '#ffffff',
+  textColorSecondary: '#93c5fd',
+  textColorMuted: '#60a5fa',
+  contactFields: [ ... ],
+  buttons: [ ... ],
+
+  // New Typography Fields
+  fontFamily: 'sans', // 'sans' (Arial) | 'serif' (Georgia) | 'mono' (Courier New) | 'grotesk' (Trebuchet MS)
+  nameFontSize: 19,    // 16 to 24 (px)
+  titleStyle: 'regular', // 'regular' | 'uppercase' | 'italic'
+
+  // New Button Styling Fields
+  buttonShape: 'rounded' // 'rounded' (8px) | 'pill' (999px) | 'sharp' (2px)
+};
+```
+
+### 2.2 Expanded 25+ Icon Map (`BUTTON_ICON_MAP`)
+Map standard identifiers to hosted high-contrast monochrome PNGs:
+- **Dev & Tools:** `github`, `code`, `terminal`, `figma`
+- **Social & Media:** `linkedin`, `x`, `youtube`, `instagram`, `dribbble`, `behance`, `medium`, `substack`, `spotify`
+- **Direct Messaging & Booking:** `calendly`, `whatsapp`, `telegram`, `discord`, `email`, `phone`, `chat`
+- **General Actions:** `globe`, `download`, `document`, `location`, `star`, `link`
+
+### 2.3 Email-Safe Layout Engine
+1. **`accent-bar` Layout:**
+   - 4px solid accent-colored border on the left table cell.
+   - Stacked name, role, contact items, and horizontal action links.
+   - Uses web-safe table cells with strict inline CSS.
+2. **`split-avatar` Layout:**
+   - Two-column responsive table: Left column features a 70x70px circular avatar/logo; right column hosts typography, contacts, and modular action buttons.
+
+---
+
+## 3. High-Resolution PNG Export Pipeline
 
 ```
-state = { theme, shell, blocks[] }
-renderSignatureHTML(state) -> shell(blocks.map(renderBlock(type, data, theme)))
+[Signature HTML Table]
+        ↓
+[Fetch external images & convert to base64 data URIs] (prevents canvas CORS taint)
+        ↓
+[Embed in SVG <foreignObject> with dimensions & inline XML namespace]
+        ↓
+[Load SVG into <img> element]
+        ↓
+[Draw into offscreen <canvas> scaled by 2x for Retina clarity]
+        ↓
+[canvas.toBlob() → URL.createObjectURL() → <a download="email-signature.png"> click]
 ```
 
-- **Theme tokens:** palette (existing fields), `fontStack` (one of 3 safe stacks), `density`
-  (compact | cozy | airy), `radius`, `accentStyle`.
-- **Shell:** layout recipe: `stack`, `side-by-side`, `accent-bar`, `banner-top`, `centered`, `split-footer`.
-- **Block:** a pure function `(data, theme) -> email-safe table markup`, with a declared `safeIn`
-  client list. Block types: `identity`, `avatar`, `logo`, `contacts`, `socials`, `buttons`,
-  `divider`, `tagline`, `banner`, `quote`, `legal`.
-- **Template:** a JSON document `{ id, name, family, tags, theme, shell, blocks }`.
-  Existing 3 layouts and `THEME_PRESETS` are converted to templates first (no regressions).
-- **Files:** `js/blocks/*.js` (one per block), `js/shells.js`, `js/templates/*.json`,
-  `js/engine.js` (render + validation), `js/studio-templates.js` kept as a thin facade.
+### Safety & Error Handling:
+- If an external user-provided logo URL is blocked by cross-origin policies, the exporter proceeds without the blocked logo image and displays a toast informing the user.
+- Visual loading feedback on `#btn-studio-download-png` (`"Generating PNG..."` with disabled state during processing).
 
-## 4. Template library: combination matrix
+---
 
-A template is a combination of **shell x block set x theme family x density**. The library
-ships 16 templates. Users pick **preferences** and the gallery ranks templates by match.
+## 4. UI Controls Specifications
 
-### 4.1 Preference axes (filters and ranking)
+1. **Appearance Section Controls:**
+   - Font family select dropdown with 4 safe font stacks.
+   - Name font size range slider (16px to 24px) with dynamic live value output.
+   - Title style segment buttons (`Regular`, `Uppercase`, `Italic`).
+2. **Call-to-Action Section Controls:**
+   - Button shape radio/pill toggle (`Rounded`, `Pill`, `Sharp`).
+   - Grouped button icon select dropdown with 25+ options.
+   - Button variant select (`Solid`, `Brand`, `Accent`, `Outline`).
+3. **Export Panel:**
+   - New button `#btn-studio-download-png` positioned beside "Copy HTML" and "Download HTML".
 
-| Axis | Options |
-| :--- | :--- |
-| Role / industry | Corporate, Tech/Dev, Creative/Design, Sales/Growth, Founder/Exec, Education/Health |
-| Tone | Formal, Friendly, Bold, Minimal, Editorial |
-| Density | Compact (3-4 lines), Standard (5-6), Rich (with banner/CTA) |
-| Color mood | Dark, Light, Warm, Cool, Mono, Vivid |
-| Media | Text only, Logo, Avatar, Banner |
+---
 
-### 4.2 Curated templates (first release)
+## 5. Verification & Testing Strategy
 
-| # | Name | Family | Shell | Blocks | Theme | Best for |
-| :-- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | Boardroom | Corporate | accent-bar | identity, contacts, divider, legal | navy + slate, Arial | Corporate, Formal |
-| 2 | Counsel | Corporate | side-by-side | logo, identity, contacts, legal | charcoal + gold, Georgia | Legal/Finance |
-| 3 | Clinic | Corporate | stack | avatar, identity, contacts, tagline | teal on white, Arial | Education/Health |
-| 4 | Terminal | Tech | stack | identity, contacts, socials | dark + cyan, Courier | Tech/Dev |
-| 5 | Commit | Tech | side-by-side | avatar, identity, socials, buttons | dark + emerald, Arial | Tech/Dev, Friendly |
-| 6 | Studio | Creative | side-by-side | avatar, identity, tagline, socials | white + coral, Georgia | Creative/Design |
-| 7 | Gallery | Creative | banner-top | banner, identity, contacts | warm sand + ink, Georgia | Creative, Editorial |
-| 8 | Neon Pitch | Creative | centered | logo, identity, buttons | dark + vivid gradient (solid fallback) | Bold |
-| 9 | Closer | Sales | banner-top | identity, buttons, banner | blue + orange, Arial | Sales/Growth |
-| 10 | Quota | Sales | split-footer | avatar, identity, contacts, buttons | white + red, Arial | Sales, Standard |
-| 11 | Founder Note | Exec | stack | identity, quote, contacts | off-white + black, Georgia | Founder/Exec, Minimal |
-| 12 | Principal | Exec | accent-bar | identity, contacts | mono, Arial | Exec, Compact |
-| 13 | Whisper | Minimal | stack | identity, contacts | white + gray, Arial | Minimal, Compact |
-| 14 | Hairline | Minimal | side-by-side | identity, divider, contacts | white + one accent | Minimal, Standard |
-| 15 | Magazine | Editorial | split-footer | identity, quote, socials | cream + burgundy, Georgia | Editorial |
-| 16 | Aurora | Bold | centered | avatar, identity, tagline, socials | cool dark gradient, Arial | Bold, Rich |
+1. **Automated Unit Tests (`tests/studio-controller.test.js` & new tests):**
+   - Verify `renderSignatureHTML` respects `fontFamily`, `nameFontSize`, and `titleStyle`.
+   - Verify `renderSignatureHTML` correctly renders new `accent-bar` and `split-avatar` layouts.
+   - Verify all 25+ icon keys resolve properly in `renderActionButtons`.
+   - Verify button shape (`pill`, `rounded`, `sharp`) correctly computes `border-radius`.
+   - Verify 100% pass rate for all 24 existing tests.
+2. **Visual & Browser Verification:**
+   - Verify template gallery preview renders all layouts centered with consistent scaling.
+   - Test PNG generation with and without remote logo.
+   - Test responsive mobile view toggle in studio canvas.
 
-Each family also exposes **3 palette variants** (Dark, Light, Mono), so users get combinations
-beyond the 16 base templates without more layout code. "Shuffle" picks a random valid
-combination (shell x block set x variant) that passes guardrails.
+---
 
-## 5. Block editor (UI)
-
-- New **Layout** panel: ordered block list with up/down buttons plus drag handle, per-block
-  visibility toggle, and a per-block options drawer.
-- Add Block menu lists only block types compatible with the current shell.
-- Gallery: filter chips for the preference axes, "Best match" sort, and search.
-- Undo/redo, autosave and live preview keep working on the new state shape.
-
-## 6. Guardrails
-
-- Renderer emits only features in the block's `safeIn` set.
-- **Client check** panel shows warnings: image-only content, contrast below 4.5:1,
-  width above 600, more than 1 prominent CTA, more than 6 text lines, missing alt text,
-  unsupported font.
-- Export validation fails closed: warnings never block copy, but errors (unsafe font,
-  non-http image URL) are fixed by the renderer.
-
-## 7. Testing
-
-- Unit tests per block (markup contains required attributes, escapes input).
-- Template contract test: every JSON template renders without warnings of severity error.
-- Migration test: old saved drafts load into the new state shape.
-- Snapshot of each template's HTML to catch accidental email-safety regressions.
-
-## 8. Rollout (sub-project order)
-
-1. Engine and migration of existing 3 layouts (no visual change).
-2. Guardrails and client-check panel.
-3. Block editor panel.
-4. Template library: 16 templates, variants, preference filters, Shuffle.
-
-## 9. Risks
-
-- Rewrite of the renderer: mitigated by migrating existing templates first and keeping tests green.
-- Outlook rendering cannot be fully verified locally: mitigated by a manual client checklist per template.
+## 6. Git Commit Protocol
+All commits follow Conventional Commits standard:
+- `feat(studio): add typography controls and safe font stacks`
+- `feat(buttons): expand button shapes, outline styles, and 25+ icon map`
+- `feat(layouts): implement executive accent-bar and split-avatar layouts`
+- `feat(export): add 2x retina PNG image signature export engine`
+- `test(studio): add test coverage for new layouts, typography, and icon map`
