@@ -90,6 +90,16 @@ test('loadPresetByCardId maps card IDs to valid states', () => {
   const card3 = loadPresetByCardId(3); // Developer Landscape V2
   assert.equal(card3.layout, 'landscape-v2');
   assert.equal(card3.accentColor, '#38bdf8');
+
+  const card4 = loadPresetByCardId(4); // Boardroom Accent
+  assert.equal(card4.layout, 'accent-bar');
+  assert.equal(card4.fontFamily, 'serif');
+  assert.equal(card4.buttonShape, 'sharp');
+
+  const card5 = loadPresetByCardId(5); // Creative Split
+  assert.equal(card5.layout, 'split-avatar');
+  assert.equal(card5.buttonShape, 'pill');
+  assert.equal(card5.titleStyle, 'uppercase');
 });
 
 test('store manages widthMode switching', () => {

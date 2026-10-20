@@ -44,9 +44,11 @@ function cryptoId() { return globalThis.crypto?.randomUUID?.().slice(0, 8) || Ma
 export function loadPresetByCardId(cardId) {
   const base = clone(DEFAULT_SIGNATURE_STATE);
   const variants = {
-    1:{ layout:'compact-card', maxWidth:420, borderRadius:16, themePreset:'minimal-light' },
-    2:{ layout:'minimal-row', maxWidth:680, borderRadius:10, themePreset:'slate-tech', buttons:base.buttons.slice(0, 2) },
-    3:{ layout:'landscape-v2', maxWidth:680, borderRadius:16, themePreset:'developer-cyan' }
+    1: { layout: 'compact-card', maxWidth: 420, borderRadius: 16, themePreset: 'minimal-light' },
+    2: { layout: 'minimal-row', maxWidth: 680, borderRadius: 10, themePreset: 'slate-tech', buttons: base.buttons.slice(0, 2) },
+    3: { layout: 'landscape-v2', maxWidth: 680, borderRadius: 16, themePreset: 'developer-cyan', fontFamily: 'mono', buttonShape: 'pill' },
+    4: { layout: 'accent-bar', maxWidth: 640, borderRadius: 8, themePreset: 'monochrome-pro', fontFamily: 'serif', buttonShape: 'sharp' },
+    5: { layout: 'split-avatar', maxWidth: 660, borderRadius: 18, themePreset: 'rose-gold', fontFamily: 'grotesk', buttonShape: 'pill', titleStyle: 'uppercase' }
   };
   const variant = variants[Number(cardId)] || variants[3];
   return { ...base, ...THEME_PRESETS[variant.themePreset], ...variant };
@@ -328,7 +330,18 @@ function validate(state, focus = false) {
   const summary = document.getElementById('form-error-summary'); summary.hidden = !issues.length; summary.textContent = issues.join(' '); if (issues.length && focus) summary.focus(); return !issues.length;
 }
 
-function renderGallery() { const target = document.getElementById('template-gallery'); if (!target) return; const cards = [{ id:3,name:'Developer landscape',description:'A confident, wide signature for portfolio and technical roles.',layout:'Landscape' },{ id:1,name:'Minimal card',description:'A centered profile presentation with a compact visual footprint.',layout:'Compact card' },{ id:2,name:'Executive row',description:'A concise layout designed for high-volume professional email.',layout:'Minimal row' }]; target.innerHTML = cards.map(card => `<article class="template-card"><div class="template-card-preview">${renderSignatureHTML(loadPresetByCardId(card.id))}</div><div><h2>${card.name}</h2><p>${card.description}</p></div><div class="template-card-footer"><span>${card.layout}</span><button type="button" class="button button-secondary" data-template="${card.id}">Use template</button></div></article>`).join(''); }
+function renderGallery() {
+  const target = document.getElementById('template-gallery');
+  if (!target) return;
+  const cards = [
+    { id: 3, name: 'Developer landscape', description: 'A confident, wide signature for portfolio and technical roles.', layout: 'Landscape' },
+    { id: 1, name: 'Minimal card', description: 'A centered profile presentation with a compact visual footprint.', layout: 'Compact card' },
+    { id: 2, name: 'Executive row', description: 'A concise layout designed for high-volume professional email.', layout: 'Minimal row' },
+    { id: 4, name: 'Boardroom accent', description: 'Distinguished left-accent bar with crisp serif typography and sharp CTA buttons.', layout: 'Accent bar' },
+    { id: 5, name: 'Creative split', description: 'Modern two-column layout highlighting an avatar portrait with pill-shaped links.', layout: 'Split avatar' }
+  ];
+  target.innerHTML = cards.map(card => `<article class="template-card"><div class="template-card-preview">${renderSignatureHTML(loadPresetByCardId(card.id))}</div><div><h2>${card.name}</h2><p>${card.description}</p></div><div class="template-card-footer"><span>${card.layout}</span><button type="button" class="button button-secondary" data-template="${card.id}">Use template</button></div></article>`).join('');
+}
 
 function setView(view) { ['home','studio','gallery'].forEach(name => { const section = document.getElementById(`${name}-view`); if (section) section.hidden = name !== view; }); [...document.body.classList].filter(name => name.startsWith('view-mode-')).forEach(name => document.body.classList.remove(name)); document.body.classList.add(`view-mode-${view}`); if (view === 'home') document.getElementById('home').scrollIntoView({ behavior:'smooth' }); else window.scrollTo({ top:0, behavior:'smooth' }); }
 
@@ -567,6 +580,13 @@ export function initStudio() {
   document.getElementById('btn-studio-download-png')?.addEventListener('click', exportSignaturePNG);
   document.getElementById('btn-export-draft').addEventListener('click', exportDraft);
   document.getElementById('input-import-draft').addEventListener('change', event => importDraft(event.target.files[0]));
+
+  const initialHash = window.location.hash.replace('#', '');
+  if (['studio', 'gallery', 'home'].includes(initialHash)) setView(initialHash);
+  window.addEventListener('hashchange', () => {
+    const next = window.location.hash.replace('#', '');
+    if (['studio', 'gallery', 'home'].includes(next)) setView(next);
+  });
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initStudio) : initStudio();
