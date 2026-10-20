@@ -198,3 +198,18 @@ test('renderSignatureHTML respects typography settings (fontFamily, nameFontSize
   assert.match(html, /font-size:\s*22px/);
   assert.match(html, /text-transform:\s*uppercase/);
 });
+
+test('renderActionButtons renders button shapes (pill, sharp, rounded) and outline style', () => {
+  const state = {
+    ...DEFAULT_SIGNATURE_STATE,
+    buttonShape: 'pill',
+    accentColor: '#38bdf8',
+    buttons: [
+      { id: 'b1', label: 'Book Call', url: 'https://calendly.com', icon: 'calendly', style: 'outline' }
+    ]
+  };
+  const html = renderSignatureHTML(state);
+  assert.match(html, /border-radius:\s*999px/);
+  assert.match(html, /border:\s*1px solid #38bdf8/);
+  assert.match(html, /calendar\.png/);
+});

@@ -229,14 +229,46 @@ export const CONTACT_ICON_MAP = {
   portfolio: 'domain.png'
 };
 
+export const BUTTON_SHAPES = {
+  rounded: 8,
+  pill: 999,
+  sharp: 2
+};
+
 export const BUTTON_ICON_MAP = {
+  // Dev & Tools
   github: 'github.png',
+  code: 'source-code.png',
+  terminal: 'console.png',
+  figma: 'figma.png',
+  // Social & Media
   linkedin: 'linkedin--v1.png',
-  download: 'download.png',
+  x: 'twitter.png',
+  twitter: 'twitter.png',
+  youtube: 'youtube-play.png',
+  instagram: 'instagram-new.png',
+  dribbble: 'dribbble.png',
+  behance: 'behance.png',
+  medium: 'medium-monogram.png',
+  substack: 'bookmark-ribbon.png',
+  spotify: 'spotify.png',
+  // Direct & Booking
+  calendly: 'calendar.png',
+  calendar: 'calendar.png',
+  whatsapp: 'whatsapp.png',
+  telegram: 'telegram-app.png',
+  discord: 'discord.png',
+  email: 'mail.png',
+  phone: 'phone.png',
+  chat: 'chat.png',
+  // Actions & General
   globe: 'domain.png',
   website: 'domain.png',
-  calendar: 'calendar.png',
-  twitter: 'twitter.png'
+  download: 'download.png',
+  document: 'document.png',
+  location: 'marker.png',
+  star: 'star.png',
+  link: 'link.png'
 };
 
 export const DEFAULT_SIGNATURE_STATE = {
@@ -270,7 +302,8 @@ export const DEFAULT_SIGNATURE_STATE = {
   buttonBorder: 'rgba(255, 255, 255, 0.16)',
   fontFamily: 'sans',
   nameFontSize: 19,
-  titleStyle: 'regular'
+  titleStyle: 'regular',
+  buttonShape: 'rounded'
 };
 
 export const FONT_STACKS = {
@@ -449,16 +482,27 @@ function renderActionButtons(buttons, state) {
     } else if (btn.style === 'accent') {
       const accent = safeHex(state.accentColor, '#38bdf8');
       bgStyle = `background-color: ${accent}; background-image: linear-gradient(180deg, ${accent} 0%, rgba(0, 0, 0, 0.35) 100%); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;`;
+    } else if (btn.style === 'outline') {
+      const accent = safeHex(state.accentColor, '#38bdf8');
+      bgStyle = `background-color: transparent; border: 1px solid ${accent}; color: ${accent};`;
     }
 
+    let radius = 8;
+    if (state.buttonShape === 'pill') {
+      radius = 999;
+    } else if (state.buttonShape === 'sharp') {
+      radius = 2;
+    }
+
+    const iconColorHex = btn.style === 'outline' ? cleanHex(state.accentColor) : 'ffffff';
     const iconFile = BUTTON_ICON_MAP[btn.icon] || (btn.icon ? `${btn.icon}.png` : null);
     const iconTag = (iconFile && btn.icon !== 'none') ? `
-      <img src="https://img.icons8.com/material-rounded/48/ffffff/${iconFile}" alt="${escapeHTML(btn.label)}" width="12" height="12" style="display: inline-block; vertical-align: -2px; margin-right: 4px; width: 12px; height: 12px; border: 0;" />
+      <img src="https://img.icons8.com/material-rounded/48/${iconColorHex}/${iconFile}" alt="${escapeHTML(btn.label)}" width="12" height="12" style="display: inline-block; vertical-align: -2px; margin-right: 4px; width: 12px; height: 12px; border: 0;" />
     ` : '';
 
     return `
       <td style="${paddingStyle} width: ${colWidth}; vertical-align: middle;">
-        <a href="${safeUrl(btn.url, '#')}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; ${bgStyle} font-size: 10.5px; font-weight: 600; text-decoration: none; padding: 7px 6px; border-radius: 7px; line-height: 14px; white-space: nowrap;">
+        <a href="${safeUrl(btn.url, '#')}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; ${bgStyle} font-size: 10.5px; font-weight: 600; text-decoration: none; padding: 7px 6px; border-radius: ${radius}px; line-height: 14px; white-space: nowrap;">
           ${iconTag.trim()}${escapeHTML(btn.label)}
         </a>
       </td>
@@ -662,7 +706,8 @@ export function renderSignatureHTML(state = DEFAULT_SIGNATURE_STATE) {
     widthMode: state.widthMode === 'fixed' ? 'fixed' : 'responsive',
     fontFamily: ['sans', 'serif', 'mono', 'grotesk'].includes(state.fontFamily) ? state.fontFamily : 'sans',
     nameFontSize: Math.max(14, Math.min(26, Number(state.nameFontSize) || 19)),
-    titleStyle: ['regular', 'uppercase', 'italic'].includes(state.titleStyle) ? state.titleStyle : 'regular'
+    titleStyle: ['regular', 'uppercase', 'italic'].includes(state.titleStyle) ? state.titleStyle : 'regular',
+    buttonShape: ['rounded', 'pill', 'sharp'].includes(state.buttonShape) ? state.buttonShape : 'rounded'
   };
   const layout = safeState.layout || 'landscape-v2';
 
