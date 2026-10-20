@@ -248,6 +248,104 @@ function setView(view) { ['home','studio','gallery'].forEach(name => { const sec
 async function copyRichSignature() { const preview = document.getElementById('studio-preview-card'); if (!preview || !validate(studioStore.getState(), true)) return; const html = preview.innerHTML.trim(); try { if (navigator.clipboard && window.ClipboardItem) { await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([html],{type:'text/html'}), 'text/plain':new Blob(['Email signature'],{type:'text/plain'}) })]); showStudioToast('Signature copied. Paste it into your email settings.'); return; } throw new Error('Rich clipboard unavailable'); } catch { const range = document.createRange(); const holder = document.createElement('div'); holder.style.cssText = 'position:fixed;left:-9999px;top:0;'; holder.innerHTML = html; document.body.appendChild(holder); range.selectNodeContents(holder); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); document.execCommand('copy'); selection.removeAllRanges(); holder.remove(); showStudioToast('Signature copied. Paste it into your email settings.'); } }
 function copyRawHTML() { navigator.clipboard.writeText(document.getElementById('studio-preview-card').innerHTML.trim()).then(() => showStudioToast('HTML copied to clipboard.')).catch(() => showStudioToast('Copy failed. Please try again.')); }
 function downloadHTML() { if (!validate(studioStore.getState(), true)) return; const blob = new Blob([document.getElementById('studio-preview-card').innerHTML.trim()],{type:'text/html;charset=utf-8'}); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'),{href:url,download:'email-signature.html'}); link.click(); URL.revokeObjectURL(url); showStudioToast('HTML file downloaded.'); }
+
+export function createSignatureSvgWrapper(html, width = 600, height = 300) {
+  const safeW = Math.max(280, Number(width) || 600);
+  const safeH = Math.max(100, Number(height) || 300);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${safeW}" height="${safeH}" viewBox="0 0 ${safeW} ${safeH}">
+  <foreignObject width="100%" height="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="margin: 0; padding: 0; background: transparent;">
+      ${html}
+    </div>
+  </foreignObject>
+</svg>`;
+}
+
+export async function exportSignaturePNG() {
+  const preview = document.getElementById('studio-preview-card');
+  if (!preview || !validate(studioStore.getState(), true)) return;
+  const btn = document.getElementById('btn-studio-download-png');
+  const originalText = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span> Generating PNG...';
+  }
+
+  try {
+    const table = preview.querySelector('table');
+    const width = table ? Math.round(table.offsetWidth || table.getBoundingClientRect().width || 580) : 580;
+    const height = table ? Math.round(table.offsetHeight || table.getBoundingClientRect().height || 260) : 260;
+
+    const cloneDiv = document.createElement('div');
+    cloneDiv.innerHTML = preview.innerHTML.trim();
+    const images = Array.from(cloneDiv.querySelectorAll('img'));
+
+    await Promise.all(images.map(async img => {
+      try {
+        const src = img.getAttribute('src');
+        if (!src || src.startsWith('data:')) return;
+        const res = await fetch(src, { mode: 'cors' });
+        if (res.ok) {
+          const blob = await res.blob();
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          img.setAttribute('src', base64);
+        }
+      } catch {
+        // Continue if CORS blocks individual image
+      }
+    }));
+
+    const svgString = createSignatureSvgWrapper(cloneDiv.innerHTML, width, height);
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = reject;
+      img.src = svgUrl;
+    });
+
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas 2D context unavailable');
+
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0, width, height);
+    URL.revokeObjectURL(svgUrl);
+
+    canvas.toBlob(blob => {
+      if (!blob) {
+        showStudioToast('Could not generate PNG image.');
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const link = Object.assign(document.createElement('a'), {
+        href: url,
+        download: 'email-signature.png'
+      });
+      link.click();
+      URL.revokeObjectURL(url);
+      showStudioToast('PNG image signature downloaded.');
+    }, 'image/png');
+  } catch {
+    showStudioToast('PNG export encountered an issue. Try HTML copy instead.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+}
+
 function exportDraft() { const blob = new Blob([JSON.stringify(studioStore.getState(),null,2)],{type:'application/json'}); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'),{href:url,download:'signature-studio-draft.json'}); link.click(); URL.revokeObjectURL(url); showStudioToast('Editable draft exported.'); }
 function importDraft(file) { if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const data = JSON.parse(reader.result); if (!data || typeof data !== 'object' || !Array.isArray(data.contactFields) || !Array.isArray(data.buttons)) throw new Error(); studioStore.setState({ ...clone(DEFAULT_SIGNATURE_STATE), ...data }); showStudioToast('Draft imported.'); } catch { showStudioToast('That file is not a valid Signature Studio draft.'); } }; reader.readAsText(file); }
 

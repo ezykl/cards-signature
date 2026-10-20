@@ -5,7 +5,8 @@ import {
   loadPresetByCardId,
   getContactSymbol,
   getContactPlaceholders,
-  getButtonSymbol
+  getButtonSymbol,
+  createSignatureSvgWrapper
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -145,5 +146,15 @@ test('getButtonSymbol returns expected symbols for button icons', () => {
   assert.equal(getButtonSymbol('calendar'), 'calendar_month');
   assert.equal(getButtonSymbol('none'), 'link_off');
   assert.equal(getButtonSymbol('other'), 'link');
+});
+
+test('createSignatureSvgWrapper wraps HTML in valid SVG foreignObject with dimensions', () => {
+  const html = '<table width="580"><tr><td>Test</td></tr></table>';
+  const svg = createSignatureSvgWrapper(html, 580, 240);
+  assert.ok(svg.includes('xmlns="http://www.w3.org/2000/svg"'));
+  assert.ok(svg.includes('width="580"'));
+  assert.ok(svg.includes('height="240"'));
+  assert.ok(svg.includes('<foreignObject'));
+  assert.ok(svg.includes('Test'));
 });
 
