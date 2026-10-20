@@ -213,3 +213,15 @@ test('renderActionButtons renders button shapes (pill, sharp, rounded) and outli
   assert.match(html, /border:\s*1px solid #38bdf8/);
   assert.match(html, /calendar\.png/);
 });
+
+test('renderSignatureHTML renders accent-bar and split-avatar layouts', () => {
+  const accentBarState = { ...DEFAULT_SIGNATURE_STATE, layout: 'accent-bar', accentColor: '#38bdf8' };
+  const splitAvatarState = { ...DEFAULT_SIGNATURE_STATE, layout: 'split-avatar' };
+  
+  const accentHtml = renderSignatureHTML(accentBarState);
+  assert.match(accentHtml, /border-left:\s*4px solid #38bdf8/);
+  
+  const splitHtml = renderSignatureHTML(splitAvatarState);
+  assert.match(splitHtml, /width="70"/);
+  assert.match(splitHtml, /border-radius:\s*50%/);
+});

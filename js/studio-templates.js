@@ -685,6 +685,109 @@ function renderMinimalRow(state) {
 }
 
 /**
+ * Renders Executive Accent Bar Layout
+ */
+function renderAccentBar(state) {
+  const bgStyle = getBackgroundStyle(state);
+  const widthCfg = getTableWidthConfig(state, 680, 280);
+  const radius = state.borderRadius !== undefined ? state.borderRadius : 12;
+  const accent = safeHex(state.accentColor, '#38bdf8');
+  const contactRows = renderContactRows(state.contactFields, state.accentColor);
+  const buttonsMarkup = renderActionButtons(state.buttons, state);
+  const nameSize = state.nameFontSize || 19;
+  const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
+
+  return `
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
+  <tr>
+    <td style="padding: 16px 20px; border-radius: ${radius}px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <!-- Left 4px accent bar cell -->
+          <td style="border-left: 4px solid ${accent}; padding-left: 14px; vertical-align: top;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td style="vertical-align: middle;">
+                  <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
+                    ${escapeHTML(state.fullName)}
+                  </div>
+                  <div style="font-size: 12px; font-weight: 600; ${titleStyleAttr}">
+                    ${escapeHTML(state.jobTitle)}
+                  </div>
+                </td>
+                ${safeUrl(state.logoUrl) ? `
+                <td align="right" style="vertical-align: middle; padding-left: 12px; width: 60px;">
+                  <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="60" height="40" style="display: block; border: 0; outline: none; max-width: 60px; height: auto;" />
+                </td>
+                ` : ''}
+              </tr>
+            </table>
+
+            ${contactRows ? `
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 10px;">
+              ${contactRows}
+            </table>
+            ` : ''}
+
+            ${buttonsMarkup}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+`.trim();
+}
+
+/**
+ * Renders Split Avatar Layout (Modern Round Avatar Bio)
+ */
+function renderSplitAvatar(state) {
+  const bgStyle = getBackgroundStyle(state);
+  const widthCfg = getTableWidthConfig(state, 680, 280);
+  const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
+  const contactRows = renderContactRows(state.contactFields, state.accentColor);
+  const buttonsMarkup = renderActionButtons(state.buttons, state);
+  const nameSize = state.nameFontSize || 19;
+  const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
+  const avatarUrl = safeUrl(state.logoUrl, 'https://raw.githubusercontent.com/ezykl/Portfolio/refs/heads/master/public/assets/logo.png');
+
+  return `
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
+  <tr>
+    <td style="padding: 18px 20px; border-radius: ${radius}px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <!-- Left Column: Circular Avatar -->
+          <td style="width: 70px; vertical-align: top; padding-right: 18px;" align="center">
+            <img src="${avatarUrl}" alt="Avatar" width="70" height="70" style="display: block; width: 70px; height: 70px; border-radius: 50%; border: 0; outline: none; object-fit: cover;" />
+          </td>
+          <!-- Right Column: Details & Buttons -->
+          <td style="vertical-align: top;">
+            <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
+              ${escapeHTML(state.fullName)}
+            </div>
+            <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; ${titleStyleAttr}">
+              ${escapeHTML(state.jobTitle)}
+            </div>
+
+            ${contactRows ? `
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 6px;">
+              ${contactRows}
+            </table>
+            ` : ''}
+
+            ${buttonsMarkup}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+`.trim();
+}
+
+/**
  * Main export function: transforms SignatureState into email-safe table markup.
  */
 export function renderSignatureHTML(state = DEFAULT_SIGNATURE_STATE) {
@@ -716,6 +819,10 @@ export function renderSignatureHTML(state = DEFAULT_SIGNATURE_STATE) {
       return renderCompactCard(safeState);
     case 'minimal-row':
       return renderMinimalRow(safeState);
+    case 'accent-bar':
+      return renderAccentBar(safeState);
+    case 'split-avatar':
+      return renderSplitAvatar(safeState);
     case 'landscape-v2':
     default:
       return renderLandscapeV2(safeState);
