@@ -327,6 +327,15 @@ function hexToRgb(hex) {
 }
 
 /**
+ * Solid (non-alpha) border color: base blended 14% toward white. rgba() borders are dropped by several email clients.
+ */
+function getBorderColor(state) {
+  const rgb = hexToRgb(safeHex(state.bgColor, '#000440')) || { r: 0, g: 4, b: 64 };
+  const mix = c => Math.round(c + (255 - c) * 0.14).toString(16).padStart(2, '0');
+  return `#${mix(rgb.r)}${mix(rgb.g)}${mix(rgb.b)}`;
+}
+
+/**
  * Computes background inline CSS safely with bulletproof fallback for email clients.
  */
 function getBackgroundStyle(state) {
@@ -425,7 +434,7 @@ function renderActionButtons(buttons, state) {
 
     return `
       <td style="${paddingStyle} width: ${colWidth}; vertical-align: middle;">
-        <a href="${safeUrl(btn.url, '#')}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; ${bgStyle} font-size: 10.5px; font-weight: 600; text-decoration: none; padding: 7px 6px; border-radius: 7px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); line-height: 14px; white-space: nowrap;">
+        <a href="${safeUrl(btn.url, '#')}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; ${bgStyle} font-size: 10.5px; font-weight: 600; text-decoration: none; padding: 7px 6px; border-radius: 7px; line-height: 14px; white-space: nowrap;">
           ${iconTag.trim()}${escapeHTML(btn.label)}
         </a>
       </td>
@@ -472,7 +481,7 @@ function renderLandscapeV2(state) {
   const buttonsMarkup = renderActionButtons(state.buttons, state);
 
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
   <tr>
     <td style="padding: 16px 22px 16px 22px; border-radius: ${radius}px;">
       <!-- Top Section: Name/Title on Left, Logo on Right -->
@@ -480,9 +489,9 @@ function renderLandscapeV2(state) {
         <tr>
           <!-- Name & Title -->
           <td style="vertical-align: middle;">
-            <h1 style="margin: 0 0 2px 0; font-size: 19px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; letter-spacing: -0.2px; line-height: 1.2;">
+            <div style="margin: 0 0 2px 0; font-size: 19px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; letter-spacing: -0.2px; line-height: 1.2;">
               ${escapeHTML(state.fullName)}
-            </h1>
+            </div>
             <span style="display: inline-block; font-size: 12px; color: ${state.textColorSecondary || '#93c5fd'}; font-weight: 600; letter-spacing: 0.2px;">
               ${escapeHTML(state.jobTitle)}
             </span>
@@ -523,7 +532,7 @@ function renderCompactCard(state) {
   const buttonsMarkup = renderActionButtons(state.buttons, state);
 
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
   <tr>
     <td style="padding: 20px; border-radius: ${radius}px; text-align: center;">
       ${safeUrl(state.logoUrl) ? `
@@ -536,9 +545,9 @@ function renderCompactCard(state) {
       </table>
       ` : ''}
 
-      <h1 style="margin: 0 0 4px 0; font-size: 18px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
+      <div style="margin: 0 0 4px 0; font-size: 18px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
         ${escapeHTML(state.fullName)}
-      </h1>
+      </div>
       <span style="display: inline-block; font-size: 12px; color: ${state.textColorSecondary || '#93c5fd'}; font-weight: 600; margin-bottom: 12px;">
         ${escapeHTML(state.jobTitle)}
       </span>
@@ -567,7 +576,7 @@ function renderMinimalRow(state) {
   const buttonsMarkup = renderActionButtons(state.buttons, state);
 
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid rgba(255, 255, 255, 0.14); border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
   <tr>
     <td style="padding: 14px 18px; border-radius: ${radius}px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">

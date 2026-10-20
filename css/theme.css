@@ -528,7 +528,7 @@ button[disabled] {
   );
   background-size: 16px 16px;
 }
-.preview-card-canvas table {
+.preview-card-canvas #studio-preview-card > table {
   box-shadow: var(--elev-2);
 }
 
