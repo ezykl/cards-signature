@@ -267,8 +267,32 @@ export const DEFAULT_SIGNATURE_STATE = {
   textColorSecondary: '#93c5fd',
   textColorMuted: '#cbd5e1',
   buttonBg: '#121829',
-  buttonBorder: 'rgba(255, 255, 255, 0.16)'
+  buttonBorder: 'rgba(255, 255, 255, 0.16)',
+  fontFamily: 'sans',
+  nameFontSize: 19,
+  titleStyle: 'regular'
 };
+
+export const FONT_STACKS = {
+  sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  serif: "Georgia, 'Times New Roman', Times, serif",
+  mono: "Consolas, 'Courier New', Courier, monospace",
+  grotesk: "'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', Tahoma, sans-serif"
+};
+
+export function getFontFamily(fontKey) {
+  return FONT_STACKS[fontKey] || FONT_STACKS.sans;
+}
+
+export function getTitleStyleAttr(styleKey, baseColor = '#93c5fd') {
+  let extra = '';
+  if (styleKey === 'uppercase') {
+    extra = 'text-transform: uppercase; letter-spacing: 0.8px; font-size: 11px;';
+  } else if (styleKey === 'italic') {
+    extra = 'font-style: italic;';
+  }
+  return `color: ${baseColor}; ${extra}`;
+}
 
 /** Escape user-provided text before it becomes part of exported HTML. */
 function escapeHTML(value = '') {
@@ -479,9 +503,11 @@ function renderLandscapeV2(state) {
   const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
   const contactRows = renderContactRows(state.contactFields, state.accentColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
+  const nameSize = state.nameFontSize || 19;
+  const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
 
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
   <tr>
     <td style="padding: 16px 22px 16px 22px; border-radius: ${radius}px;">
       <!-- Top Section: Name/Title on Left, Logo on Right -->
@@ -489,10 +515,10 @@ function renderLandscapeV2(state) {
         <tr>
           <!-- Name & Title -->
           <td style="vertical-align: middle;">
-            <div style="margin: 0 0 2px 0; font-size: 19px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; letter-spacing: -0.2px; line-height: 1.2;">
+            <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; letter-spacing: -0.2px; line-height: 1.2;">
               ${escapeHTML(state.fullName)}
             </div>
-            <span style="display: inline-block; font-size: 12px; color: ${state.textColorSecondary || '#93c5fd'}; font-weight: 600; letter-spacing: 0.2px;">
+            <span style="display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.2px; ${titleStyleAttr}">
               ${escapeHTML(state.jobTitle)}
             </span>
           </td>
@@ -530,9 +556,11 @@ function renderCompactCard(state) {
   const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
   const contactRows = renderContactRows(state.contactFields, state.accentColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
+  const nameSize = state.nameFontSize || 18;
+  const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
 
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
   <tr>
     <td style="padding: 20px; border-radius: ${radius}px; text-align: center;">
       ${safeUrl(state.logoUrl) ? `
@@ -545,10 +573,10 @@ function renderCompactCard(state) {
       </table>
       ` : ''}
 
-      <div style="margin: 0 0 4px 0; font-size: 18px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
+      <div style="margin: 0 0 4px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
         ${escapeHTML(state.fullName)}
       </div>
-      <span style="display: inline-block; font-size: 12px; color: ${state.textColorSecondary || '#93c5fd'}; font-weight: 600; margin-bottom: 12px;">
+      <span style="display: inline-block; font-size: 12px; font-weight: 600; margin-bottom: 12px; ${titleStyleAttr}">
         ${escapeHTML(state.jobTitle)}
       </span>
 
@@ -574,9 +602,11 @@ function renderMinimalRow(state) {
   const radius = state.borderRadius !== undefined ? state.borderRadius : 10;
   const contactRows = renderContactRows(state.contactFields, state.accentColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
+  const nameSize = state.nameFontSize || 17;
+  const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
 
   return `
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; overflow: hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
   <tr>
     <td style="padding: 14px 18px; border-radius: ${radius}px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -587,10 +617,10 @@ function renderMinimalRow(state) {
           </td>
           ` : ''}
           <td style="vertical-align: middle;">
-            <div style="font-size: 17px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
+            <div style="font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
               ${escapeHTML(state.fullName)}
             </div>
-            <div style="font-size: 11.5px; color: ${state.textColorSecondary || '#93c5fd'}; font-weight: 600; margin-top: 2px;">
+            <div style="font-size: 11.5px; font-weight: 600; margin-top: 2px; ${titleStyleAttr}">
               ${escapeHTML(state.jobTitle)}
             </div>
           </td>
@@ -629,7 +659,10 @@ export function renderSignatureHTML(state = DEFAULT_SIGNATURE_STATE) {
     textColorMuted: safeHex(state.textColorMuted, DEFAULT_SIGNATURE_STATE.textColorMuted),
     bgType: ['solid', 'gradient', 'ambient', 'mesh', 'dots', 'grid', 'lines'].includes(state.bgType) ? state.bgType : 'solid',
     bgGradientAngle: Number.isFinite(Number(state.bgGradientAngle)) ? Math.max(0, Math.min(360, Math.round(Number(state.bgGradientAngle)))) : 135,
-    widthMode: state.widthMode === 'fixed' ? 'fixed' : 'responsive'
+    widthMode: state.widthMode === 'fixed' ? 'fixed' : 'responsive',
+    fontFamily: ['sans', 'serif', 'mono', 'grotesk'].includes(state.fontFamily) ? state.fontFamily : 'sans',
+    nameFontSize: Math.max(14, Math.min(26, Number(state.nameFontSize) || 19)),
+    titleStyle: ['regular', 'uppercase', 'italic'].includes(state.titleStyle) ? state.titleStyle : 'regular'
   };
   const layout = safeState.layout || 'landscape-v2';
 

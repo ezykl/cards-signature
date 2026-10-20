@@ -185,3 +185,16 @@ test('renderSignatureHTML renders hosted icons for email, location, phone, and a
   assert.ok(html.includes('Manila, Philippines'));
   assert.ok(html.includes('Cebu, Philippines'));
 });
+
+test('renderSignatureHTML respects typography settings (fontFamily, nameFontSize, titleStyle)', () => {
+  const customTypography = {
+    ...DEFAULT_SIGNATURE_STATE,
+    fontFamily: 'serif',
+    nameFontSize: 22,
+    titleStyle: 'uppercase'
+  };
+  const html = renderSignatureHTML(customTypography);
+  assert.match(html, /Georgia/);
+  assert.match(html, /font-size:\s*22px/);
+  assert.match(html, /text-transform:\s*uppercase/);
+});
