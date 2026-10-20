@@ -144,6 +144,13 @@ test('getButtonSymbol returns expected symbols for button icons', () => {
   assert.equal(getButtonSymbol('globe'), 'language');
   assert.equal(getButtonSymbol('website'), 'language');
   assert.equal(getButtonSymbol('calendar'), 'calendar_month');
+  assert.equal(getButtonSymbol('calendly'), 'calendar_month');
+  assert.equal(getButtonSymbol('terminal'), 'terminal');
+  assert.equal(getButtonSymbol('figma'), 'draw');
+  assert.equal(getButtonSymbol('youtube'), 'smart_display');
+  assert.equal(getButtonSymbol('instagram'), 'photo_camera');
+  assert.equal(getButtonSymbol('whatsapp'), 'chat');
+  assert.equal(getButtonSymbol('discord'), 'forum');
   assert.equal(getButtonSymbol('none'), 'link_off');
   assert.equal(getButtonSymbol('other'), 'link');
 });

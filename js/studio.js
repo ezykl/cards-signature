@@ -95,12 +95,33 @@ export function getContactPlaceholders(type) {
 export function getButtonSymbol(icon) {
   switch (icon) {
     case 'github': return 'code';
+    case 'code': return 'terminal';
+    case 'terminal': return 'terminal';
+    case 'figma': return 'draw';
     case 'linkedin': return 'badge';
+    case 'x':
+    case 'twitter': return 'tag';
+    case 'youtube': return 'smart_display';
+    case 'instagram': return 'photo_camera';
+    case 'dribbble': return 'sports_basketball';
+    case 'behance': return 'palette';
+    case 'medium': return 'article';
+    case 'substack': return 'bookmark';
+    case 'spotify': return 'headphones';
+    case 'calendly':
+    case 'calendar': return 'calendar_month';
+    case 'whatsapp': return 'chat';
+    case 'telegram': return 'send';
+    case 'discord': return 'forum';
+    case 'email': return 'mail';
+    case 'phone': return 'call';
+    case 'chat': return 'sms';
     case 'download': return 'download';
     case 'globe':
     case 'website': return 'language';
-    case 'calendar': return 'calendar_month';
-    case 'twitter': return 'tag';
+    case 'document': return 'description';
+    case 'location': return 'location_on';
+    case 'star': return 'star';
     case 'none': return 'link_off';
     default: return 'link';
   }
@@ -139,27 +160,64 @@ function renderContactFields(state) {
 
 function renderActionButtons(state) {
   const target = document.getElementById('action-buttons-list'); if (!target) return;
+  const knownIcons = [
+    'github', 'code', 'terminal', 'figma',
+    'linkedin', 'x', 'twitter', 'youtube', 'instagram', 'dribbble', 'behance', 'medium', 'substack', 'spotify',
+    'calendly', 'calendar', 'whatsapp', 'telegram', 'discord', 'email', 'phone', 'chat',
+    'globe', 'website', 'download', 'document', 'location', 'star', 'link', 'none'
+  ];
   target.innerHTML = state.buttons.map(button => {
     const symbol = getButtonSymbol(button.icon);
-    const isCustom = button.icon && !['github', 'linkedin', 'download', 'globe', 'website', 'none'].includes(button.icon);
+    const isCustom = button.icon && !knownIcons.includes(button.icon);
     const customOption = isCustom ? `<option value="${escapeHTML(button.icon)}" selected>${escapeHTML(button.icon.charAt(0).toUpperCase() + button.icon.slice(1))}</option>` : '';
     return `<article class="dynamic-item-card">
       <div class="dynamic-item-header">
         <span class="dynamic-item-icon-badge" title="${escapeHTML(button.label || button.icon)}" aria-hidden="true"><span class="material-symbols-rounded">${symbol}</span></span>
         <label class="sr-only" for="icon-${escapeHTML(button.id)}">Button icon</label>
         <select id="icon-${escapeHTML(button.id)}" class="form-select btn-icon-select" data-id="${escapeHTML(button.id)}">
-          <option value="github" ${button.icon === 'github' ? 'selected':''}>GitHub</option>
-          <option value="linkedin" ${button.icon === 'linkedin' ? 'selected':''}>LinkedIn</option>
-          <option value="download" ${button.icon === 'download' ? 'selected':''}>Download</option>
-          <option value="globe" ${button.icon === 'globe' || button.icon === 'website' ? 'selected':''}>Website</option>
+          <optgroup label="Dev & Tools">
+            <option value="github" ${button.icon === 'github' ? 'selected' : ''}>GitHub</option>
+            <option value="code" ${button.icon === 'code' ? 'selected' : ''}>Code</option>
+            <option value="terminal" ${button.icon === 'terminal' ? 'selected' : ''}>Terminal</option>
+            <option value="figma" ${button.icon === 'figma' ? 'selected' : ''}>Figma</option>
+          </optgroup>
+          <optgroup label="Social & Media">
+            <option value="linkedin" ${button.icon === 'linkedin' ? 'selected' : ''}>LinkedIn</option>
+            <option value="x" ${button.icon === 'x' || button.icon === 'twitter' ? 'selected' : ''}>X (Twitter)</option>
+            <option value="youtube" ${button.icon === 'youtube' ? 'selected' : ''}>YouTube</option>
+            <option value="instagram" ${button.icon === 'instagram' ? 'selected' : ''}>Instagram</option>
+            <option value="dribbble" ${button.icon === 'dribbble' ? 'selected' : ''}>Dribbble</option>
+            <option value="behance" ${button.icon === 'behance' ? 'selected' : ''}>Behance</option>
+            <option value="medium" ${button.icon === 'medium' ? 'selected' : ''}>Medium</option>
+            <option value="substack" ${button.icon === 'substack' ? 'selected' : ''}>Substack</option>
+            <option value="spotify" ${button.icon === 'spotify' ? 'selected' : ''}>Spotify</option>
+          </optgroup>
+          <optgroup label="Direct & Booking">
+            <option value="calendly" ${button.icon === 'calendly' || button.icon === 'calendar' ? 'selected' : ''}>Calendly / Calendar</option>
+            <option value="whatsapp" ${button.icon === 'whatsapp' ? 'selected' : ''}>WhatsApp</option>
+            <option value="telegram" ${button.icon === 'telegram' ? 'selected' : ''}>Telegram</option>
+            <option value="discord" ${button.icon === 'discord' ? 'selected' : ''}>Discord</option>
+            <option value="email" ${button.icon === 'email' ? 'selected' : ''}>Email</option>
+            <option value="phone" ${button.icon === 'phone' ? 'selected' : ''}>Phone</option>
+            <option value="chat" ${button.icon === 'chat' ? 'selected' : ''}>Chat</option>
+          </optgroup>
+          <optgroup label="Actions & General">
+            <option value="globe" ${button.icon === 'globe' || button.icon === 'website' ? 'selected' : ''}>Website</option>
+            <option value="download" ${button.icon === 'download' ? 'selected' : ''}>Download</option>
+            <option value="document" ${button.icon === 'document' ? 'selected' : ''}>Document</option>
+            <option value="location" ${button.icon === 'location' ? 'selected' : ''}>Location</option>
+            <option value="star" ${button.icon === 'star' ? 'selected' : ''}>Star</option>
+            <option value="link" ${button.icon === 'link' ? 'selected' : ''}>Link</option>
+            <option value="none" ${button.icon === 'none' ? 'selected' : ''}>No icon</option>
+          </optgroup>
           ${customOption}
-          <option value="none" ${button.icon === 'none' ? 'selected':''}>No icon</option>
         </select>
         <label class="sr-only" for="style-${escapeHTML(button.id)}">Button color</label>
         <select id="style-${escapeHTML(button.id)}" class="form-select btn-style-select" data-id="${escapeHTML(button.id)}">
           <option value="dark" ${button.style === 'dark' ? 'selected':''}>Dark</option>
           <option value="brand" ${button.style === 'brand' ? 'selected':''}>Brand</option>
           <option value="accent" ${button.style === 'accent' ? 'selected':''}>Accent</option>
+          <option value="outline" ${button.style === 'outline' ? 'selected':''}>Outline</option>
         </select>
         <button type="button" class="btn-remove-item" data-action="remove-btn" data-id="${escapeHTML(button.id)}" aria-label="Remove action link">
           <span class="material-symbols-rounded" aria-hidden="true">delete</span>
@@ -201,10 +259,39 @@ function renderThemeChips(state) {
 }
 
 function syncControls(state) {
-  const values = { 'ctrl-layout':state.layout, 'ctrl-width-mode':state.widthMode, 'ctrl-max-width':state.maxWidth, 'ctrl-border-radius':state.borderRadius, 'ctrl-full-name':state.fullName, 'ctrl-job-title':state.jobTitle, 'ctrl-logo-url':state.logoUrl, 'ctrl-bg-color':state.bgColor, 'ctrl-bg-type':state.bgType, 'ctrl-bg-gradient-end':state.bgGradientEnd, 'ctrl-bg-gradient-angle':state.bgGradientAngle, 'ctrl-accent-color':state.accentColor, 'ctrl-text-primary':state.textColorPrimary, 'ctrl-text-secondary':state.textColorSecondary };
-  Object.entries(values).forEach(([id,value]) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; });
-  const fixed = state.widthMode === 'fixed'; const widthLabel = document.getElementById('lbl-max-width'); if (widthLabel) widthLabel.textContent = fixed ? 'Fixed width' : 'Maximum width';
-  document.getElementById('val-max-width').value = `${state.maxWidth}px`; document.getElementById('val-border-radius').value = `${state.borderRadius}px`;
+  const values = {
+    'ctrl-layout': state.layout,
+    'ctrl-width-mode': state.widthMode,
+    'ctrl-max-width': state.maxWidth,
+    'ctrl-border-radius': state.borderRadius,
+    'ctrl-full-name': state.fullName,
+    'ctrl-job-title': state.jobTitle,
+    'ctrl-logo-url': state.logoUrl,
+    'ctrl-bg-color': state.bgColor,
+    'ctrl-bg-type': state.bgType,
+    'ctrl-bg-gradient-end': state.bgGradientEnd,
+    'ctrl-bg-gradient-angle': state.bgGradientAngle,
+    'ctrl-accent-color': state.accentColor,
+    'ctrl-text-primary': state.textColorPrimary,
+    'ctrl-text-secondary': state.textColorSecondary,
+    'ctrl-font-family': state.fontFamily,
+    'ctrl-name-font-size': state.nameFontSize,
+    'ctrl-title-style': state.titleStyle,
+    'ctrl-button-shape': state.buttonShape
+  };
+  Object.entries(values).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value ?? '';
+  });
+  const fixed = state.widthMode === 'fixed';
+  const widthLabel = document.getElementById('lbl-max-width');
+  if (widthLabel) widthLabel.textContent = fixed ? 'Fixed width' : 'Maximum width';
+  const maxW = document.getElementById('val-max-width');
+  if (maxW) maxW.value = `${state.maxWidth}px`;
+  const radVal = document.getElementById('val-border-radius');
+  if (radVal) radVal.value = `${state.borderRadius}px`;
+  const nameSizeVal = document.getElementById('val-name-font-size');
+  if (nameSizeVal) nameSizeVal.value = `${state.nameFontSize ?? 19}px`;
   
   const angleVal = document.getElementById('val-bg-gradient-angle');
   if (angleVal) angleVal.value = `${state.bgGradientAngle ?? 135}°`;
@@ -364,8 +451,40 @@ export function initStudio() {
     });
   });
   document.getElementById('template-gallery').addEventListener('click', event => { const button = event.target.closest('[data-template]'); if (!button) return; studioStore.setState(loadPresetByCardId(button.dataset.template)); setView('studio'); showStudioToast('Template loaded into the editor.'); });
-  const bindings = { 'ctrl-layout':'layout','ctrl-width-mode':'widthMode','ctrl-max-width':'maxWidth','ctrl-border-radius':'borderRadius','ctrl-full-name':'fullName','ctrl-job-title':'jobTitle','ctrl-logo-url':'logoUrl','ctrl-bg-color':'bgColor','ctrl-bg-type':'bgType','ctrl-bg-gradient-end':'bgGradientEnd','ctrl-bg-gradient-angle':'bgGradientAngle','ctrl-accent-color':'accentColor','ctrl-text-primary':'textColorPrimary','ctrl-text-secondary':'textColorSecondary' };
-  Object.entries(bindings).forEach(([id,key]) => { const input = document.getElementById(id); if (input) { input.addEventListener(input.type === 'select-one' ? 'change' : 'input', event => studioStore.setField(key, input.type === 'range' ? Number(event.target.value) : event.target.value)); input.addEventListener('blur', () => validate(studioStore.getState())); } });
+  const bindings = {
+    'ctrl-layout': 'layout',
+    'ctrl-width-mode': 'widthMode',
+    'ctrl-max-width': 'maxWidth',
+    'ctrl-border-radius': 'borderRadius',
+    'ctrl-full-name': 'fullName',
+    'ctrl-job-title': 'jobTitle',
+    'ctrl-logo-url': 'logoUrl',
+    'ctrl-bg-color': 'bgColor',
+    'ctrl-bg-type': 'bgType',
+    'ctrl-bg-gradient-end': 'bgGradientEnd',
+    'ctrl-bg-gradient-angle': 'bgGradientAngle',
+    'ctrl-accent-color': 'accentColor',
+    'ctrl-text-primary': 'textColorPrimary',
+    'ctrl-text-secondary': 'textColorSecondary',
+    'ctrl-font-family': 'fontFamily',
+    'ctrl-name-font-size': 'nameFontSize',
+    'ctrl-title-style': 'titleStyle',
+    'ctrl-button-shape': 'buttonShape'
+  };
+  Object.entries(bindings).forEach(([id,key]) => {
+    const input = document.getElementById(id);
+    if (input) {
+      input.addEventListener(input.type === 'select-one' ? 'change' : 'input', event => studioStore.setField(key, input.type === 'range' ? Number(event.target.value) : event.target.value));
+      input.addEventListener('blur', () => validate(studioStore.getState()));
+    }
+  });
+  const nameSizeInput = document.getElementById('ctrl-name-font-size');
+  if (nameSizeInput) {
+    nameSizeInput.addEventListener('input', event => {
+      const out = document.getElementById('val-name-font-size');
+      if (out) out.value = `${event.target.value}px`;
+    });
+  }
   document.querySelector('.theme-chip-group')?.addEventListener('click', event => {
     const chip = event.target.closest('.theme-chip');
     if (!chip || !chip.dataset.preset) return;
@@ -434,8 +553,20 @@ export function initStudio() {
   }
   document.getElementById('btn-vp-desktop').addEventListener('click', () => { canvas.classList.remove('viewport-mobile'); document.getElementById('btn-vp-desktop').classList.add('active'); document.getElementById('btn-vp-mobile').classList.remove('active'); });
   document.getElementById('btn-vp-mobile').addEventListener('click', () => { canvas.classList.add('viewport-mobile'); document.getElementById('btn-vp-mobile').classList.add('active'); document.getElementById('btn-vp-desktop').classList.remove('active'); });
-  document.getElementById('btn-undo').addEventListener('click', () => studioStore.undo()); document.getElementById('btn-redo').addEventListener('click', () => studioStore.redo()); document.getElementById('btn-reset').addEventListener('click', () => { if (confirm('Reset this draft to the default signature? Your saved browser draft will be replaced.')) { studioStore.setState(DEFAULT_SIGNATURE_STATE); showStudioToast('Draft reset to the default signature.'); } });
-  document.getElementById('btn-studio-copy-primary').addEventListener('click', copyRichSignature); document.getElementById('btn-studio-copy-html').addEventListener('click', copyRawHTML); document.getElementById('btn-studio-download').addEventListener('click', downloadHTML); document.getElementById('btn-export-draft').addEventListener('click', exportDraft); document.getElementById('input-import-draft').addEventListener('change', event => importDraft(event.target.files[0]));
+  document.getElementById('btn-undo').addEventListener('click', () => studioStore.undo());
+  document.getElementById('btn-redo').addEventListener('click', () => studioStore.redo());
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    if (confirm('Reset this draft to the default signature? Your saved browser draft will be replaced.')) {
+      studioStore.setState(DEFAULT_SIGNATURE_STATE);
+      showStudioToast('Draft reset to the default signature.');
+    }
+  });
+  document.getElementById('btn-studio-copy-primary').addEventListener('click', copyRichSignature);
+  document.getElementById('btn-studio-copy-html').addEventListener('click', copyRawHTML);
+  document.getElementById('btn-studio-download').addEventListener('click', downloadHTML);
+  document.getElementById('btn-studio-download-png')?.addEventListener('click', exportSignaturePNG);
+  document.getElementById('btn-export-draft').addEventListener('click', exportDraft);
+  document.getElementById('input-import-draft').addEventListener('change', event => importDraft(event.target.files[0]));
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initStudio) : initStudio();
