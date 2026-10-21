@@ -338,9 +338,13 @@ function escapeHTML(value = '') {
 
 /** Only allow URL schemes supported by email clients and this editor. */
 function safeUrl(value, fallback = '') {
-  const url = String(value || '').trim();
-  if (!url) return fallback;
-  return /^(https?:|mailto:|tel:)/i.test(url) ? escapeHTML(url) : fallback;
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(raw)) {
+    return escapeHTML(raw);
+  }
+  const resolved = resolveMediaUrl(raw, 'image').url || raw;
+  return /^(https?:|mailto:|tel:)/i.test(resolved) ? escapeHTML(resolved) : fallback;
 }
 
 function safeHex(value, fallback) {
@@ -352,6 +356,181 @@ function safeHex(value, fallback) {
  */
 function cleanHex(color) {
   return safeHex(color, '#38bdf8').slice(1);
+}
+
+/**
+ * Multi-source URL detector and raw image / link normalizer.
+ * Converts share links from Google Drive, GitHub, Dropbox, and Imgur into raw displayable URLs.
+ */
+export function resolveMediaUrl(rawUrl, mode = 'image') {
+  const trimmed = String(rawUrl ?? '').trim();
+  if (!trimmed) {
+    return { url: '', provider: 'empty', converted: false, warning: null, label: '' };
+  }
+
+  if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(trimmed)) {
+    return {
+      url: trimmed,
+      provider: 'data-url',
+      converted: false,
+      warning: 'Local file works for 2x PNG downloads. For Gmail/Outlook HTML copy, a cloud link or Initials/GitHub badge is recommended.',
+      label: 'Local image (PNG export ready)'
+    };
+  }
+
+  if (/^(mailto:|tel:)/i.test(trimmed)) {
+    return { url: trimmed, provider: 'direct', converted: false, warning: null, label: 'Direct contact link' };
+  }
+
+  if (!/^https?:\/\//i.test(trimmed)) {
+    return { url: trimmed, provider: 'invalid', converted: false, warning: 'Enter a full https:// URL.', label: 'Invalid URL' };
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return { url: trimmed, provider: 'invalid', converted: false, warning: 'Enter a valid https:// URL.', label: 'Invalid URL' };
+  }
+
+  const host = parsed.hostname.toLowerCase();
+  const path = parsed.pathname;
+
+  // 1. Google Drive
+  if (host === 'drive.google.com' || host === 'docs.google.com') {
+    const fileMatch = path.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    const queryId = parsed.searchParams.get('id');
+    const fileId = fileMatch ? fileMatch[1] : queryId;
+    if (fileId) {
+      if (mode === 'image') {
+        const directUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w512`;
+        return {
+          url: directUrl,
+          provider: 'google-drive',
+          converted: trimmed !== directUrl,
+          warning: null,
+          label: 'Google Drive direct image'
+        };
+      }
+      const viewUrl = `https://drive.google.com/file/d/${fileId}/view`;
+      return {
+        url: viewUrl,
+        provider: 'google-drive',
+        converted: trimmed !== viewUrl,
+        warning: null,
+        label: 'Google Drive document link'
+      };
+    }
+  }
+
+  // 2. GitHub (blob -> raw.githubusercontent.com, or profile -> .png)
+  if (host === 'raw.githubusercontent.com') {
+    return { url: trimmed, provider: 'github', converted: false, warning: null, label: 'GitHub raw asset' };
+  }
+  if (host === 'github.com' || host === 'www.github.com') {
+    const blobMatch = path.match(/^\/([^/]+)\/([^/]+)\/blob\/(.+)$/);
+    if (blobMatch) {
+      const rawGhUrl = `https://raw.githubusercontent.com/${blobMatch[1]}/${blobMatch[2]}/${blobMatch[3]}`;
+      return {
+        url: rawGhUrl,
+        provider: 'github',
+        converted: true,
+        warning: null,
+        label: 'Converted GitHub file to raw URL'
+      };
+    }
+    const profileMatch = path.match(/^\/([a-zA-Z0-9-]+)\/?$/);
+    const reserved = new Set(['features', 'pricing', 'orgs', 'settings', 'login', 'explore', 'marketplace', 'topics', 'collections', 'events', 'sponsors', 'about']);
+    if (mode === 'image' && profileMatch && !reserved.has(profileMatch[1].toLowerCase())) {
+      const avatarUrl = `https://github.com/${profileMatch[1]}.png?size=256`;
+      return {
+        url: avatarUrl,
+        provider: 'github',
+        converted: true,
+        warning: null,
+        label: `GitHub avatar (@${profileMatch[1]})`
+      };
+    }
+    if (mode === 'image' && /^\/[a-zA-Z0-9-]+\.png$/i.test(path)) {
+      return { url: trimmed, provider: 'github', converted: false, warning: null, label: 'GitHub avatar' };
+    }
+  }
+
+  // 3. Dropbox (?dl=0 -> ?raw=1 while preserving rlkey)
+  if (host === 'dropbox.com' || host === 'www.dropbox.com') {
+    if (mode === 'image') {
+      const wasRaw = parsed.searchParams.get('raw') === '1';
+      parsed.searchParams.delete('dl');
+      parsed.searchParams.set('raw', '1');
+      const nextUrl = parsed.toString();
+      return {
+        url: nextUrl,
+        provider: 'dropbox',
+        converted: !wasRaw,
+        warning: null,
+        label: 'Dropbox direct image'
+      };
+    }
+  }
+  if (host === 'dl.dropboxusercontent.com') {
+    return { url: trimmed, provider: 'dropbox', converted: false, warning: null, label: 'Dropbox direct asset' };
+  }
+
+  // 4. Imgur (single page -> i.imgur.com/{id}.png; album -> warning)
+  if (host === 'i.imgur.com') {
+    return { url: trimmed, provider: 'imgur', converted: false, warning: null, label: 'Imgur direct image' };
+  }
+  if (host === 'imgur.com' || host === 'www.imgur.com') {
+    if (/^\/(a|gallery|t)\//i.test(path)) {
+      return {
+        url: trimmed,
+        provider: 'webpage-warning',
+        converted: false,
+        warning: 'This is an Imgur album/gallery link. Right-click the image on Imgur and select "Copy image address" (i.imgur.com/...).',
+        label: 'Webpage link (not direct image)'
+      };
+    }
+    const singleMatch = path.match(/^\/([a-zA-Z0-9]+)\/?$/);
+    if (mode === 'image' && singleMatch) {
+      const directImgur = `https://i.imgur.com/${singleMatch[1]}.png`;
+      return {
+        url: directImgur,
+        provider: 'imgur',
+        converted: true,
+        warning: null,
+        label: 'Converted Imgur link to direct image'
+      };
+    }
+  }
+
+  // 5. UI Avatars
+  if (host === 'ui-avatars.com') {
+    return { url: trimmed, provider: 'ui-avatars', converted: false, warning: null, label: 'Initials monogram badge' };
+  }
+
+  // 6. Known non-direct webpage viewers (ibb.co, postimg.cc, canva.com, 1drv.ms, etc.)
+  const webpageViewers = new Set(['ibb.co', 'www.ibb.co', 'postimg.cc', 'www.postimg.cc', 'canva.com', 'www.canva.com', '1drv.ms', 'onedrive.live.com', 'pinterest.com', 'www.pinterest.com', 'pin.it', 'flickr.com', 'www.flickr.com']);
+  if (mode === 'image' && webpageViewers.has(host)) {
+    return {
+      url: trimmed,
+      provider: 'webpage-warning',
+      converted: false,
+      warning: `This ${host} link opens a webpage viewer instead of a raw image. Right-click the image on that page and choose "Copy image address".`,
+      label: 'Webpage link (needs direct image URL)'
+    };
+  }
+
+  return { url: trimmed, provider: 'direct', converted: false, warning: null, label: 'Direct URL' };
+}
+
+/**
+ * Generates an email-safe hosted PNG monogram avatar URL synced with the user's name and theme palette.
+ */
+export function buildInitialsAvatarUrl(state = DEFAULT_SIGNATURE_STATE) {
+  const rawName = String(state?.fullName || 'Your Name').trim() || 'Your Name';
+  const bgHex = cleanHex(state?.bgColor || '#000440');
+  const colorHex = cleanHex(state?.accentColor || '#38bdf8');
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=${bgHex}&color=${colorHex}&size=128&bold=true&rounded=true&format=png`;
 }
 
 /**

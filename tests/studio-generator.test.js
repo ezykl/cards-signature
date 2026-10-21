@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE } from '../js/studio-templates.js';
+import {
+  renderSignatureHTML,
+  DEFAULT_SIGNATURE_STATE,
+  resolveMediaUrl,
+  buildInitialsAvatarUrl
+} from '../js/studio-templates.js';
 
 test('renderSignatureHTML produces valid table markup with default state', () => {
   const html = renderSignatureHTML(DEFAULT_SIGNATURE_STATE);
@@ -225,3 +230,71 @@ test('renderSignatureHTML renders accent-bar and split-avatar layouts', () => {
   assert.match(splitHtml, /width="70"/);
   assert.match(splitHtml, /border-radius:\s*50%/);
 });
+
+test('resolveMediaUrl converts Google Drive share links into direct thumbnail image URLs', () => {
+  const res1 = resolveMediaUrl('https://drive.google.com/file/d/1A2B3C4D5E6F7G8H9/view?usp=sharing', 'image');
+  assert.equal(res1.provider, 'google-drive');
+  assert.equal(res1.converted, true);
+  assert.equal(res1.url, 'https://drive.google.com/thumbnail?id=1A2B3C4D5E6F7G8H9&sz=w512');
+
+  const res2 = resolveMediaUrl('https://drive.google.com/open?id=XYZ987654321', 'image');
+  assert.equal(res2.provider, 'google-drive');
+  assert.equal(res2.converted, true);
+  assert.equal(res2.url, 'https://drive.google.com/thumbnail?id=XYZ987654321&sz=w512');
+});
+
+test('resolveMediaUrl converts GitHub blob and profile URLs into raw image URLs', () => {
+  const blobRes = resolveMediaUrl('https://github.com/ezykl/Portfolio/blob/master/public/assets/logo.png', 'image');
+  assert.equal(blobRes.provider, 'github');
+  assert.equal(blobRes.converted, true);
+  assert.equal(blobRes.url, 'https://raw.githubusercontent.com/ezykl/Portfolio/master/public/assets/logo.png');
+
+  const profileRes = resolveMediaUrl('https://github.com/ezykl', 'image');
+  assert.equal(profileRes.provider, 'github');
+  assert.equal(profileRes.converted, true);
+  assert.equal(profileRes.url, 'https://github.com/ezykl.png?size=256');
+});
+
+test('resolveMediaUrl converts Dropbox and Imgur share links into raw image URLs', () => {
+  const dropboxRes = resolveMediaUrl('https://www.dropbox.com/scl/fi/abc123/logo.png?rlkey=xyz987&dl=0', 'image');
+  assert.equal(dropboxRes.provider, 'dropbox');
+  assert.equal(dropboxRes.converted, true);
+  assert.ok(dropboxRes.url.includes('raw=1'));
+  assert.ok(dropboxRes.url.includes('rlkey=xyz987'));
+
+  const imgurRes = resolveMediaUrl('https://imgur.com/AbCdEfG', 'image');
+  assert.equal(imgurRes.provider, 'imgur');
+  assert.equal(imgurRes.converted, true);
+  assert.equal(imgurRes.url, 'https://i.imgur.com/AbCdEfG.png');
+});
+
+test('resolveMediaUrl flags non-direct webpage viewers with a warning', () => {
+  const ibbRes = resolveMediaUrl('https://ibb.co/xYz123', 'image');
+  assert.equal(ibbRes.provider, 'webpage-warning');
+  assert.ok(ibbRes.warning);
+
+  const albumRes = resolveMediaUrl('https://imgur.com/a/AbCdEfG', 'image');
+  assert.equal(albumRes.provider, 'webpage-warning');
+  assert.ok(albumRes.warning);
+});
+
+test('buildInitialsAvatarUrl generates hosted ui-avatars URL synced with name and colors', () => {
+  const url = buildInitialsAvatarUrl({
+    fullName: 'Ezekiel Villadolid',
+    bgColor: '#000440',
+    accentColor: '#38bdf8'
+  });
+  assert.ok(url.startsWith('https://ui-avatars.com/api/?'));
+  assert.ok(url.includes('name=Ezekiel%20Villadolid'));
+  assert.ok(url.includes('background=000440'));
+  assert.ok(url.includes('color=38bdf8'));
+});
+
+test('renderSignatureHTML automatically normalizes Google Drive or GitHub share links in logoUrl', () => {
+  const html = renderSignatureHTML({
+    ...DEFAULT_SIGNATURE_STATE,
+    logoUrl: 'https://drive.google.com/file/d/1A2B3C4D5E6F7G8H9/view?usp=sharing'
+  });
+  assert.ok(html.includes('https://drive.google.com/thumbnail?id=1A2B3C4D5E6F7G8H9&amp;sz=w512'));
+});
+
