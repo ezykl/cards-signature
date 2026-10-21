@@ -1,9 +1,9 @@
-import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS, getContrastRatio, getBackgroundStyle } from './studio-templates.js';
+import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS, getContrastRatio, getBackgroundStyle, resolveMediaUrl, buildInitialsAvatarUrl } from './studio-templates.js';
 
 const DRAFT_KEY = 'signature-studio-draft-v2';
 const clone = value => JSON.parse(JSON.stringify(value));
 const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' })[char]);
-const isSafeUrl = value => !value || /^(https?:|mailto:|tel:)/i.test(String(value).trim());
+const isSafeUrl = value => !value || /^(https?:|mailto:|tel:|data:image\/(png|jpeg|jpg|webp|gif);base64,)/i.test(String(value).trim());
 
 export const WIZARD_STEPS = [
   { step: 1, title: 'Identity & Profile', badge: 'Step 1 of 5' },
@@ -12,6 +12,32 @@ export const WIZARD_STEPS = [
   { step: 4, title: 'Contacts & Social Links', badge: 'Step 4 of 5' },
   { step: 5, title: 'Final Output & Export', badge: 'Step 5 of 5' }
 ];
+
+function reorderArrayItem(list = [], id, direction) {
+  const arr = [...list];
+  const index = arr.findIndex(item => item.id === id);
+  if (index === -1) return null;
+  const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  if (targetIndex < 0 || targetIndex >= arr.length) return null;
+  const [moved] = arr.splice(index, 1);
+  arr.splice(targetIndex, 0, moved);
+  return arr;
+}
+
+export function extractGithubUsername(state = DEFAULT_SIGNATURE_STATE) {
+  const urls = [
+    ...(state?.buttons || []).map(b => b.url),
+    ...(state?.contactFields || []).map(c => c.href || c.value),
+    state?.logoUrl
+  ].filter(Boolean);
+  for (const raw of urls) {
+    const match = String(raw).match(/github\.com\/([a-zA-Z0-9-]+)(?:\/|\.png|$)/i);
+    if (match && !['features', 'pricing', 'orgs', 'settings', 'login'].includes(match[1].toLowerCase())) {
+      return match[1];
+    }
+  }
+  return '';
+}
 
 export function createStudioStore(initialState = DEFAULT_SIGNATURE_STATE) {
   let state = clone(initialState);
@@ -28,9 +54,11 @@ export function createStudioStore(initialState = DEFAULT_SIGNATURE_STATE) {
     addContactField: (field = {}) => { const item = { id:`c_${cryptoId()}`, type:field.type || 'phone', label:field.label || 'Contact', value:field.value || '', href:field.href || '' }; commit({ ...state, contactFields:[...(state.contactFields || []), item] }); return item; },
     updateContactField: (id, patch) => commit({ ...state, contactFields:state.contactFields.map(field => field.id === id ? { ...field, ...patch } : field) }),
     removeContactField: id => commit({ ...state, contactFields:state.contactFields.filter(field => field.id !== id) }),
+    moveContactField: (id, direction) => { const nextList = reorderArrayItem(state.contactFields, id, direction); if (nextList) commit({ ...state, contactFields: nextList }); },
     addButton: (button = {}) => { const item = { id:`b_${cryptoId()}`, icon:button.icon || 'globe', label:button.label || 'Website', url:button.url || 'https://', style:button.style || 'dark' }; commit({ ...state, buttons:[...(state.buttons || []), item] }); return item; },
     updateButton: (id, patch) => commit({ ...state, buttons:state.buttons.map(button => button.id === id ? { ...button, ...patch } : button) }),
     removeButton: id => commit({ ...state, buttons:state.buttons.filter(button => button.id !== id) }),
+    moveButton: (id, direction) => { const nextList = reorderArrayItem(state.buttons, id, direction); if (nextList) commit({ ...state, buttons: nextList }); },
     applyThemePreset: key => { const preset = THEME_PRESETS[key]; if (preset) commit({ ...state, ...preset, themePreset:key }); },
     setEditorMode: mode => commit({ ...state, editorMode: mode === 'advanced' ? 'advanced' : 'guided' }),
     setWizardStep: step => commit({ ...state, wizardStep: Math.min(5, Math.max(1, Number(step) || 1)) }),

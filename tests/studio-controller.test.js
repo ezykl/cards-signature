@@ -9,7 +9,8 @@ import {
   createSignatureSvgWrapper,
   renderThemeCards,
   WIZARD_STEPS,
-  initStudio
+  initStudio,
+  extractGithubUsername
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -293,6 +294,35 @@ test('initStudio renders action buttons into both wizard and advanced containers
     delete globalThis.window;
   }
 });
+
+test('store reorders contactFields and buttons with moveContactField and moveButton', () => {
+  const store = createStudioStore();
+  const initialContacts = store.getState().contactFields.map(c => c.id);
+  assert.deepEqual(initialContacts, ['c1', 'c2', 'c3']);
+
+  // Move c2 up -> ['c2', 'c1', 'c3']
+  store.moveContactField('c2', 'up');
+  assert.deepEqual(store.getState().contactFields.map(c => c.id), ['c2', 'c1', 'c3']);
+
+  // Moving first item up should be a no-op
+  store.moveContactField('c2', 'up');
+  assert.deepEqual(store.getState().contactFields.map(c => c.id), ['c2', 'c1', 'c3']);
+
+  // Move c2 down -> ['c1', 'c2', 'c3']
+  store.moveContactField('c2', 'down');
+  assert.deepEqual(store.getState().contactFields.map(c => c.id), ['c1', 'c2', 'c3']);
+
+  // Move buttons
+  assert.deepEqual(store.getState().buttons.map(b => b.id), ['b1', 'b2', 'b3']);
+  store.moveButton('b1', 'down');
+  assert.deepEqual(store.getState().buttons.map(b => b.id), ['b2', 'b1', 'b3']);
+});
+
+test('extractGithubUsername detects handle from buttons or contact fields', () => {
+  assert.equal(extractGithubUsername(DEFAULT_SIGNATURE_STATE), 'ezykl');
+  assert.equal(extractGithubUsername({ buttons: [], contactFields: [] }), '');
+});
+
 
 
 
