@@ -333,3 +333,194 @@ button { cursor:pointer; }
   flex: 1;
   font-size: 13px;
 }
+
+/* Smart Media Status Pill & Quick Avatar Helper Bar */
+.media-status-pill {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+.media-status-pill[hidden] {
+  display: none !important;
+}
+.media-status-pill.status-warning {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #fed7aa;
+}
+.media-status-pill.status-info {
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+.dark-mode .media-status-pill {
+  background: rgba(22, 101, 52, 0.25);
+  color: #86efac;
+  border-color: rgba(74, 222, 128, 0.35);
+}
+.dark-mode .media-status-pill.status-warning {
+  background: rgba(154, 52, 18, 0.28);
+  color: #fdba74;
+  border-color: rgba(251, 146, 60, 0.4);
+}
+.dark-mode .media-status-pill.status-info {
+  background: rgba(30, 64, 175, 0.28);
+  color: #93c5fd;
+  border-color: rgba(96, 165, 250, 0.4);
+}
+.avatar-helper-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.avatar-helper-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 34px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navy);
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.avatar-helper-chip:hover {
+  border-color: var(--blue);
+  background: #e0f2fe;
+  transform: translateY(-1px);
+}
+.dark-mode .avatar-helper-chip {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--line);
+}
+.dark-mode .avatar-helper-chip:hover {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: #38bdf8;
+}
+
+/* Reorder Item Buttons */
+.item-action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.btn-reorder-item {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 42px;
+  color: var(--muted);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0;
+}
+.btn-reorder-item:hover:not(:disabled) {
+  color: var(--navy);
+  border-color: var(--blue);
+  background: #eff6ff;
+}
+.dark-mode .btn-reorder-item {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--line);
+}
+.dark-mode .btn-reorder-item:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+}
+
+/* Client Installation Guide Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+.modal-backdrop[hidden] {
+  display: none !important;
+}
+.modal-card {
+  width: min(620px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.25);
+  padding: 24px;
+}
+.dark-mode .modal-card {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.modal-header h2 {
+  margin: 0;
+  font: 600 22px/1.25 "Poppins", sans-serif;
+}
+.modal-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+.install-tab {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.install-tab.active {
+  background: var(--navy);
+  color: #ffffff;
+  border-color: var(--navy);
+}
+.dark-mode .install-tab.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #ffffff;
+}
+.install-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.install-panel[hidden] {
+  display: none !important;
+}
