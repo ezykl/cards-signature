@@ -458,10 +458,42 @@ function syncControls(state) {
 
   renderContactFields(state);
   renderActionButtons(state);
-  updateMediaStatusPill(state);
+  updateMediaStatusPill(state, false);
 }
 
-function updateMediaStatusPill(state) {
+export function attachPreviewLogoLoader(container, forceTransition = false, onSettled = null) {
+  if (!container || typeof container.querySelector !== 'function') return;
+  const logoImg = container.querySelector('img[alt="Logo"], img[alt="Avatar"]');
+  if (!logoImg) return;
+  const cell = logoImg.closest?.('td') || logoImg.parentElement;
+  if (!cell || !cell.classList) return;
+
+  const alreadyLoaded = Boolean(logoImg.complete && logoImg.naturalWidth > 0);
+  if (alreadyLoaded && !forceTransition) {
+    if (typeof onSettled === 'function') onSettled(true);
+    return;
+  }
+
+  cell.classList.add('preview-logo-cell', 'is-loading');
+  logoImg.classList?.add('preview-logo-img');
+
+  let settled = false;
+  const finish = (ok = true) => {
+    if (settled) return;
+    settled = true;
+    cell.classList.remove('is-loading');
+    if (typeof onSettled === 'function') onSettled(ok);
+  };
+
+  logoImg.addEventListener?.('load', () => finish(true), { once: true });
+  logoImg.addEventListener?.('error', () => finish(false), { once: true });
+
+  if (alreadyLoaded && forceTransition) {
+    setTimeout(() => finish(true), 220);
+  }
+}
+
+function updateMediaStatusPill(state, isLoading = false) {
   const info = resolveMediaUrl(state.logoUrl, 'image');
   ['logo-url-status', 'wiz-logo-url-status'].forEach(id => {
     const el = document.getElementById(id);
@@ -476,6 +508,9 @@ function updateMediaStatusPill(state) {
     if (info.warning) {
       el.className = 'media-status-pill status-warn';
       el.textContent = `⚠ ${info.warning}`;
+    } else if (isLoading) {
+      el.className = 'media-status-pill status-loading';
+      el.textContent = `⟳ ${info.converted ? 'Reconstructing raw image' : 'Loading image'} — ${info.label}...`;
     } else {
       el.className = 'media-status-pill status-ok';
       el.textContent = `✓ ${info.label}`;
@@ -483,9 +518,17 @@ function updateMediaStatusPill(state) {
   });
 }
 
-function probeLogoAccess(url, provider) {
+function probeLogoAccess(url, provider, label = 'Direct URL') {
   if (typeof Image === 'undefined' || !url || url.startsWith('data:')) return;
   const img = new Image();
+  img.onload = () => {
+    ['logo-url-status', 'wiz-logo-url-status'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el || el.hidden) return;
+      el.className = 'media-status-pill status-ok';
+      el.textContent = `✓ ${label}`;
+    });
+  };
   img.onerror = () => {
     ['logo-url-status', 'wiz-logo-url-status'].forEach(id => {
       const el = document.getElementById(id);
@@ -523,9 +566,9 @@ function renderGallery() {
 
 function setView(view) { ['home','studio','gallery'].forEach(name => { const section = document.getElementById(`${name}-view`); if (section) section.hidden = name !== view; }); [...document.body.classList].filter(name => name.startsWith('view-mode-')).forEach(name => document.body.classList.remove(name)); document.body.classList.add(`view-mode-${view}`); if (view === 'home') document.getElementById('home').scrollIntoView({ behavior:'smooth' }); else window.scrollTo({ top:0, behavior:'smooth' }); }
 
-async function copyRichSignature() { const preview = document.getElementById('studio-preview-card'); if (!preview || !validate(studioStore.getState(), true)) return; const html = preview.innerHTML.trim(); try { if (navigator.clipboard && window.ClipboardItem) { await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([html],{type:'text/html'}), 'text/plain':new Blob(['Email signature'],{type:'text/plain'}) })]); showStudioToast('Signature copied. Paste it into your email settings.'); return; } throw new Error('Rich clipboard unavailable'); } catch { const range = document.createRange(); const holder = document.createElement('div'); holder.style.cssText = 'position:fixed;left:-9999px;top:0;'; holder.innerHTML = html; document.body.appendChild(holder); range.selectNodeContents(holder); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); document.execCommand('copy'); selection.removeAllRanges(); holder.remove(); showStudioToast('Signature copied. Paste it into your email settings.'); } }
-function copyRawHTML() { navigator.clipboard.writeText(document.getElementById('studio-preview-card').innerHTML.trim()).then(() => showStudioToast('HTML copied to clipboard.')).catch(() => showStudioToast('Copy failed. Please try again.')); }
-function downloadHTML() { if (!validate(studioStore.getState(), true)) return; const blob = new Blob([document.getElementById('studio-preview-card').innerHTML.trim()],{type:'text/html;charset=utf-8'}); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'),{href:url,download:'email-signature.html'}); link.click(); URL.revokeObjectURL(url); showStudioToast('HTML file downloaded.'); }
+async function copyRichSignature() { const preview = document.getElementById('studio-preview-card'); if (!preview || !validate(studioStore.getState(), true)) return; const html = renderSignatureHTML(studioStore.getState()).trim(); try { if (navigator.clipboard && window.ClipboardItem) { await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([html],{type:'text/html'}), 'text/plain':new Blob(['Email signature'],{type:'text/plain'}) })]); showStudioToast('Signature copied. Paste it into your email settings.'); return; } throw new Error('Rich clipboard unavailable'); } catch { const range = document.createRange(); const holder = document.createElement('div'); holder.style.cssText = 'position:fixed;left:-9999px;top:0;'; holder.innerHTML = html; document.body.appendChild(holder); range.selectNodeContents(holder); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); document.execCommand('copy'); selection.removeAllRanges(); holder.remove(); showStudioToast('Signature copied. Paste it into your email settings.'); } }
+function copyRawHTML() { const html = renderSignatureHTML(studioStore.getState()).trim(); navigator.clipboard.writeText(html).then(() => showStudioToast('HTML copied to clipboard.')).catch(() => showStudioToast('Copy failed. Please try again.')); }
+function downloadHTML() { if (!validate(studioStore.getState(), true)) return; const html = renderSignatureHTML(studioStore.getState()).trim(); const blob = new Blob([html],{type:'text/html;charset=utf-8'}); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'),{href:url,download:'email-signature.html'}); link.click(); URL.revokeObjectURL(url); showStudioToast('HTML file downloaded.'); }
 
 export function createSignatureSvgWrapper(html, width = 600, height = 300) {
   const safeW = Math.max(280, Number(width) || 600);
@@ -555,7 +598,7 @@ export async function exportSignaturePNG() {
     const height = table ? Math.round(table.offsetHeight || table.getBoundingClientRect().height || 260) : 260;
 
     const cloneDiv = document.createElement('div');
-    cloneDiv.innerHTML = preview.innerHTML.trim();
+    cloneDiv.innerHTML = renderSignatureHTML(studioStore.getState()).trim();
     const images = Array.from(cloneDiv.querySelectorAll('img'));
 
     await Promise.all(images.map(async img => {
@@ -631,7 +674,32 @@ export function initStudio() {
   let saved; try { saved = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch { saved = null; }
   studioStore = createStudioStore(saved && typeof saved === 'object' ? { ...clone(DEFAULT_SIGNATURE_STATE), ...saved } : DEFAULT_SIGNATURE_STATE);
   const preview = document.getElementById('studio-preview-card'); const heroPreview = document.getElementById('hero-signature-preview'); const canvas = document.getElementById('studio-canvas-wrapper');
-  studioStore.subscribe(state => { if (preview) preview.innerHTML = renderSignatureHTML(state); if (heroPreview) heroPreview.innerHTML = renderSignatureHTML(state); try { localStorage.setItem(DRAFT_KEY,JSON.stringify(state)); } catch {} syncControls(state); validate(state); });
+  let lastLogoUrl = studioStore.getState().logoUrl;
+  studioStore.subscribe(state => {
+    const logoChanged = state.logoUrl !== lastLogoUrl;
+    lastLogoUrl = state.logoUrl;
+    const html = renderSignatureHTML(state);
+    if (preview) {
+      preview.innerHTML = html;
+      attachPreviewLogoLoader(preview, logoChanged, ok => {
+        if (ok) updateMediaStatusPill(studioStore.getState(), false);
+      });
+    }
+    if (heroPreview) {
+      heroPreview.innerHTML = html;
+      attachPreviewLogoLoader(heroPreview, logoChanged);
+    }
+    try { localStorage.setItem(DRAFT_KEY,JSON.stringify(state)); } catch {}
+    syncControls(state);
+    if (logoChanged && state.logoUrl) {
+      const info = resolveMediaUrl(state.logoUrl, 'image');
+      if (!info.warning) {
+        updateMediaStatusPill(state, true);
+        probeLogoAccess(info.url, info.provider, info.label);
+      }
+    }
+    validate(state);
+  });
   studioStore.setState(studioStore.getState()); renderGallery();
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
   document.querySelectorAll('a[data-nav="how-it-works"]').forEach(link => {
@@ -875,7 +943,7 @@ export function initStudio() {
         showStudioToast(info.label);
       }
       if (info.url && !info.warning) {
-        probeLogoAccess(info.url, info.provider);
+        probeLogoAccess(info.url, info.provider, info.label);
       }
     };
     input.addEventListener('change', handleNormalize);

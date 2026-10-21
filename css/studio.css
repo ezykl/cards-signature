@@ -524,3 +524,47 @@ button { cursor:pointer; }
 .install-panel[hidden] {
   display: none !important;
 }
+
+/* Preview Logo Loading Spinner & Status Loading Pill */
+.media-status-pill.status-loading {
+  background: rgba(56, 189, 248, 0.12);
+  color: #0284c7;
+  border: 1px solid rgba(56, 189, 248, 0.32);
+}
+.dark-mode .media-status-pill.status-loading {
+  background: rgba(56, 189, 248, 0.16);
+  color: #7dd3fc;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.preview-logo-cell {
+  position: relative;
+}
+.preview-logo-img {
+  transition: opacity 0.22s ease, filter 0.22s ease;
+}
+.preview-logo-cell.is-loading .preview-logo-img {
+  opacity: 0.16 !important;
+  filter: blur(2px);
+}
+.preview-logo-cell.is-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  margin-left: -10px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(56, 189, 248, 0.25);
+  border-top-color: #38bdf8;
+  animation: studioLogoSpin 0.65s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes studioLogoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

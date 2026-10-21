@@ -10,7 +10,8 @@ import {
   renderThemeCards,
   WIZARD_STEPS,
   initStudio,
-  extractGithubUsername
+  extractGithubUsername,
+  attachPreviewLogoLoader
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -402,6 +403,54 @@ test('initStudio renders reorder controls, updates media status pill, and handle
     delete globalThis.window;
   }
 });
+
+test('attachPreviewLogoLoader adds loading state to logo cell while image loads and removes it on load', () => {
+  const cellClasses = new Set();
+  const imgClasses = new Set();
+  const imgListeners = {};
+
+  const mockCell = {
+    classList: {
+      add: (...cls) => cls.forEach(c => cellClasses.add(c)),
+      remove: (...cls) => cls.forEach(c => cellClasses.delete(c)),
+      contains: c => cellClasses.has(c)
+    }
+  };
+
+  const mockImg = {
+    complete: false,
+    naturalWidth: 0,
+    parentElement: mockCell,
+    closest: () => mockCell,
+    classList: {
+      add: (...cls) => cls.forEach(c => imgClasses.add(c)),
+      remove: (...cls) => cls.forEach(c => imgClasses.delete(c)),
+      contains: c => imgClasses.has(c)
+    },
+    addEventListener(type, fn) {
+      imgListeners[type] = fn;
+    }
+  };
+
+  const mockContainer = {
+    querySelector: sel => (sel.includes('img[alt="Logo"]') ? mockImg : null)
+  };
+
+  attachPreviewLogoLoader(mockContainer, true);
+
+  // While loading, cell should have preview-logo-cell and is-loading classes
+  assert.equal(cellClasses.has('preview-logo-cell'), true);
+  assert.equal(cellClasses.has('is-loading'), true);
+  assert.equal(imgClasses.has('preview-logo-img'), true);
+
+  // Simulate image load completion
+  assert.equal(typeof imgListeners.load, 'function');
+  imgListeners.load();
+
+  // After load, is-loading is removed
+  assert.equal(cellClasses.has('is-loading'), false);
+});
+
 
 
 
