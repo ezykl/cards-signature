@@ -171,7 +171,8 @@ function renderContactFields(state) {
     </article>`;
   }).join('');
   targets.forEach(t => {
-    if (!t.contains(document.activeElement)) t.innerHTML = html;
+    const isEditingInput = t.contains(document.activeElement) && (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'SELECT');
+    if (!isEditingInput) t.innerHTML = html;
   });
 }
 
@@ -184,7 +185,7 @@ function renderActionButtons(state) {
     'calendly', 'calendar', 'whatsapp', 'telegram', 'discord', 'email', 'phone', 'chat',
     'globe', 'website', 'download', 'document', 'location', 'star', 'link', 'none'
   ];
-  target.innerHTML = state.buttons.map(button => {
+  const html = state.buttons.map(button => {
     const symbol = getButtonSymbol(button.icon);
     const isCustom = button.icon && !knownIcons.includes(button.icon);
     const customOption = isCustom ? `<option value="${escapeHTML(button.icon)}" selected>${escapeHTML(button.icon.charAt(0).toUpperCase() + button.icon.slice(1))}</option>` : '';
@@ -250,7 +251,8 @@ function renderActionButtons(state) {
     </article>`;
   }).join('');
   targets.forEach(t => {
-    if (!t.contains(document.activeElement)) t.innerHTML = html;
+    const isEditingInput = t.contains(document.activeElement) && (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'SELECT');
+    if (!isEditingInput) t.innerHTML = html;
   });
 }
 

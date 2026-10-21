@@ -8,7 +8,8 @@ import {
   getButtonSymbol,
   createSignatureSvgWrapper,
   renderThemeCards,
-  WIZARD_STEPS
+  WIZARD_STEPS,
+  initStudio
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -221,6 +222,78 @@ test('step titles map correctly across 5 wizard steps', () => {
   assert.equal(WIZARD_STEPS[3].title, 'Contacts & Social Links');
   assert.equal(WIZARD_STEPS[4].title, 'Final Output & Export');
 });
+
+test('initStudio renders action buttons into both wizard and advanced containers and binds click handlers', () => {
+  const elements = new Map();
+  const getEl = (id) => {
+    if (!elements.has(id)) {
+      elements.set(id, {
+        id,
+        innerHTML: '',
+        value: '',
+        hidden: false,
+        disabled: false,
+        style: {},
+        dataset: {},
+        listeners: {},
+        classList: {
+          toggle() {},
+          add() {},
+          remove() {},
+          contains() { return false; }
+        },
+        setAttribute() {},
+        addEventListener(type, fn) {
+          this.listeners[type] = this.listeners[type] || [];
+          this.listeners[type].push(fn);
+        },
+        contains() { return false; },
+        querySelector() { return null; },
+        scrollIntoView() {}
+      });
+    }
+    return elements.get(id);
+  };
+
+  const navBtn = getEl('nav-studio-btn');
+  navBtn.dataset.view = 'studio';
+
+  globalThis.document = {
+    activeElement: null,
+    getElementById: (id) => getEl(id),
+    querySelectorAll: (sel) => (sel === '[data-view]' ? [navBtn] : []),
+    querySelector: () => null,
+    addEventListener() {},
+    body: {
+      classList: {
+        *[Symbol.iterator]() { yield 'view-mode-home'; },
+        remove() {},
+        add() {},
+        toggle() {},
+        contains() { return false; }
+      }
+    }
+  };
+  globalThis.localStorage = { getItem: () => null, setItem() {} };
+  globalThis.window = {
+    matchMedia: () => ({ matches: false }),
+    location: { hash: '' },
+    addEventListener() {},
+    scrollTo() {}
+  };
+
+  try {
+    initStudio();
+    assert.ok(getEl('action-buttons-list').innerHTML.includes('dynamic-item-card'));
+    assert.ok(getEl('wizard-action-buttons-list').innerHTML.includes('dynamic-item-card'));
+    assert.ok(Array.isArray(navBtn.listeners.click) && navBtn.listeners.click.length > 0);
+  } finally {
+    delete globalThis.document;
+    delete globalThis.localStorage;
+    delete globalThis.window;
+  }
+});
+
 
 
 
