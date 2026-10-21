@@ -171,7 +171,8 @@ export function getButtonSymbol(icon) {
 function renderContactFields(state) {
   const targets = [document.getElementById('contact-fields-list'), document.getElementById('wizard-contact-fields-list')].filter(Boolean);
   if (!targets.length) return;
-  const html = state.contactFields.map(field => {
+  const total = state.contactFields.length;
+  const html = state.contactFields.map((field, index) => {
     const symbol = getContactSymbol(field.type);
     const placeholders = getContactPlaceholders(field.type);
     return `<article class="dynamic-item-card">
@@ -186,9 +187,17 @@ function renderContactFields(state) {
           <option value="calendar" ${field.type === 'calendar' ? 'selected':''}>Calendar</option>
           <option value="custom" ${field.type === 'custom' ? 'selected':''}>Custom</option>
         </select>
-        <button type="button" class="btn-remove-item" data-action="remove-contact" data-id="${escapeHTML(field.id)}" aria-label="Remove contact detail">
-          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
-        </button>
+        <div class="item-action-group">
+          <button type="button" class="btn-reorder-item" data-action="move-contact-up" data-id="${escapeHTML(field.id)}" aria-label="Move contact up" title="Move up" ${index === 0 ? 'disabled' : ''}>
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_upward</span>
+          </button>
+          <button type="button" class="btn-reorder-item" data-action="move-contact-down" data-id="${escapeHTML(field.id)}" aria-label="Move contact down" title="Move down" ${index === total - 1 ? 'disabled' : ''}>
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_downward</span>
+          </button>
+          <button type="button" class="btn-remove-item" data-action="remove-contact" data-id="${escapeHTML(field.id)}" aria-label="Remove contact detail">
+            <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+          </button>
+        </div>
       </div>
       <div class="form-row">
         <label class="sr-only" for="value-${escapeHTML(field.id)}">Display text</label>
@@ -213,7 +222,8 @@ function renderActionButtons(state) {
     'calendly', 'calendar', 'whatsapp', 'telegram', 'discord', 'email', 'phone', 'chat',
     'globe', 'website', 'download', 'document', 'location', 'star', 'link', 'none'
   ];
-  const html = state.buttons.map(button => {
+  const total = state.buttons.length;
+  const html = state.buttons.map((button, index) => {
     const symbol = getButtonSymbol(button.icon);
     const isCustom = button.icon && !knownIcons.includes(button.icon);
     const customOption = isCustom ? `<option value="${escapeHTML(button.icon)}" selected>${escapeHTML(button.icon.charAt(0).toUpperCase() + button.icon.slice(1))}</option>` : '';
@@ -266,9 +276,17 @@ function renderActionButtons(state) {
           <option value="accent" ${button.style === 'accent' ? 'selected':''}>Accent</option>
           <option value="outline" ${button.style === 'outline' ? 'selected':''}>Outline</option>
         </select>
-        <button type="button" class="btn-remove-item" data-action="remove-btn" data-id="${escapeHTML(button.id)}" aria-label="Remove action link">
-          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
-        </button>
+        <div class="item-action-group">
+          <button type="button" class="btn-reorder-item" data-action="move-btn-up" data-id="${escapeHTML(button.id)}" aria-label="Move action link up" title="Move up" ${index === 0 ? 'disabled' : ''}>
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_upward</span>
+          </button>
+          <button type="button" class="btn-reorder-item" data-action="move-btn-down" data-id="${escapeHTML(button.id)}" aria-label="Move action link down" title="Move down" ${index === total - 1 ? 'disabled' : ''}>
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_downward</span>
+          </button>
+          <button type="button" class="btn-remove-item" data-action="remove-btn" data-id="${escapeHTML(button.id)}" aria-label="Remove action link">
+            <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+          </button>
+        </div>
       </div>
       <div class="form-row">
         <label class="sr-only" for="label-${escapeHTML(button.id)}">Button label</label>
@@ -440,6 +458,46 @@ function syncControls(state) {
 
   renderContactFields(state);
   renderActionButtons(state);
+  updateMediaStatusPill(state);
+}
+
+function updateMediaStatusPill(state) {
+  const info = resolveMediaUrl(state.logoUrl, 'image');
+  ['logo-url-status', 'wiz-logo-url-status'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!state.logoUrl || !String(state.logoUrl).trim()) {
+      el.hidden = true;
+      el.textContent = '';
+      el.className = 'media-status-pill';
+      return;
+    }
+    el.hidden = false;
+    if (info.warning) {
+      el.className = 'media-status-pill status-warn';
+      el.textContent = `⚠ ${info.warning}`;
+    } else {
+      el.className = 'media-status-pill status-ok';
+      el.textContent = `✓ ${info.label}`;
+    }
+  });
+}
+
+function probeLogoAccess(url, provider) {
+  if (typeof Image === 'undefined' || !url || url.startsWith('data:')) return;
+  const img = new Image();
+  img.onerror = () => {
+    ['logo-url-status', 'wiz-logo-url-status'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.hidden = false;
+      el.className = 'media-status-pill status-warn';
+      el.textContent = provider === 'google-drive'
+        ? '⚠ Could not load image — check that Google Drive sharing is set to "Anyone with the link".'
+        : '⚠ Image could not be loaded — verify the URL is publicly accessible.';
+    });
+  };
+  img.src = url;
 }
 
 function validate(state, focus = false) {
@@ -734,9 +792,21 @@ export function initStudio() {
       }
     });
     container.addEventListener('click', event => {
-      const button = event.target.closest('[data-action="remove-contact"]');
-      if (button) {
-        studioStore.removeContactField(button.dataset.id);
+      const removeBtn = event.target.closest('[data-action="remove-contact"]');
+      if (removeBtn) {
+        studioStore.removeContactField(removeBtn.dataset.id);
+        renderContactFields(studioStore.getState());
+        return;
+      }
+      const moveUpBtn = event.target.closest('[data-action="move-contact-up"]');
+      if (moveUpBtn) {
+        studioStore.moveContactField(moveUpBtn.dataset.id, 'up');
+        renderContactFields(studioStore.getState());
+        return;
+      }
+      const moveDownBtn = event.target.closest('[data-action="move-contact-down"]');
+      if (moveDownBtn) {
+        studioStore.moveContactField(moveDownBtn.dataset.id, 'down');
         renderContactFields(studioStore.getState());
       }
     });
@@ -762,14 +832,156 @@ export function initStudio() {
       if (event.target.matches('.btn-style-select')) {
         studioStore.updateButton(id, { style: event.target.value });
       }
+      if (event.target.matches('.btn-url-input')) {
+        const info = resolveMediaUrl(event.target.value, 'link');
+        if (info.converted && info.url !== event.target.value) {
+          event.target.value = info.url;
+          studioStore.updateButton(id, { url: info.url });
+          showStudioToast(info.label);
+        }
+      }
     });
     container.addEventListener('click', event => {
-      const button = event.target.closest('[data-action="remove-btn"]');
-      if (button) {
-        studioStore.removeButton(button.dataset.id);
+      const removeBtn = event.target.closest('[data-action="remove-btn"]');
+      if (removeBtn) {
+        studioStore.removeButton(removeBtn.dataset.id);
+        renderActionButtons(studioStore.getState());
+        return;
+      }
+      const moveUpBtn = event.target.closest('[data-action="move-btn-up"]');
+      if (moveUpBtn) {
+        studioStore.moveButton(moveUpBtn.dataset.id, 'up');
+        renderActionButtons(studioStore.getState());
+        return;
+      }
+      const moveDownBtn = event.target.closest('[data-action="move-btn-down"]');
+      if (moveDownBtn) {
+        studioStore.moveButton(moveDownBtn.dataset.id, 'down');
         renderActionButtons(studioStore.getState());
       }
     });
+  });
+
+  // Smart Media URL auto-normalization & background access probe
+  ['ctrl-logo-url', 'wiz-logo-url'].forEach(inputId => {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const handleNormalize = () => {
+      const raw = input.value;
+      const info = resolveMediaUrl(raw, 'image');
+      if (info.converted && info.url !== raw) {
+        input.value = info.url;
+        studioStore.setField('logoUrl', info.url);
+        showStudioToast(info.label);
+      }
+      if (info.url && !info.warning) {
+        probeLogoAccess(info.url, info.provider);
+      }
+    };
+    input.addEventListener('change', handleNormalize);
+    input.addEventListener('blur', handleNormalize);
+  });
+
+  // Quick Avatar helpers: Initials Badge, GitHub Avatar, and Local File Upload
+  const handleApplyInitialsAvatar = () => {
+    const url = buildInitialsAvatarUrl(studioStore.getState());
+    studioStore.setField('logoUrl', url);
+    showStudioToast('Generated initials monogram badge.');
+  };
+  document.getElementById('btn-avatar-initials')?.addEventListener('click', handleApplyInitialsAvatar);
+  document.getElementById('btn-wiz-avatar-initials')?.addEventListener('click', handleApplyInitialsAvatar);
+
+  const handleApplyGithubAvatar = () => {
+    let username = extractGithubUsername(studioStore.getState());
+    if (!username && typeof window !== 'undefined' && typeof window.prompt === 'function') {
+      username = (window.prompt('Enter your GitHub username (e.g., octocat):') || '').trim();
+    }
+    if (!username) {
+      showStudioToast('Add a GitHub link or enter a username to fetch your GitHub avatar.');
+      return;
+    }
+    const cleanHandle = username.replace(/^@/, '').replace(/https?:\/\/github\.com\//i, '').split('/')[0];
+    if (!cleanHandle) return;
+    const url = `https://github.com/${cleanHandle}.png?size=256`;
+    studioStore.setField('logoUrl', url);
+    showStudioToast(`Loaded GitHub avatar for @${cleanHandle}.`);
+  };
+  document.getElementById('btn-avatar-github')?.addEventListener('click', handleApplyGithubAvatar);
+  document.getElementById('btn-wiz-avatar-github')?.addEventListener('click', handleApplyGithubAvatar);
+
+  const handleLocalAvatarFile = event => {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || '');
+      if (typeof Image !== 'undefined' && typeof document.createElement === 'function') {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxDim = 192;
+            const scale = Math.min(1, maxDim / Math.max(img.width || maxDim, img.height || maxDim));
+            const canvasEl = document.createElement('canvas');
+            canvasEl.width = Math.max(1, Math.round((img.width || maxDim) * scale));
+            canvasEl.height = Math.max(1, Math.round((img.height || maxDim) * scale));
+            const ctx = canvasEl.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, canvasEl.width, canvasEl.height);
+              const compressed = canvasEl.toDataURL('image/png');
+              studioStore.setField('logoUrl', compressed);
+              showStudioToast('Local image loaded for preview & PNG export.');
+              return;
+            }
+          } catch {
+            // Fallback to raw dataUrl below
+          }
+          studioStore.setField('logoUrl', dataUrl);
+          showStudioToast('Local image loaded for preview & PNG export.');
+        };
+        img.onerror = () => showStudioToast('Could not read that image file.');
+        img.src = dataUrl;
+      } else {
+        studioStore.setField('logoUrl', dataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+  document.getElementById('input-avatar-file')?.addEventListener('change', handleLocalAvatarFile);
+  document.getElementById('input-wiz-avatar-file')?.addEventListener('change', handleLocalAvatarFile);
+
+  // Email Client Installation Guide Modal
+  const installModal = document.getElementById('install-guide-modal');
+  const openInstallModal = () => {
+    if (!installModal) return;
+    installModal.hidden = false;
+  };
+  const closeInstallModal = () => {
+    if (!installModal) return;
+    installModal.hidden = true;
+  };
+  document.getElementById('btn-open-install-guide')?.addEventListener('click', openInstallModal);
+  document.getElementById('btn-wiz-open-install-guide')?.addEventListener('click', openInstallModal);
+  document.getElementById('btn-close-install-guide')?.addEventListener('click', closeInstallModal);
+  installModal?.addEventListener('click', event => {
+    if (event.target.matches('[data-close-modal="true"]')) closeInstallModal();
+    const tab = event.target.closest('.install-tab');
+    if (tab && tab.dataset.installTab) {
+      const targetTab = tab.dataset.installTab;
+      installModal.querySelectorAll?.('.install-tab')?.forEach(btn => {
+        const active = btn.dataset.installTab === targetTab;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', String(active));
+      });
+      ['gmail', 'outlook', 'apple', 'drive'].forEach(key => {
+        const panel = document.getElementById(`install-panel-${key}`);
+        if (panel) panel.hidden = key !== targetTab;
+      });
+    }
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && installModal && !installModal.hidden) {
+      closeInstallModal();
+    }
   });
 
   // Wizard Step 5 export actions

@@ -323,6 +323,87 @@ test('extractGithubUsername detects handle from buttons or contact fields', () =
   assert.equal(extractGithubUsername({ buttons: [], contactFields: [] }), '');
 });
 
+test('initStudio renders reorder controls, updates media status pill, and handles initials avatar click', () => {
+  const elements = new Map();
+  const getEl = (id) => {
+    if (!elements.has(id)) {
+      elements.set(id, {
+        id,
+        innerHTML: '',
+        textContent: '',
+        className: '',
+        value: '',
+        hidden: true,
+        disabled: false,
+        style: {},
+        dataset: {},
+        listeners: {},
+        classList: {
+          toggle() {},
+          add() {},
+          remove() {},
+          contains() { return false; }
+        },
+        setAttribute() {},
+        addEventListener(type, fn) {
+          this.listeners[type] = this.listeners[type] || [];
+          this.listeners[type].push(fn);
+        },
+        contains() { return false; },
+        querySelector() { return null; },
+        scrollIntoView() {}
+      });
+    }
+    return elements.get(id);
+  };
+
+  globalThis.document = {
+    activeElement: null,
+    getElementById: (id) => getEl(id),
+    querySelectorAll: () => [],
+    querySelector: () => null,
+    addEventListener() {},
+    body: {
+      classList: {
+        *[Symbol.iterator]() {},
+        remove() {},
+        add() {},
+        toggle() {},
+        contains() { return false; }
+      }
+    }
+  };
+  globalThis.localStorage = { getItem: () => null, setItem() {} };
+  globalThis.window = {
+    matchMedia: () => ({ matches: false }),
+    location: { hash: '' },
+    addEventListener() {},
+    scrollTo() {}
+  };
+
+  try {
+    initStudio();
+    // Verify reorder buttons exist in contact fields and action buttons
+    assert.ok(getEl('contact-fields-list').innerHTML.includes('data-action="move-contact-up"'));
+    assert.ok(getEl('contact-fields-list').innerHTML.includes('data-action="move-contact-down"'));
+    assert.ok(getEl('action-buttons-list').innerHTML.includes('data-action="move-btn-up"'));
+    assert.ok(getEl('action-buttons-list').innerHTML.includes('data-action="move-btn-down"'));
+
+    // Trigger Initials Badge click
+    const initialsBtn = getEl('btn-avatar-initials');
+    assert.ok(Array.isArray(initialsBtn.listeners.click) && initialsBtn.listeners.click.length > 0);
+    initialsBtn.listeners.click[0]();
+    assert.ok(getEl('ctrl-logo-url').value.includes('ui-avatars.com/api/'));
+    assert.equal(getEl('logo-url-status').hidden, false);
+    assert.ok(getEl('logo-url-status').textContent.includes('Initials monogram badge'));
+  } finally {
+    delete globalThis.document;
+    delete globalThis.localStorage;
+    delete globalThis.window;
+  }
+});
+
+
 
 
 
