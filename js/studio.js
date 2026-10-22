@@ -1031,18 +1031,19 @@ export function initStudio() {
   document.getElementById('btn-wiz-open-install-guide')?.addEventListener('click', openInstallModal);
   document.getElementById('btn-close-install-guide')?.addEventListener('click', closeInstallModal);
   installModal?.addEventListener('click', event => {
-    if (event.target.matches('[data-close-modal="true"]')) closeInstallModal();
-    const tab = event.target.closest('.install-tab');
-    if (tab && tab.dataset.installTab) {
-      const targetTab = tab.dataset.installTab;
+    if (event.target === installModal || event.target.matches?.('[data-close-modal="true"]')) closeInstallModal();
+    const tab = event.target.closest?.('.install-tab');
+    const targetTab = tab?.dataset?.client || tab?.dataset?.installTab;
+    if (tab && targetTab) {
       installModal.querySelectorAll?.('.install-tab')?.forEach(btn => {
-        const active = btn.dataset.installTab === targetTab;
+        const key = btn.dataset.client || btn.dataset.installTab;
+        const active = key === targetTab;
         btn.classList.toggle('active', active);
         btn.setAttribute('aria-selected', String(active));
       });
-      ['gmail', 'outlook', 'apple', 'drive'].forEach(key => {
-        const panel = document.getElementById(`install-panel-${key}`);
-        if (panel) panel.hidden = key !== targetTab;
+      installModal.querySelectorAll?.('.install-panel')?.forEach(panel => {
+        const panelKey = panel.dataset.panel || panel.id?.replace('install-panel-', '');
+        panel.hidden = panelKey !== targetTab;
       });
     }
   });
