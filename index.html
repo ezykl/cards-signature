@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Create a professional, email-safe signature in minutes. Preview, copy, and download HTML that works in major email clients." />
     <title>Signature Studio: Professional Email Signatures</title>
+    <link rel="icon" type="image/svg+xml" href="Logo.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200&family=Open+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -15,7 +16,7 @@
     <div class="landing-bg" aria-hidden="true"></div>
     <a class="skip-link" href="#main-content">Skip to the signature editor</a>
     <header class="site-header">
-      <a class="brand" href="#home" data-view="home" aria-label="Signature Studio home"><span class="brand-mark material-symbols-rounded" aria-hidden="true">draw</span><span>Signature Studio</span></a>
+      <a class="brand" href="#home" data-view="home" aria-label="Signature Studio home"><img src="Logo.svg" alt="" class="brand-logo" width="36" height="36" /><span>Signature Studio</span></a>
       <button type="button" class="button button-quiet" id="btn-toggle-dark" aria-label="Switch to dark theme" aria-pressed="false" title="Toggle theme"><span class="theme-toggle-icon material-symbols-rounded" aria-hidden="true">dark_mode</span><span class="sr-only">Toggle theme</span></button>
       <nav class="site-nav" aria-label="Primary navigation"><a href="#how-it-works" data-nav="how-it-works">How it works</a><button type="button" class="nav-link" data-view="gallery">Templates</button><button type="button" class="button button-primary button-small" data-view="studio">Create a signature</button></nav>
     </header>
@@ -151,13 +152,13 @@
           </button>
         </div>
         <div class="modal-tabs" role="tablist" aria-label="Email client instructions">
-          <button type="button" class="install-tab active" role="tab" aria-selected="true" data-client="gmail">Gmail</button>
-          <button type="button" class="install-tab" role="tab" aria-selected="false" data-client="outlook">Outlook</button>
-          <button type="button" class="install-tab" role="tab" aria-selected="false" data-client="apple">Apple Mail</button>
-          <button type="button" class="install-tab" role="tab" aria-selected="false" data-client="cloud">Google Drive &amp; Cloud Links</button>
+          <button type="button" class="install-tab active" role="tab" aria-selected="true" data-client="gmail" data-install-tab="gmail">Gmail</button>
+          <button type="button" class="install-tab" role="tab" aria-selected="false" data-client="outlook" data-install-tab="outlook">Outlook</button>
+          <button type="button" class="install-tab" role="tab" aria-selected="false" data-client="apple" data-install-tab="apple">Apple Mail</button>
+          <button type="button" class="install-tab" role="tab" aria-selected="false" data-client="cloud" data-install-tab="drive">Google Drive &amp; Cloud Links</button>
         </div>
         <div class="modal-body">
-          <div class="install-panel" data-panel="gmail">
+          <div id="install-panel-gmail" class="install-panel" data-panel="gmail">
             <ol class="install-steps">
               <li>Click <strong>Copy for Gmail / Outlook</strong> in Signature Studio.</li>
               <li>Open Gmail and click the <strong>Settings gear (⚙) &rarr; See all settings</strong>.</li>
@@ -166,7 +167,7 @@
               <li>Scroll to the bottom of the page and click <strong>Save Changes</strong>.</li>
             </ol>
           </div>
-          <div class="install-panel" data-panel="outlook" hidden>
+          <div id="install-panel-outlook" class="install-panel" data-panel="outlook" hidden>
             <ol class="install-steps">
               <li>Click <strong>Copy for Gmail / Outlook</strong> in Signature Studio.</li>
               <li>In Outlook (Web or Desktop), open <strong>Settings &rarr; Mail &rarr; Compose and reply</strong> (or <strong>File &rarr; Options &rarr; Mail &rarr; Signatures</strong>).</li>
@@ -174,7 +175,7 @@
               <li>Set it as default for new messages and replies, then click <strong>Save</strong>.</li>
             </ol>
           </div>
-          <div class="install-panel" data-panel="apple" hidden>
+          <div id="install-panel-apple" class="install-panel" data-panel="apple" hidden>
             <ol class="install-steps">
               <li>Click <strong>Copy for Gmail / Outlook</strong> in Signature Studio.</li>
               <li>Open Apple Mail and go to <strong>Mail &rarr; Settings &rarr; Signatures</strong>.</li>
@@ -182,7 +183,7 @@
               <li>Paste with <strong>Cmd + V</strong> (note: the preview box may hide images until you open a new compose window).</li>
             </ol>
           </div>
-          <div class="install-panel" data-panel="cloud" hidden>
+          <div id="install-panel-drive" class="install-panel" data-panel="cloud" hidden>
             <ol class="install-steps">
               <li><strong>Google Drive Logos &amp; CVs:</strong> Right-click your file in Google Drive &rarr; <strong>Share</strong> &rarr; set General Access to <strong>"Anyone with the link"</strong>. Paste the link directly into Signature Studio—we automatically convert it into a direct image or document link!</li>
               <li><strong>GitHub Assets:</strong> Paste any public GitHub file link (`github.com/.../blob/...`) or your GitHub profile URL—we automatically convert it to the raw asset CDN.</li>
@@ -192,6 +193,6 @@
         </div>
       </div>
     </div>
-    <footer class="site-footer"><span>Signature Studio</span><span>Built for Gmail, Outlook, Apple Mail, and more.</span></footer><div id="toast" class="toast" role="status" aria-live="polite"><span class="material-symbols-rounded" aria-hidden="true">check_circle</span><span id="toast-msg"></span></div><script type="module" src="js/studio.js"></script>
+    <footer class="site-footer"><span class="footer-brand"><img src="Logo.svg" alt="" class="brand-logo brand-logo-sm" width="24" height="24" /><span>Signature Studio</span></span><span>Built for Gmail, Outlook, Apple Mail, and more.</span></footer><div id="toast" class="toast" role="status" aria-live="polite"><span class="material-symbols-rounded" aria-hidden="true">check_circle</span><span id="toast-msg"></span></div><script type="module" src="js/studio.js"></script>
   </body>
 </html>

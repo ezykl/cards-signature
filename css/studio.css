@@ -16,6 +16,10 @@ button { cursor:pointer; }
 .site-header { width:min(1180px,calc(100% - 40px)); min-height:80px; margin:auto; display:flex; align-items:center; justify-content:space-between; gap:24px; }
 .brand { display:inline-flex; gap:10px; align-items:center; color:var(--ink); font:600 18px/1 "Poppins",sans-serif; text-decoration:none; }
 .brand-mark { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; color:white; background:var(--navy); }
+.brand-logo { display:block; width:36px; height:36px; border-radius:8px; object-fit:contain; flex-shrink:0; box-shadow:0 4px 12px rgba(15,23,42,.16); transition:transform .2s ease; }
+.brand:hover .brand-logo { transform:scale(1.05); }
+.brand-logo-sm { width:24px; height:24px; border-radius:6px; box-shadow:0 2px 6px rgba(15,23,42,.12); }
+.footer-brand { display:inline-flex; align-items:center; gap:8px; font-weight:600; color:var(--ink); }
 .site-nav,.hero-actions,.history-actions,.editor-tools,.studio-sub-actions { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .site-nav a,.nav-link,.text-button { padding:8px 4px; color:var(--muted); background:transparent; border:0; text-decoration:none; font-weight:600; }
 .site-nav a:hover,.nav-link:hover,.text-button:hover { color:var(--navy); }
