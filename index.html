@@ -18,7 +18,7 @@
     <header class="site-header">
       <a class="brand" href="#home" data-view="home" aria-label="Signature Studio home"><img class="brand-logo" src="Logo.svg" width="34" height="34" alt="" aria-hidden="true" /><span>Signature Studio</span></a>
       <button type="button" class="button button-quiet" id="btn-toggle-dark" aria-label="Switch to dark theme" aria-pressed="false" title="Toggle theme"><span class="theme-toggle-icon material-symbols-rounded" aria-hidden="true">dark_mode</span><span class="sr-only">Toggle theme</span></button>
-      <nav class="site-nav" aria-label="Primary navigation"><a href="#how-it-works" data-nav="how-it-works">How it works</a><button type="button" class="nav-link" data-view="gallery">Templates</button><button type="button" class="button button-primary button-small" data-view="studio">Create a signature</button></nav>
+      <nav class="site-nav" aria-label="Primary navigation"><a href="#how-it-works" data-nav="how-it-works">How it works</a><button type="button" class="nav-link" data-view="gallery">Templates</button><a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="nav-repo-link" title="View source on GitHub"><span class="material-symbols-rounded" aria-hidden="true">code</span><span>GitHub</span></a><button type="button" class="button button-primary button-small" data-view="studio">Create a signature</button></nav>
     </header>
     <main id="main-content">
       <section id="home-view" class="landing-view" aria-labelledby="hero-title">
@@ -36,6 +36,14 @@
       <li><span class="material-symbols-rounded" aria-hidden="true">shield</span> Your draft stays in your browser</li>
       <li><span class="material-symbols-rounded" aria-hidden="true">devices</span> Responsive table layouts</li>
     </ul>
+    <div class="hero-repo-credit" aria-label="Open source repository and author credits">
+      <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="repo-credit-badge">
+        <span class="material-symbols-rounded" aria-hidden="true">terminal</span>
+        <span>Open-source repo: <strong>ezykl/cards-signature</strong></span>
+      </a>
+      <span class="repo-credit-sep" aria-hidden="true">&bull;</span>
+      <span class="repo-credit-author">Crafted by <a href="https://github.com/ezykl" target="_blank" rel="noopener noreferrer">@ezykl</a></span>
+    </div>
   </div>
   <div class="hero-preview" aria-label="Example email signature preview">
     <div class="preview-window-bar preview-tab-bar" role="tablist" aria-label="Composer preview tabs">
@@ -193,6 +201,6 @@
         </div>
       </div>
     </div>
-    <footer class="site-footer"><span class="footer-brand"><img class="brand-logo-sm" src="Logo.svg" width="22" height="22" alt="" aria-hidden="true" /><span>Signature Studio</span></span><span>Built for Gmail, Outlook, Apple Mail, and more.</span></footer><div id="toast" class="toast" role="status" aria-live="polite"><span class="material-symbols-rounded" aria-hidden="true">check_circle</span><span id="toast-msg"></span></div><script type="module" src="js/studio.js"></script>
+    <footer class="site-footer"><span class="footer-brand"><img class="brand-logo-sm" src="Logo.svg" width="22" height="22" alt="" aria-hidden="true" /><span>Signature Studio</span></span><span class="footer-credits">Built for Gmail, Outlook &amp; Apple Mail &bull; Crafted by <a href="https://github.com/ezykl" target="_blank" rel="noopener noreferrer">@ezykl</a> &bull; <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer">GitHub Repo</a></span></footer><div id="toast" class="toast" role="status" aria-live="polite"><span class="material-symbols-rounded" aria-hidden="true">check_circle</span><span id="toast-msg"></span></div><script type="module" src="js/studio.js"></script>
   </body>
 </html>
