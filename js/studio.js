@@ -312,15 +312,15 @@ export function renderThemeCards(state) {
     return `<button type="button" class="theme-preview-card ${isActive ? 'active' : ''}" data-preset="${escapeHTML(key)}" style="${bgStyle}; color:${escapeHTML(primary)};" aria-label="${escapeHTML(preset.name)} theme" aria-pressed="${isActive}">
       <div class="theme-card-top">
         <span class="theme-card-name">${escapeHTML(preset.name)}</span>
-        <span class="theme-card-badge" style="background:${escapeHTML(accent)}; color:${preset.bgColor};">Accent</span>
-      </div>
-      <div class="theme-card-body">
-        <span class="theme-card-role" style="color:${escapeHTML(secondary)};">Sample Preview</span>
         <span class="theme-card-swatches">
           <span class="theme-card-dot" style="background:${escapeHTML(preset.bgColor)}"></span>
           <span class="theme-card-dot" style="background:${escapeHTML(preset.bgGradientEnd || preset.bgColor)}"></span>
           <span class="theme-card-dot" style="background:${escapeHTML(accent)}"></span>
         </span>
+      </div>
+      <div class="theme-card-body">
+        <span class="theme-card-role" style="color:${escapeHTML(secondary)};">Sample Preview</span>
+        <span class="theme-card-badge" style="background:${escapeHTML(accent)}; color:${preset.bgColor};">Accent</span>
       </div>
     </button>`;
   }).join('');
