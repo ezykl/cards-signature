@@ -11,7 +11,8 @@ import {
   WIZARD_STEPS,
   initStudio,
   extractGithubUsername,
-  attachPreviewLogoLoader
+  attachPreviewLogoLoader,
+  switchProfileSlot
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -449,6 +450,119 @@ test('attachPreviewLogoLoader adds loading state to logo cell while image loads 
 
   // After load, is-loading is removed
   assert.equal(cellClasses.has('is-loading'), false);
+});
+
+test('switchProfileSlot persists per-slot state and initStudio wires inbox simulator and vCard buttons', () => {
+  const storage = new Map();
+  const elements = new Map();
+  const getEl = (id) => {
+    if (!elements.has(id)) {
+      const classes = new Set();
+      elements.set(id, {
+        id,
+        innerHTML: '',
+        textContent: '',
+        className: '',
+        value: '',
+        hidden: true,
+        disabled: false,
+        style: {},
+        dataset: {},
+        listeners: {},
+        classList: {
+          toggle(c, force) {
+            if (force === undefined) {
+              classes.has(c) ? classes.delete(c) : classes.add(c);
+            } else {
+              force ? classes.add(c) : classes.delete(c);
+            }
+          },
+          add: (...cls) => cls.forEach(c => classes.add(c)),
+          remove: (...cls) => cls.forEach(c => classes.delete(c)),
+          contains: c => classes.has(c)
+        },
+        setAttribute() {},
+        addEventListener(type, fn) {
+          this.listeners[type] = this.listeners[type] || [];
+          this.listeners[type].push(fn);
+        },
+        contains() { return false; },
+        querySelector() { return null; },
+        scrollIntoView() {}
+      });
+    }
+    return elements.get(id);
+  };
+
+  const slot1Btn = getEl('slot-btn-1');
+  slot1Btn.dataset.slot = 'slot-1';
+  const slot2Btn = getEl('slot-btn-2');
+  slot2Btn.dataset.slot = 'slot-2';
+
+  globalThis.document = {
+    activeElement: null,
+    getElementById: (id) => getEl(id),
+    querySelectorAll: (sel) => (sel === '[data-slot]' ? [slot1Btn, slot2Btn] : []),
+    querySelector: () => null,
+    addEventListener() {},
+    body: {
+      classList: {
+        *[Symbol.iterator]() {},
+        remove() {},
+        add() {},
+        toggle() {},
+        contains() { return false; }
+      }
+    }
+  };
+  globalThis.localStorage = {
+    getItem: (k) => (storage.has(k) ? storage.get(k) : null),
+    setItem: (k, v) => storage.set(k, String(v))
+  };
+  globalThis.window = {
+    matchMedia: () => ({ matches: false }),
+    location: { hash: '' },
+    addEventListener() {},
+    scrollTo() {}
+  };
+
+  try {
+    initStudio();
+
+    // Verify vCard buttons have click handlers bound
+    assert.ok(Array.isArray(getEl('btn-studio-download-vcf').listeners.click));
+    assert.ok(Array.isArray(getEl('btn-wiz-download-vcf').listeners.click));
+
+    // Verify Inbox Dark / Light simulator buttons toggle .inbox-sim-dark on #studio-canvas-wrapper
+    const darkInboxBtn = getEl('btn-inbox-dark');
+    const lightInboxBtn = getEl('btn-inbox-light');
+    assert.ok(Array.isArray(darkInboxBtn.listeners.click));
+    darkInboxBtn.listeners.click[0]();
+    assert.equal(getEl('studio-canvas-wrapper').classList.contains('inbox-sim-dark'), true);
+
+    lightInboxBtn.listeners.click[0]();
+    assert.equal(getEl('studio-canvas-wrapper').classList.contains('inbox-sim-dark'), false);
+
+    // Switch profile slots and verify independent state persistence
+    getEl('ctrl-full-name').value = 'Slot One User';
+    getEl('ctrl-full-name').listeners.input[0]({ target: getEl('ctrl-full-name') });
+
+    switchProfileSlot('slot-2');
+    assert.equal(storage.get('signature-studio-active-slot-v1'), 'slot-2');
+    assert.equal(slot2Btn.classList.contains('active'), true);
+
+    // Update name in slot-2
+    getEl('ctrl-full-name').value = 'Slot Two Work User';
+    getEl('ctrl-full-name').listeners.input[0]({ target: getEl('ctrl-full-name') });
+
+    // Switch back to slot-1 and verify Slot One User is restored
+    switchProfileSlot('slot-1');
+    assert.equal(getEl('ctrl-full-name').value, 'Slot One User');
+  } finally {
+    delete globalThis.document;
+    delete globalThis.localStorage;
+    delete globalThis.window;
+  }
 });
 
 

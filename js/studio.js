@@ -1,6 +1,9 @@
-import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS, getContrastRatio, getBackgroundStyle, resolveMediaUrl, buildInitialsAvatarUrl } from './studio-templates.js';
+import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS, getContrastRatio, getBackgroundStyle, resolveMediaUrl, buildInitialsAvatarUrl, generateVCardString } from './studio-templates.js';
 
 const DRAFT_KEY = 'signature-studio-draft-v2';
+const SLOTS_KEY = 'signature-studio-slots-v1';
+const ACTIVE_SLOT_KEY = 'signature-studio-active-slot-v1';
+const SLOT_NAMES = { 'slot-1': 'Primary', 'slot-2': 'Work', 'slot-3': 'Personal' };
 const clone = value => JSON.parse(JSON.stringify(value));
 const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' })[char]);
 const isSafeUrl = value => !value || /^(https?:|mailto:|tel:|data:image\/(png|jpeg|jpg|webp|gif);base64,)/i.test(String(value).trim());
@@ -570,6 +573,47 @@ async function copyRichSignature() { const preview = document.getElementById('st
 function copyRawHTML() { const html = renderSignatureHTML(studioStore.getState()).trim(); navigator.clipboard.writeText(html).then(() => showStudioToast('HTML copied to clipboard.')).catch(() => showStudioToast('Copy failed. Please try again.')); }
 function downloadHTML() { if (!validate(studioStore.getState(), true)) return; const html = renderSignatureHTML(studioStore.getState()).trim(); const blob = new Blob([html],{type:'text/html;charset=utf-8'}); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'),{href:url,download:'email-signature.html'}); link.click(); URL.revokeObjectURL(url); showStudioToast('HTML file downloaded.'); }
 
+export function downloadVCard() {
+  if (!studioStore || !validate(studioStore.getState(), true)) return;
+  const state = studioStore.getState();
+  const vcf = generateVCardString(state);
+  const slug = String(state.fullName || 'contact').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'contact';
+  const blob = new Blob([vcf], { type: 'text/vcard;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = Object.assign(document.createElement('a'), { href: url, download: `${slug}-contact.vcf` });
+  link.click();
+  URL.revokeObjectURL(url);
+  showStudioToast('vCard (.vcf) contact file downloaded.');
+}
+
+let activeSlotId = 'slot-1';
+let savedSlotsCache = {};
+
+function updateSlotButtonsUI(slotId) {
+  if (typeof document === 'undefined') return;
+  document.querySelectorAll?.('[data-slot]')?.forEach(btn => {
+    const isActive = btn.dataset.slot === slotId;
+    btn.classList?.toggle('active', isActive);
+    btn.setAttribute?.('aria-pressed', String(isActive));
+  });
+}
+
+export function switchProfileSlot(slotId) {
+  if (!studioStore || !slotId) return;
+  savedSlotsCache[activeSlotId] = clone(studioStore.getState());
+  activeSlotId = slotId;
+  try {
+    localStorage.setItem(ACTIVE_SLOT_KEY, activeSlotId);
+    localStorage.setItem(SLOTS_KEY, JSON.stringify(savedSlotsCache));
+  } catch {}
+  const targetState = savedSlotsCache[slotId]
+    ? { ...clone(DEFAULT_SIGNATURE_STATE), ...clone(savedSlotsCache[slotId]) }
+    : clone(DEFAULT_SIGNATURE_STATE);
+  studioStore.setState(targetState);
+  updateSlotButtonsUI(activeSlotId);
+  showStudioToast(`Switched to ${SLOT_NAMES[slotId] || slotId} profile.`);
+}
+
 export function createSignatureSvgWrapper(html, width = 600, height = 300) {
   const safeW = Math.max(280, Number(width) || 600);
   const safeH = Math.max(100, Number(height) || 300);
@@ -672,7 +716,17 @@ function importDraft(file) { if (!file) return; const reader = new FileReader();
 
 export function initStudio() {
   let saved; try { saved = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch { saved = null; }
-  studioStore = createStudioStore(saved && typeof saved === 'object' ? { ...clone(DEFAULT_SIGNATURE_STATE), ...saved } : DEFAULT_SIGNATURE_STATE);
+  try {
+    activeSlotId = localStorage.getItem(ACTIVE_SLOT_KEY) || 'slot-1';
+    const rawSlots = JSON.parse(localStorage.getItem(SLOTS_KEY));
+    savedSlotsCache = rawSlots && typeof rawSlots === 'object' ? rawSlots : {};
+  } catch {
+    activeSlotId = 'slot-1';
+    savedSlotsCache = {};
+  }
+  const initialSlotState = savedSlotsCache[activeSlotId] || saved;
+  studioStore = createStudioStore(initialSlotState && typeof initialSlotState === 'object' ? { ...clone(DEFAULT_SIGNATURE_STATE), ...initialSlotState } : DEFAULT_SIGNATURE_STATE);
+  updateSlotButtonsUI(activeSlotId);
   const preview = document.getElementById('studio-preview-card'); const heroPreview = document.getElementById('hero-signature-preview'); const canvas = document.getElementById('studio-canvas-wrapper');
   let lastLogoUrl = studioStore.getState().logoUrl;
   studioStore.subscribe(state => {
@@ -689,7 +743,11 @@ export function initStudio() {
       heroPreview.innerHTML = html;
       attachPreviewLogoLoader(heroPreview, logoChanged);
     }
-    try { localStorage.setItem(DRAFT_KEY,JSON.stringify(state)); } catch {}
+    savedSlotsCache[activeSlotId] = clone(state);
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
+      localStorage.setItem(SLOTS_KEY, JSON.stringify(savedSlotsCache));
+    } catch {}
     syncControls(state);
     if (logoChanged && state.logoUrl) {
       const info = resolveMediaUrl(state.logoUrl, 'image');
@@ -701,6 +759,9 @@ export function initStudio() {
     validate(state);
   });
   studioStore.setState(studioStore.getState()); renderGallery();
+  document.querySelectorAll('[data-slot]').forEach(btn => {
+    btn.addEventListener('click', () => switchProfileSlot(btn.dataset.slot));
+  });
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
   document.querySelectorAll('a[data-nav="how-it-works"]').forEach(link => {
     link.addEventListener('click', event => {
@@ -1057,6 +1118,7 @@ export function initStudio() {
   document.getElementById('btn-wiz-copy-primary')?.addEventListener('click', copyRichSignature);
   document.getElementById('btn-wiz-download-png')?.addEventListener('click', exportSignaturePNG);
   document.getElementById('btn-wiz-download-html')?.addEventListener('click', downloadHTML);
+  document.getElementById('btn-wiz-download-vcf')?.addEventListener('click', downloadVCard);
 
   // Accessible theme toggle with dynamic state & ARIA attributes
   const darkToggle = document.getElementById('btn-toggle-dark');
@@ -1082,6 +1144,18 @@ export function initStudio() {
       localStorage.setItem('darkMode', JSON.stringify(nextDark));
     });
   }
+  document.getElementById('btn-inbox-light')?.addEventListener('click', () => {
+    canvas?.classList.remove('inbox-sim-dark');
+    canvas?.classList.add('inbox-sim-light');
+    document.getElementById('btn-inbox-light')?.classList.add('active');
+    document.getElementById('btn-inbox-dark')?.classList.remove('active');
+  });
+  document.getElementById('btn-inbox-dark')?.addEventListener('click', () => {
+    canvas?.classList.remove('inbox-sim-light');
+    canvas?.classList.add('inbox-sim-dark');
+    document.getElementById('btn-inbox-dark')?.classList.add('active');
+    document.getElementById('btn-inbox-light')?.classList.remove('active');
+  });
   document.getElementById('btn-vp-desktop').addEventListener('click', () => { canvas.classList.remove('viewport-mobile'); document.getElementById('btn-vp-desktop').classList.add('active'); document.getElementById('btn-vp-mobile').classList.remove('active'); });
   document.getElementById('btn-vp-mobile').addEventListener('click', () => { canvas.classList.add('viewport-mobile'); document.getElementById('btn-vp-mobile').classList.add('active'); document.getElementById('btn-vp-desktop').classList.remove('active'); });
   document.getElementById('btn-undo').addEventListener('click', () => studioStore.undo());
@@ -1096,6 +1170,7 @@ export function initStudio() {
   document.getElementById('btn-studio-copy-html').addEventListener('click', copyRawHTML);
   document.getElementById('btn-studio-download').addEventListener('click', downloadHTML);
   document.getElementById('btn-studio-download-png')?.addEventListener('click', exportSignaturePNG);
+  document.getElementById('btn-studio-download-vcf')?.addEventListener('click', downloadVCard);
   document.getElementById('btn-export-draft').addEventListener('click', exportDraft);
   document.getElementById('input-import-draft').addEventListener('change', event => importDraft(event.target.files[0]));
 
