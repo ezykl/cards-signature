@@ -534,6 +534,61 @@ export function buildInitialsAvatarUrl(state = DEFAULT_SIGNATURE_STATE) {
 }
 
 /**
+ * Generates a standards-compliant vCard 3.0 (.vcf) string from the signature state.
+ */
+export function generateVCardString(state = DEFAULT_SIGNATURE_STATE) {
+  const escapeVCard = val => String(val ?? '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  const fullName = String(state?.fullName || 'Your Name').trim() || 'Your Name';
+  const parts = fullName.split(/\s+/);
+  const lastName = parts.length > 1 ? parts.pop() : '';
+  const firstName = parts.join(' ');
+
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${escapeVCard(fullName)}`,
+    `N:${escapeVCard(lastName)};${escapeVCard(firstName)};;;`
+  ];
+
+  if (state?.jobTitle && String(state.jobTitle).trim()) {
+    lines.push(`TITLE:${escapeVCard(String(state.jobTitle).trim())}`);
+  }
+
+  const seenUrls = new Set();
+  for (const field of (state?.contactFields || [])) {
+    const val = String(field?.value || '').trim();
+    const href = String(field?.href || '').trim();
+    if (!val && !href) continue;
+
+    if (field.type === 'phone' || field.type === 'mobile' || /^tel:/i.test(href)) {
+      const tel = val || href.replace(/^tel:/i, '');
+      if (tel) lines.push(`TEL;TYPE=CELL:${escapeVCard(tel)}`);
+    } else if (field.type === 'email' || /^mailto:/i.test(href)) {
+      const email = val || href.replace(/^mailto:/i, '');
+      if (email) lines.push(`EMAIL;TYPE=INTERNET:${escapeVCard(email)}`);
+    } else if (field.type === 'location' || field.type === 'address' || field.type === 'map') {
+      if (val) lines.push(`ADR;TYPE=WORK:;;${escapeVCard(val)};;;;`);
+    } else if (/^https?:\/\//i.test(href)) {
+      if (!seenUrls.has(href)) {
+        seenUrls.add(href);
+        lines.push(`URL:${href}`);
+      }
+    }
+  }
+
+  for (const btn of (state?.buttons || [])) {
+    const url = String(btn?.url || '').trim();
+    if (/^https?:\/\//i.test(url) && !seenUrls.has(url)) {
+      seenUrls.add(url);
+      lines.push(`URL:${url}`);
+    }
+  }
+
+  lines.push('END:VCARD');
+  return `${lines.join('\r\n')}\r\n`;
+}
+
+/**
  * Calculates WCAG 2.1 relative luminance and contrast ratio between two hex colors.
  */
 export function getContrastRatio(hex1, hex2) {

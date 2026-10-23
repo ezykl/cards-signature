@@ -4,7 +4,8 @@ import {
   renderSignatureHTML,
   DEFAULT_SIGNATURE_STATE,
   resolveMediaUrl,
-  buildInitialsAvatarUrl
+  buildInitialsAvatarUrl,
+  generateVCardString
 } from '../js/studio-templates.js';
 
 test('renderSignatureHTML produces valid table markup with default state', () => {
@@ -297,4 +298,18 @@ test('renderSignatureHTML automatically normalizes Google Drive or GitHub share 
   });
   assert.ok(html.includes('https://drive.google.com/thumbnail?id=1A2B3C4D5E6F7G8H9&amp;sz=w512'));
 });
+
+test('generateVCardString builds valid vCard 3.0 payload from signature state', () => {
+  const vcf = generateVCardString(DEFAULT_SIGNATURE_STATE);
+  assert.ok(vcf.startsWith('BEGIN:VCARD\r\nVERSION:3.0\r\n'));
+  assert.ok(vcf.includes('FN:Ezekiel P. Villadolid\r\n'));
+  assert.ok(vcf.includes('N:Villadolid;Ezekiel P.;;;\r\n'));
+  assert.ok(vcf.includes('TITLE:Software Developer + UI/UX | Graphic Design\r\n'));
+  assert.ok(vcf.includes('TEL;TYPE=CELL:09939389798\r\n'));
+  assert.ok(vcf.includes('EMAIL;TYPE=INTERNET:zyk.graphics@gmail.com\r\n'));
+  assert.ok(vcf.includes('ADR;TYPE=WORK:;;M. Logarta Street\\, San Roque\\, Cebu City;;;;\r\n'));
+  assert.ok(vcf.includes('URL:https://github.com/ezykl\r\n'));
+  assert.ok(vcf.endsWith('END:VCARD\r\n'));
+});
+
 
