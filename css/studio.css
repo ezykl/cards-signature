@@ -1514,29 +1514,55 @@ body.view-mode-gallery .home-only {
 .composer-tools-group {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .composer-tool-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid transparent;
+  background: transparent;
   border-radius: 6px;
   color: var(--muted);
-  cursor: default;
-  transition: background-color 150ms ease, color 150ms ease;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  outline: none;
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 .composer-tool-btn:hover {
-  background: rgba(15, 23, 42, 0.06);
+  background: rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.06);
   color: var(--ink);
+}
+.composer-tool-btn:active {
+  transform: scale(0.92);
+  background: rgba(15, 23, 42, 0.12);
+}
+.composer-tool-btn:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
 }
 .dark-mode .composer-tool-btn:hover {
   background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
   color: #f8fafc;
+}
+.dark-mode .composer-tool-btn:active {
+  background: rgba(255, 255, 255, 0.14);
 }
 .composer-tool-btn .material-symbols-rounded {
   font-size: 18px;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
 }
 .composer-client-note {
   display: inline-flex;

@@ -911,6 +911,15 @@ test('store supports shuffleDesign to randomize both layout and theme preset sim
   assert.equal(store.getState().bgColor, THEME_PRESETS[res.theme].bgColor);
 });
 
+test('email composer simulated tool buttons are buttons with type="button" and do not render as raw text spans', () => {
+  const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
+  assert.ok(html.includes('<button type="button" class="composer-tool-btn" title="Send (Simulated)"'));
+  assert.ok(html.includes('<button type="button" class="composer-tool-btn" title="Formatting (Simulated)"'));
+  assert.ok(html.includes('<button type="button" class="composer-tool-btn" title="Attachments (Simulated)"'));
+  assert.ok(html.includes('<button type="button" class="composer-tool-btn" title="Insert link (Simulated)"'));
+  assert.ok(!html.includes('<span class="composer-tool-btn"'));
+});
+
 
 
 

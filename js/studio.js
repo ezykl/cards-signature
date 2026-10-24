@@ -1191,6 +1191,14 @@ export function initStudio() {
     showStudioToast('Loaded template into Signature Studio');
   });
 
+  // Simulated email composer tools (treat as tactile button without action)
+  document.querySelectorAll('.composer-tool-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      btn.blur();
+    });
+  });
+
   // Dynamic items add buttons
   document.getElementById('btn-add-contact-field')?.addEventListener('click', () => studioStore.addContactField({ type: 'website', label: 'Website', value: '', href: 'https://' }));
   document.getElementById('btn-wiz-add-contact')?.addEventListener('click', () => studioStore.addContactField({ type: 'website', label: 'Website', value: '', href: 'https://' }));

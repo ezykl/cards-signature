@@ -131,11 +131,19 @@
             </div>
 
             <div class="composer-toolbar-footer">
-              <div class="composer-tools-group" aria-label="Composer actions">
-                <span class="composer-tool-btn" title="Send (Simulated)" aria-hidden="true"><span class="material-symbols-rounded">send</span></span>
-                <span class="composer-tool-btn" title="Formatting" aria-hidden="true"><span class="material-symbols-rounded">text_format</span></span>
-                <span class="composer-tool-btn" title="Attachments" aria-hidden="true"><span class="material-symbols-rounded">attach_file</span></span>
-                <span class="composer-tool-btn" title="Insert link" aria-hidden="true"><span class="material-symbols-rounded">link</span></span>
+              <div class="composer-tools-group" role="toolbar" aria-label="Simulated composer tools">
+                <button type="button" class="composer-tool-btn" title="Send (Simulated)" aria-label="Send message (Simulated)">
+                  <span class="material-symbols-rounded" aria-hidden="true">send</span>
+                </button>
+                <button type="button" class="composer-tool-btn" title="Formatting (Simulated)" aria-label="Formatting options (Simulated)">
+                  <span class="material-symbols-rounded" aria-hidden="true">text_format</span>
+                </button>
+                <button type="button" class="composer-tool-btn" title="Attachments (Simulated)" aria-label="Attach files (Simulated)">
+                  <span class="material-symbols-rounded" aria-hidden="true">attach_file</span>
+                </button>
+                <button type="button" class="composer-tool-btn" title="Insert link (Simulated)" aria-label="Insert link (Simulated)">
+                  <span class="material-symbols-rounded" aria-hidden="true">link</span>
+                </button>
                 <span class="composer-client-note"><span class="material-symbols-rounded" aria-hidden="true">verified</span> Email-safe 100% Client-Side</span>
               </div>
               <button type="button" id="btn-hero-use-template" class="button button-primary button-small hero-use-template-btn" data-view="studio">
