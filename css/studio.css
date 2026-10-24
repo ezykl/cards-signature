@@ -766,4 +766,122 @@ body,
 .wizard-sub-export-row .button {
   min-width: 110px;
 }
+
+/* Quick-Start Onboarding Modal */
+.onboarding-modal-card {
+  width: min(680px, 100%);
+}
+.onboarding-body {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.onboarding-lead {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.onboarding-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 580px) {
+  .onboarding-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.onboarding-vibe-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.onboarding-vibe-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.onboarding-vibe-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 520px) {
+  .onboarding-vibe-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.onboard-vibe-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: var(--soft);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+.onboard-vibe-card:hover {
+  border-color: var(--blue);
+  transform: translateY(-1px);
+}
+.onboard-vibe-card.active {
+  border-color: var(--blue);
+  background: rgba(37, 99, 235, 0.08);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+.dark-mode .onboard-vibe-card.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+.vibe-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.vibe-swatch span {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+.vibe-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.vibe-info strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.vibe-info small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.onboarding-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 520px) {
+  .onboarding-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}
 

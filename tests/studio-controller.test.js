@@ -12,7 +12,8 @@ import {
   initStudio,
   extractGithubUsername,
   attachPreviewLogoLoader,
-  switchProfileSlot
+  switchProfileSlot,
+  buildStateFromOnboarding
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -558,6 +559,158 @@ test('switchProfileSlot persists per-slot state and initStudio wires inbox simul
     // Switch back to slot-1 and verify Slot One User is restored
     switchProfileSlot('slot-1');
     assert.equal(getEl('ctrl-full-name').value, 'Slot One User');
+  } finally {
+    delete globalThis.document;
+    delete globalThis.localStorage;
+    delete globalThis.window;
+  }
+});
+
+test('buildStateFromOnboarding generates complete signature state from user details and vibe', () => {
+  const generated = buildStateFromOnboarding(DEFAULT_SIGNATURE_STATE, {
+    fullName: 'Alex Rivera',
+    jobTitle: 'Staff Engineer • Vercel',
+    email: 'alex@vercel.com',
+    phone: '+1 555 234 5678',
+    location: 'San Francisco, CA',
+    primaryUrl: 'https://github.com/alexrivera',
+    vibe: 'cosmic-blue'
+  });
+
+  assert.equal(generated.fullName, 'Alex Rivera');
+  assert.equal(generated.jobTitle, 'Staff Engineer • Vercel');
+  assert.equal(generated.themePreset, 'cosmic-blue');
+  assert.equal(generated.layout, 'landscape-v2');
+  assert.equal(generated.wizardStep, 5);
+  // Auto-detects GitHub handle from primaryUrl for avatar
+  assert.equal(generated.logoUrl, 'https://github.com/alexrivera.png?size=256');
+  assert.equal(generated.contactFields.length, 3);
+  assert.equal(generated.contactFields[0].type, 'email');
+  assert.equal(generated.contactFields[0].value, 'alex@vercel.com');
+  assert.equal(generated.contactFields[0].href, 'mailto:alex@vercel.com');
+  assert.equal(generated.contactFields[1].type, 'phone');
+  assert.equal(generated.contactFields[1].href, 'tel:+15552345678');
+  assert.equal(generated.contactFields[2].type, 'location');
+  assert.equal(generated.contactFields[2].value, 'San Francisco, CA');
+  assert.equal(generated.buttons[0].icon, 'github');
+  assert.equal(generated.buttons[0].url, 'https://github.com/alexrivera');
+
+  // When non-GitHub link is provided, builds Initials Monogram Badge
+  const nonGh = buildStateFromOnboarding(DEFAULT_SIGNATURE_STATE, {
+    fullName: 'Maya Lin',
+    jobTitle: 'Creative Director',
+    email: 'maya@studio.design',
+    phone: '',
+    location: '',
+    primaryUrl: 'https://mayalin.design',
+    vibe: 'creative-split'
+  });
+  assert.equal(nonGh.layout, 'split-avatar');
+  assert.equal(nonGh.themePreset, 'rose-gold');
+  assert.ok(nonGh.logoUrl.includes('ui-avatars.com/api/'));
+  assert.equal(nonGh.contactFields.length, 1);
+  assert.equal(nonGh.buttons[0].url, 'https://mayalin.design');
+});
+
+test('clicking Start creating for the first time opens onboarding modal and submitting generates signature', () => {
+  const storage = new Map();
+  const elements = new Map();
+  const getEl = (id) => {
+    if (!elements.has(id)) {
+      const classes = new Set();
+      elements.set(id, {
+        id,
+        innerHTML: '',
+        textContent: '',
+        className: '',
+        value: '',
+        hidden: true,
+        disabled: false,
+        style: {},
+        dataset: {},
+        listeners: {},
+        classList: {
+          toggle(c, force) {
+            if (force === undefined) {
+              classes.has(c) ? classes.delete(c) : classes.add(c);
+            } else {
+              force ? classes.add(c) : classes.delete(c);
+            }
+          },
+          add: (...cls) => cls.forEach(c => classes.add(c)),
+          remove: (...cls) => cls.forEach(c => classes.delete(c)),
+          contains: c => classes.has(c)
+        },
+        setAttribute() {},
+        addEventListener(type, fn) {
+          this.listeners[type] = this.listeners[type] || [];
+          this.listeners[type].push(fn);
+        },
+        contains() { return false; },
+        querySelector() { return null; },
+        querySelectorAll() { return []; },
+        scrollIntoView() {},
+        focus() {}
+      });
+    }
+    return elements.get(id);
+  };
+
+  const startBtn = getEl('btn-hero-start');
+  startBtn.dataset.view = 'studio';
+
+  globalThis.document = {
+    activeElement: null,
+    getElementById: (id) => getEl(id),
+    querySelectorAll: (sel) => (sel === '[data-view]' ? [startBtn] : []),
+    querySelector: () => null,
+    addEventListener() {},
+    body: {
+      classList: {
+        *[Symbol.iterator]() {},
+        remove() {},
+        add() {},
+        toggle() {},
+        contains() { return false; }
+      }
+    }
+  };
+  globalThis.localStorage = {
+    getItem: (k) => (storage.has(k) ? storage.get(k) : null),
+    setItem: (k, v) => storage.set(k, String(v))
+  };
+  globalThis.window = {
+    matchMedia: () => ({ matches: false }),
+    location: { hash: '' },
+    addEventListener() {},
+    scrollTo() {}
+  };
+
+  try {
+    initStudio();
+
+    // First click on Start creating should open #onboarding-modal instead of skipping onboarding
+    assert.equal(getEl('onboarding-modal').hidden, true);
+    startBtn.listeners.click[0]();
+    assert.equal(getEl('onboarding-modal').hidden, false);
+
+    // Fill onboarding inputs and submit #onboarding-form
+    getEl('onboard-full-name').value = 'Elena Rostova';
+    getEl('onboard-job-title').value = 'AI Research Lead';
+    getEl('onboard-email').value = 'elena@deepmind.google';
+    getEl('onboard-phone').value = '+44 20 7946 0921';
+    getEl('onboard-location').value = 'London, UK';
+    getEl('onboard-primary-url').value = 'https://github.com/erostova';
+    getEl('onboard-vibe').value = 'developer-cyan';
+
+    const form = getEl('onboarding-form');
+    assert.ok(Array.isArray(form.listeners.submit) && form.listeners.submit.length > 0);
+    form.listeners.submit[0]({ preventDefault() {} });
+
+    assert.equal(getEl('onboarding-modal').hidden, true);
+    assert.equal(storage.get('signature-studio-onboarded-v1'), 'true');
+    assert.equal(getEl('ctrl-full-name').value, 'Elena Rostova');
+    assert.equal(getEl('studio-view').hidden, false);
   } finally {
     delete globalThis.document;
     delete globalThis.localStorage;

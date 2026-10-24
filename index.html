@@ -59,7 +59,7 @@
         <section id="how-it-works" class="steps-section" aria-labelledby="steps-title"><div class="section-heading"><p class="eyebrow">A clear workflow</p><h2 id="steps-title">From details to inbox in three steps.</h2></div><div class="steps-grid"><article class="step-card"><span class="step-number">01</span><span class="material-symbols-rounded" aria-hidden="true">edit_note</span><h3>Make it yours</h3><p>Add your name, role, contact details, links, and logo.</p></article><article class="step-card"><span class="step-number">02</span><span class="material-symbols-rounded" aria-hidden="true">preview</span><h3>Check every layout</h3><p>Switch between desktop and mobile previews before exporting.</p></article><article class="step-card"><span class="step-number">03</span><span class="material-symbols-rounded" aria-hidden="true">content_copy</span><h3>Copy with confidence</h3><p>Paste the rich signature into your email client, or download its HTML.</p></article></div></section>
       </section>
       <section id="studio-view" class="app-view" aria-labelledby="studio-title" hidden>
-        <div class="studio-topbar"><div><button type="button" class="text-button" data-view="home"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Back to home</button><p class="eyebrow">Signature editor</p><h1 id="studio-title">Build your signature</h1><p class="studio-description">Changes are saved automatically on this device.</p></div><div class="history-actions"><button id="btn-undo" type="button" class="icon-button" aria-label="Undo last change" title="Undo"><span class="material-symbols-rounded" aria-hidden="true">undo</span></button><button id="btn-redo" type="button" class="icon-button" aria-label="Redo last change" title="Redo"><span class="material-symbols-rounded" aria-hidden="true">redo</span></button><button id="btn-reset" type="button" class="button button-quiet">Reset draft</button></div></div>
+        <div class="studio-topbar"><div><button type="button" class="text-button" data-view="home"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Back to home</button><p class="eyebrow">Signature editor</p><h1 id="studio-title">Build your signature</h1><p class="studio-description">Changes are saved automatically on this device.</p></div><div class="history-actions"><button id="btn-open-onboarding" type="button" class="button button-secondary button-small" title="Re-run 30-second quick setup"><span class="material-symbols-rounded" aria-hidden="true">bolt</span> Quick Setup</button><button id="btn-undo" type="button" class="icon-button" aria-label="Undo last change" title="Undo"><span class="material-symbols-rounded" aria-hidden="true">undo</span></button><button id="btn-redo" type="button" class="icon-button" aria-label="Redo last change" title="Redo"><span class="material-symbols-rounded" aria-hidden="true">redo</span></button><button id="btn-reset" type="button" class="button button-quiet">Reset draft</button></div></div>
         <div id="form-error-summary" class="form-alert" role="alert" tabindex="-1" hidden></div>
         <div class="studio-layout"><aside class="studio-sidebar" aria-label="Signature settings"><div class="profile-slots-bar" role="group" aria-label="Saved profile slots"><span class="slots-label"><span class="material-symbols-rounded" aria-hidden="true">bookmarks</span> Profiles:</span><div class="slots-buttons"><button type="button" class="slot-chip active" data-slot="slot-1" aria-pressed="true">Primary</button><button type="button" class="slot-chip" data-slot="slot-2" aria-pressed="false">Work</button><button type="button" class="slot-chip" data-slot="slot-3" aria-pressed="false">Personal</button></div></div><div class="studio-mode-toggle" role="tablist" aria-label="Editor view mode"><button type="button" id="btn-mode-guided" class="mode-tab active" role="tab" aria-selected="true"><span class="material-symbols-rounded" aria-hidden="true">auto_fix_high</span> Step-by-Step Guide</button><button type="button" id="btn-mode-advanced" class="mode-tab" role="tab" aria-selected="false"><span class="material-symbols-rounded" aria-hidden="true">tune</span> All Controls</button></div>
           <div id="guided-mode-pane" class="guided-wizard-pane">
@@ -149,6 +149,76 @@
       </section>
       <section id="gallery-view" class="app-view gallery-view" aria-labelledby="gallery-title" hidden><div class="gallery-heading"><div><button type="button" class="text-button" data-view="home"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Back to home</button><p class="eyebrow">Template gallery</p><h1 id="gallery-title">Start with a refined layout.</h1><p>Choose a template, then make it completely your own in the editor.</p></div><button type="button" class="button button-primary" data-view="studio">Open editor</button></div><div id="template-gallery" class="template-grid"></div></section>
     </main>
+    <div id="onboarding-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" hidden>
+      <div class="modal-card onboarding-modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">30-second quick setup</p>
+            <h2 id="onboarding-title">Enter your details once &mdash; we'll generate the rest</h2>
+          </div>
+          <button type="button" id="btn-close-onboarding" class="icon-button" aria-label="Skip quick setup">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <form id="onboarding-form" class="onboarding-body" novalidate>
+          <p class="onboarding-lead">Fill in what you want included. You can tweak colors, layouts, and links right after.</p>
+          <div class="onboarding-grid">
+            <label class="form-group" for="onboard-full-name">
+              <span>Full name <strong>*</strong></span>
+              <input id="onboard-full-name" class="form-input" type="text" autocomplete="name" placeholder="e.g. Alex Rivera" maxlength="80" required />
+            </label>
+            <label class="form-group" for="onboard-job-title">
+              <span>Role &amp; Company</span>
+              <input id="onboard-job-title" class="form-input" type="text" autocomplete="organization-title" placeholder="e.g. Product Designer &bull; Linear" maxlength="120" />
+            </label>
+            <label class="form-group" for="onboard-email">
+              <span>Email address</span>
+              <input id="onboard-email" class="form-input" type="email" autocomplete="email" placeholder="e.g. alex@domain.com" />
+            </label>
+            <label class="form-group" for="onboard-phone">
+              <span>Phone number <small>(optional)</small></span>
+              <input id="onboard-phone" class="form-input" type="tel" autocomplete="tel" placeholder="e.g. +1 555 234 5678" />
+            </label>
+            <label class="form-group" for="onboard-location">
+              <span>Location <small>(optional)</small></span>
+              <input id="onboard-location" class="form-input" type="text" placeholder="e.g. San Francisco, CA" />
+            </label>
+            <label class="form-group" for="onboard-primary-url">
+              <span>GitHub, LinkedIn, or Website <small>(auto-loads avatar)</small></span>
+              <input id="onboard-primary-url" class="form-input" type="url" placeholder="https://github.com/yourhandle or website" />
+            </label>
+          </div>
+          <div class="onboarding-vibe-section">
+            <span class="onboarding-vibe-label">Pick a starting aesthetic</span>
+            <input id="onboard-vibe" type="hidden" value="developer-cyan" />
+            <div class="onboarding-vibe-grid" role="radiogroup" aria-label="Starting aesthetic">
+              <button type="button" class="onboard-vibe-card active" data-vibe="developer-cyan" role="radio" aria-checked="true">
+                <span class="vibe-swatch" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-color:#38bdf8;"><span style="background:#38bdf8;"></span></span>
+                <span class="vibe-info"><strong>Developer Cyan</strong><small>Dark wide card &bull; Mono</small></span>
+              </button>
+              <button type="button" class="onboard-vibe-card" data-vibe="cosmic-blue" role="radio" aria-checked="false">
+                <span class="vibe-swatch" style="background:linear-gradient(135deg,#090d16 0%,#1e1b4b 100%);border-color:#60a5fa;"><span style="background:#60a5fa;"></span></span>
+                <span class="vibe-info"><strong>Cosmic Blue</strong><small>Deep indigo &bull; Modern Sans</small></span>
+              </button>
+              <button type="button" class="onboard-vibe-card" data-vibe="executive-minimal" role="radio" aria-checked="false">
+                <span class="vibe-swatch" style="background:#ffffff;border-color:#cbd5e1;"><span style="background:#2563eb;"></span></span>
+                <span class="vibe-info"><strong>Executive Minimal</strong><small>Clean light row &bull; Crisp</small></span>
+              </button>
+              <button type="button" class="onboard-vibe-card" data-vibe="creative-split" role="radio" aria-checked="false">
+                <span class="vibe-swatch" style="background:linear-gradient(135deg,#fff1f2 0%,#ffe4e6 100%);border-color:#f43f5e;"><span style="background:#e11d48;"></span></span>
+                <span class="vibe-info"><strong>Creative Split</strong><small>Round avatar &bull; Pill CTAs</small></span>
+              </button>
+            </div>
+          </div>
+          <div class="onboarding-actions">
+            <button type="button" id="btn-skip-onboarding" class="button button-quiet">Skip &mdash; use demo template</button>
+            <button type="submit" id="btn-submit-onboarding" class="button button-primary button-large">
+              <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span> Generate My Signature
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
     <div id="install-guide-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="install-guide-title" hidden>
       <div class="modal-card">
         <div class="modal-header">

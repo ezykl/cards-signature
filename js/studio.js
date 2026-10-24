@@ -3,6 +3,7 @@ import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS, getContras
 const DRAFT_KEY = 'signature-studio-draft-v2';
 const SLOTS_KEY = 'signature-studio-slots-v1';
 const ACTIVE_SLOT_KEY = 'signature-studio-active-slot-v1';
+const ONBOARDED_KEY = 'signature-studio-onboarded-v1';
 const SLOT_NAMES = { 'slot-1': 'Primary', 'slot-2': 'Work', 'slot-3': 'Personal' };
 const clone = value => JSON.parse(JSON.stringify(value));
 const escapeHTML = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' })[char]);
@@ -83,17 +84,86 @@ export function createStudioStore(initialState = DEFAULT_SIGNATURE_STATE) {
 
 function cryptoId() { return globalThis.crypto?.randomUUID?.().slice(0, 8) || Math.random().toString(36).slice(2, 10); }
 
-export function loadPresetByCardId(cardId) {
-  const base = clone(DEFAULT_SIGNATURE_STATE);
+export function loadPresetByCardId(cardId, baseIdentity = DEFAULT_SIGNATURE_STATE) {
+  const base = clone(baseIdentity || DEFAULT_SIGNATURE_STATE);
   const variants = {
     1: { layout: 'compact-card', maxWidth: 420, borderRadius: 16, themePreset: 'minimal-light' },
-    2: { layout: 'minimal-row', maxWidth: 680, borderRadius: 10, themePreset: 'slate-tech', buttons: base.buttons.slice(0, 2) },
+    2: { layout: 'minimal-row', maxWidth: 680, borderRadius: 10, themePreset: 'slate-tech', buttons: (base.buttons || []).slice(0, 2) },
     3: { layout: 'landscape-v2', maxWidth: 680, borderRadius: 16, themePreset: 'developer-cyan', fontFamily: 'mono', buttonShape: 'pill' },
     4: { layout: 'accent-bar', maxWidth: 640, borderRadius: 8, themePreset: 'monochrome-pro', fontFamily: 'serif', buttonShape: 'sharp' },
     5: { layout: 'split-avatar', maxWidth: 660, borderRadius: 18, themePreset: 'rose-gold', fontFamily: 'grotesk', buttonShape: 'pill', titleStyle: 'uppercase' }
   };
   const variant = variants[Number(cardId)] || variants[3];
   return { ...base, ...THEME_PRESETS[variant.themePreset], ...variant };
+}
+
+export function buildStateFromOnboarding(baseState = DEFAULT_SIGNATURE_STATE, payload = {}) {
+  const base = clone(baseState || DEFAULT_SIGNATURE_STATE);
+  const fullName = String(payload.fullName || '').trim() || base.fullName;
+  const jobTitle = String(payload.jobTitle || '').trim() || base.jobTitle;
+  const email = String(payload.email || '').trim();
+  const phone = String(payload.phone || '').trim();
+  const location = String(payload.location || '').trim();
+  let primaryUrl = String(payload.primaryUrl || '').trim();
+  if (primaryUrl && !/^(https?:|mailto:|tel:)/i.test(primaryUrl)) {
+    primaryUrl = `https://${primaryUrl}`;
+  }
+
+  const vibeMap = {
+    'developer-cyan': { layout: 'landscape-v2', themePreset: 'developer-cyan', fontFamily: 'mono', buttonShape: 'pill', titleStyle: 'regular' },
+    'cosmic-blue': { layout: 'landscape-v2', themePreset: 'cosmic-blue', fontFamily: 'sans', buttonShape: 'rounded', titleStyle: 'regular' },
+    'executive-minimal': { layout: 'minimal-row', themePreset: 'minimal-light', fontFamily: 'sans', buttonShape: 'rounded', titleStyle: 'regular' },
+    'creative-split': { layout: 'split-avatar', themePreset: 'rose-gold', fontFamily: 'grotesk', buttonShape: 'pill', titleStyle: 'uppercase' }
+  };
+  const vibeConfig = vibeMap[payload.vibe] || vibeMap['developer-cyan'];
+  const preset = THEME_PRESETS[vibeConfig.themePreset] || THEME_PRESETS['developer-cyan'];
+
+  const contactFields = [];
+  if (email) contactFields.push({ id: 'c1', type: 'email', label: 'Email', value: email, href: `mailto:${email}` });
+  if (phone) contactFields.push({ id: 'c2', type: 'phone', label: 'Phone', value: phone, href: `tel:${phone.replace(/[^\d+]/g, '')}` });
+  if (location) contactFields.push({ id: 'c3', type: 'location', label: 'Location', value: location, href: '' });
+
+  const buttons = clone(base.buttons || []);
+  if (primaryUrl) {
+    const lowerUrl = primaryUrl.toLowerCase();
+    const isGh = lowerUrl.includes('github.com');
+    const isLi = lowerUrl.includes('linkedin.com');
+    const btnIcon = isGh ? 'github' : isLi ? 'linkedin' : 'globe';
+    const btnLabel = isGh ? 'GitHub' : isLi ? 'LinkedIn' : 'Website';
+    const primaryBtn = { id: 'b1', icon: btnIcon, label: btnLabel, url: primaryUrl, style: 'accent' };
+    if (buttons.length > 0) {
+      buttons[0] = primaryBtn;
+    } else {
+      buttons.push(primaryBtn);
+    }
+  }
+  if (email) {
+    const emailBtnIdx = buttons.findIndex(b => b.icon === 'email' || String(b.url || '').startsWith('mailto:'));
+    if (emailBtnIdx !== -1) {
+      buttons[emailBtnIdx] = { ...buttons[emailBtnIdx], url: `mailto:${email}` };
+    }
+  }
+
+  const nextState = {
+    ...base,
+    ...preset,
+    ...vibeConfig,
+    fullName,
+    jobTitle,
+    contactFields: contactFields.length ? contactFields : base.contactFields,
+    buttons,
+    editorMode: 'guided',
+    wizardStep: 5
+  };
+
+  const ghHandle = primaryUrl ? extractGithubUsername({ buttons: [{ url: primaryUrl }], contactFields: [] }) : '';
+  if (ghHandle) {
+    nextState.logoUrl = `https://github.com/${ghHandle}.png?size=256`;
+  } else {
+    nextState.logoUrl = buildInitialsAvatarUrl(nextState);
+  }
+
+  return nextState;
 }
 
 let studioStore;
@@ -557,6 +627,7 @@ function validate(state, focus = false) {
 function renderGallery() {
   const target = document.getElementById('template-gallery');
   if (!target) return;
+  const baseIdentity = studioStore ? studioStore.getState() : DEFAULT_SIGNATURE_STATE;
   const cards = [
     { id: 3, name: 'Developer landscape', description: 'A confident, wide signature for portfolio and technical roles.', layout: 'Landscape' },
     { id: 1, name: 'Minimal card', description: 'A centered profile presentation with a compact visual footprint.', layout: 'Compact card' },
@@ -564,10 +635,10 @@ function renderGallery() {
     { id: 4, name: 'Boardroom accent', description: 'Distinguished left-accent bar with crisp serif typography and sharp CTA buttons.', layout: 'Accent bar' },
     { id: 5, name: 'Creative split', description: 'Modern two-column layout highlighting an avatar portrait with pill-shaped links.', layout: 'Split avatar' }
   ];
-  target.innerHTML = cards.map(card => `<article class="template-card"><div class="template-card-preview">${renderSignatureHTML(loadPresetByCardId(card.id))}</div><div><h2>${card.name}</h2><p>${card.description}</p></div><div class="template-card-footer"><span>${card.layout}</span><button type="button" class="button button-secondary" data-template="${card.id}">Use template</button></div></article>`).join('');
+  target.innerHTML = cards.map(card => `<article class="template-card"><div class="template-card-preview">${renderSignatureHTML(loadPresetByCardId(card.id, baseIdentity))}</div><div><h2>${card.name}</h2><p>${card.description}</p></div><div class="template-card-footer"><span>${card.layout}</span><button type="button" class="button button-secondary" data-template="${card.id}">Use template</button></div></article>`).join('');
 }
 
-function setView(view) { ['home','studio','gallery'].forEach(name => { const section = document.getElementById(`${name}-view`); if (section) section.hidden = name !== view; }); [...document.body.classList].filter(name => name.startsWith('view-mode-')).forEach(name => document.body.classList.remove(name)); document.body.classList.add(`view-mode-${view}`); if (view === 'home') document.getElementById('home').scrollIntoView({ behavior:'smooth' }); else window.scrollTo({ top:0, behavior:'smooth' }); }
+function setView(view) { if (view === 'gallery') renderGallery(); ['home','studio','gallery'].forEach(name => { const section = document.getElementById(`${name}-view`); if (section) section.hidden = name !== view; }); [...document.body.classList].filter(name => name.startsWith('view-mode-')).forEach(name => document.body.classList.remove(name)); document.body.classList.add(`view-mode-${view}`); if (view === 'home') document.getElementById('home').scrollIntoView({ behavior:'smooth' }); else window.scrollTo({ top:0, behavior:'smooth' }); }
 
 async function copyRichSignature() { const preview = document.getElementById('studio-preview-card'); if (!preview || !validate(studioStore.getState(), true)) return; const html = renderSignatureHTML(studioStore.getState()).trim(); try { if (navigator.clipboard && window.ClipboardItem) { await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([html],{type:'text/html'}), 'text/plain':new Blob(['Email signature'],{type:'text/plain'}) })]); showStudioToast('Signature copied. Paste it into your email settings.'); return; } throw new Error('Rich clipboard unavailable'); } catch { const range = document.createRange(); const holder = document.createElement('div'); holder.style.cssText = 'position:fixed;left:-9999px;top:0;'; holder.innerHTML = html; document.body.appendChild(holder); range.selectNodeContents(holder); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); document.execCommand('copy'); selection.removeAllRanges(); holder.remove(); showStudioToast('Signature copied. Paste it into your email settings.'); } }
 function copyRawHTML() { const html = renderSignatureHTML(studioStore.getState()).trim(); navigator.clipboard.writeText(html).then(() => showStudioToast('HTML copied to clipboard.')).catch(() => showStudioToast('Copy failed. Please try again.')); }
@@ -762,7 +833,86 @@ export function initStudio() {
   document.querySelectorAll('[data-slot]').forEach(btn => {
     btn.addEventListener('click', () => switchProfileSlot(btn.dataset.slot));
   });
-  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
+
+  // Quick-Start Onboarding Modal
+  const onboardingModal = document.getElementById('onboarding-modal');
+  const openOnboardingModal = () => {
+    if (!onboardingModal) {
+      setView('studio');
+      return;
+    }
+    const alreadyOnboarded = localStorage.getItem(ONBOARDED_KEY) === 'true';
+    const current = studioStore.getState();
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    if (alreadyOnboarded) {
+      const emailField = (current.contactFields || []).find(f => f.type === 'email');
+      const phoneField = (current.contactFields || []).find(f => f.type === 'phone');
+      const locField = (current.contactFields || []).find(f => f.type === 'location');
+      const firstBtn = (current.buttons || [])[0];
+      setVal('onboard-full-name', current.fullName || '');
+      setVal('onboard-job-title', current.jobTitle || '');
+      setVal('onboard-email', emailField?.value || '');
+      setVal('onboard-phone', phoneField?.value || '');
+      setVal('onboard-location', locField?.value || '');
+      setVal('onboard-primary-url', firstBtn?.url || '');
+    }
+    onboardingModal.hidden = false;
+    document.getElementById('onboard-full-name')?.focus?.();
+  };
+  const skipOnboardingModal = () => {
+    try { localStorage.setItem(ONBOARDED_KEY, 'true'); } catch {}
+    if (onboardingModal) onboardingModal.hidden = true;
+    setView('studio');
+  };
+  document.getElementById('btn-open-onboarding')?.addEventListener('click', openOnboardingModal);
+  document.getElementById('btn-close-onboarding')?.addEventListener('click', skipOnboardingModal);
+  document.getElementById('btn-skip-onboarding')?.addEventListener('click', skipOnboardingModal);
+  onboardingModal?.addEventListener('click', event => {
+    if (event.target === onboardingModal) skipOnboardingModal();
+    const vibeBtn = event.target?.closest?.('.onboard-vibe-card');
+    if (vibeBtn && vibeBtn.dataset.vibe) {
+      const vibeInput = document.getElementById('onboard-vibe');
+      if (vibeInput) vibeInput.value = vibeBtn.dataset.vibe;
+      onboardingModal.querySelectorAll?.('.onboard-vibe-card')?.forEach(card => {
+        const active = card.dataset.vibe === vibeBtn.dataset.vibe;
+        card.classList.toggle('active', active);
+        card.setAttribute('aria-checked', String(active));
+      });
+    }
+  });
+  document.getElementById('onboarding-form')?.addEventListener('submit', event => {
+    event?.preventDefault?.();
+    const fullName = document.getElementById('onboard-full-name')?.value || '';
+    if (!fullName.trim()) {
+      document.getElementById('onboard-full-name')?.focus?.();
+      showStudioToast('Please enter your full name to generate your signature.');
+      return;
+    }
+    const nextState = buildStateFromOnboarding(studioStore.getState(), {
+      fullName,
+      jobTitle: document.getElementById('onboard-job-title')?.value || '',
+      email: document.getElementById('onboard-email')?.value || '',
+      phone: document.getElementById('onboard-phone')?.value || '',
+      location: document.getElementById('onboard-location')?.value || '',
+      primaryUrl: document.getElementById('onboard-primary-url')?.value || '',
+      vibe: document.getElementById('onboard-vibe')?.value || 'developer-cyan'
+    });
+    studioStore.setState(nextState);
+    try { localStorage.setItem(ONBOARDED_KEY, 'true'); } catch {}
+    if (onboardingModal) onboardingModal.hidden = true;
+    renderGallery();
+    setView('studio');
+    showStudioToast('Signature generated! Ready to copy or customize.');
+  });
+
+  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
+    const targetView = button.dataset.view;
+    if (targetView === 'studio' && localStorage.getItem(ONBOARDED_KEY) !== 'true') {
+      openOnboardingModal();
+      return;
+    }
+    setView(targetView);
+  }));
   document.querySelectorAll('a[data-nav="how-it-works"]').forEach(link => {
     link.addEventListener('click', event => {
       event.preventDefault();
@@ -770,7 +920,7 @@ export function initStudio() {
       document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
     });
   });
-  document.getElementById('template-gallery').addEventListener('click', event => { const button = event.target.closest('[data-template]'); if (!button) return; studioStore.setState(loadPresetByCardId(button.dataset.template)); setView('studio'); showStudioToast('Template loaded into the editor.'); });
+  document.getElementById('template-gallery').addEventListener('click', event => { const button = event.target.closest('[data-template]'); if (!button) return; studioStore.setState(loadPresetByCardId(button.dataset.template, studioStore.getState())); setView('studio'); showStudioToast('Template loaded into the editor.'); });
   const bindings = {
     'ctrl-layout': 'layout',
     'ctrl-width-mode': 'widthMode',
@@ -1109,8 +1259,9 @@ export function initStudio() {
     }
   });
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && installModal && !installModal.hidden) {
-      closeInstallModal();
+    if (event.key === 'Escape') {
+      if (installModal && !installModal.hidden) closeInstallModal();
+      if (onboardingModal && !onboardingModal.hidden) skipOnboardingModal();
     }
   });
 
