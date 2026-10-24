@@ -684,9 +684,9 @@ html {
    ============================================================ */
 
 /* 2. Live preview: center the signature inside its container */
-.preview-card-canvas { align-items: center; justify-content: center; }
-#studio-preview-card { display: flex; justify-content: center; width: 100%; min-width: 0; }
-#studio-preview-card > table { margin: 0 auto !important; }
+.preview-card-canvas { align-items: center; justify-content: center; overflow-x: auto; max-width: 100%; }
+#studio-preview-card { display: flex; justify-content: center; width: 100%; min-width: 0; max-width: 100%; }
+#studio-preview-card > table { margin: 0 auto !important; max-width: 100%; }
 
 /* 3. Selects: custom chevron aligned to the same 12px inset as the text */
 .form-input,

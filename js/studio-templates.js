@@ -669,11 +669,11 @@ function renderContactRows(contactFields, accentColor) {
 
     const href = safeUrl(field.href);
     const textContent = href ? `
-      <a href="${href}" style="font-size: 11.5px; color: #e2e8f0; text-decoration: none; font-weight: 500; word-break: break-all;">
+      <a href="${href}" style="font-size: 11.5px; color: #e2e8f0; text-decoration: none; font-weight: 500; word-break: break-all; overflow-wrap: anywhere;">
         ${escapeHTML(field.value)}
       </a>
     ` : `
-      <span style="font-size: 11.5px; color: #cbd5e1; font-weight: 400; line-height: 1.3;">
+      <span style="font-size: 11.5px; color: #cbd5e1; font-weight: 400; line-height: 1.3; word-break: break-word; overflow-wrap: anywhere;">
         ${escapeHTML(field.value)}
       </span>
     `;
