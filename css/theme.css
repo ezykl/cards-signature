@@ -6,6 +6,25 @@
   --color-bg: hsl(220, 30%, 12%);
   --color-bg-glass: rgba(0, 0, 0, 0.45);
   --glass-blur: 12px;
+  /* Text on an accent fill: deep ink, so any accent preset clears 4.5:1 */
+  --accent-ink: hsl(220, 45%, 8%);
+  /* Tinted paper replaces pure white on dark surfaces and form options */
+  --paper: hsl(210, 40%, 98%);
+  --paper-ink: hsl(222, 47%, 11%);
+  /* Dark palette tokens consumed by .dark-mode */
+  --dark-ink: hsl(210, 40%, 96%);
+  --dark-muted: hsl(214, 32%, 85%);
+  --dark-faint: hsl(215, 20%, 65%);
+  --dark-surface: rgba(255, 255, 255, 0.06);
+  --dark-surface-raised: rgba(255, 255, 255, 0.08);
+  --dark-line: rgba(255, 255, 255, 0.18);
+  --dark-input-bg: rgba(0, 0, 0, 0.35);
+  --dark-input-line: rgba(255, 255, 255, 0.3);
+  --dark-danger: hsl(0, 91%, 71%);
+  --dark-danger-soft: hsl(0, 94%, 82%);
+  --dark-danger-ink: hsl(0, 96%, 89%);
+  --dark-danger-bg: rgba(127, 29, 29, 0.35);
+  --dark-danger-line: rgba(248, 113, 113, 0.5);
 }
 /* Preset overrides */
 :root[data-theme="midnight"] {
@@ -43,13 +62,13 @@ body[data-bg="ambient"] {
 .dark-mode {
   --navy: var(--color-accent);
   --blue: var(--color-accent);
-  --ink: #f1f5f9;
-  --muted: #cbd5e1;
-  --surface: rgba(255, 255, 255, 0.06);
+  --ink: var(--dark-ink);
+  --muted: var(--dark-muted);
+  --surface: var(--dark-surface);
   --canvas: var(--color-bg);
-  --line: rgba(255, 255, 255, 0.18);
-  --soft: rgba(255, 255, 255, 0.08);
-  --danger: #f87171;
+  --line: var(--dark-line);
+  --soft: var(--dark-surface-raised);
+  --danger: var(--dark-danger);
 }
 /* Components with hardcoded light backgrounds / dark text */
 .dark-mode .form-group {
@@ -73,11 +92,12 @@ body[data-bg="ambient"] {
 .dark-mode .preview-top-bar,
 .dark-mode .export-panel {
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--dark-surface-raised);
   border-color: var(--line);
 }
+/* Accent fills carry deep ink, not white: 5:1+ on every accent preset */
 .dark-mode .button-primary {
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--color-accent);
   border-color: var(--color-accent);
 }
@@ -87,7 +107,7 @@ body[data-bg="ambient"] {
 }
 .dark-mode .theme-chip:hover,
 .dark-mode .theme-chip.active {
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--color-accent);
   border-color: var(--color-accent);
 }
@@ -95,15 +115,15 @@ body[data-bg="ambient"] {
 .dark-mode .form-select,
 .dark-mode .color-input {
   color: var(--ink);
-  background-color: rgba(0, 0, 0, 0.35);
-  border-color: rgba(255, 255, 255, 0.3);
+  background-color: var(--dark-input-bg);
+  border-color: var(--dark-input-line);
 }
 .dark-mode .viewport-btn.active {
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--color-accent);
 }
 .dark-mode .btn-remove-item {
-  color: #fca5a5;
+  color: var(--dark-danger-soft);
 }
 .dark-mode .editor-progress span:last-child {
   color: var(--color-accent);
@@ -214,7 +234,7 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
   color: var(--muted);
 }
 .dark-mode .button-quiet:hover {
-  color: #fff;
+  color: var(--dark-ink);
 }
 .dark-mode .site-nav a,
 .dark-mode .nav-link,
@@ -224,7 +244,7 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
 .dark-mode .site-nav a:hover,
 .dark-mode .nav-link:hover,
 .dark-mode .text-button:hover {
-  color: #fff;
+  color: var(--dark-ink);
 }
 .dark-mode .brand,
 .dark-mode h1,
@@ -234,22 +254,22 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
 }
 .dark-mode .step-card,
 .dark-mode .template-card {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--dark-surface);
 }
 .dark-mode .editor-progress {
   color: var(--ink);
 }
 .dark-mode .form-input::placeholder {
-  color: #94a3b8;
+  color: var(--dark-faint);
 }
 .dark-mode .form-select option {
-  color: #0f172a;
-  background: #fff;
+  color: var(--paper-ink);
+  background: var(--paper);
 }
 .dark-mode .form-alert {
-  color: #fecaca;
-  background: rgba(127, 29, 29, 0.35);
-  border-color: rgba(248, 113, 113, 0.5);
+  color: var(--dark-danger-ink);
+  background: var(--dark-danger-bg);
+  border-color: var(--dark-danger-line);
 }
 .dark-mode .template-card-footer span {
   color: var(--muted);
@@ -775,7 +795,7 @@ button[disabled] {
 .dark-mode .theme-chip.active {
   background: rgba(56, 189, 248, 0.2);
   border-color: #38bdf8;
-  color: #ffffff;
+  color: var(--dark-ink);
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
 }
 
