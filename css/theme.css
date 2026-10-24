@@ -13,15 +13,27 @@
   /* Tinted paper replaces pure white on dark surfaces and form options */
   --paper: hsl(210, 40%, 98%);
   --paper-ink: hsl(222, 47%, 11%);
+  /* Industrial Obsidian Tokens */
+  --canvas-obsidian: #0b0d13;
+  --surface-workbench: #10131b;
+  --surface-panel: #151923;
+  --surface-active: #1c2130;
+  --border-hairline: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(255, 255, 255, 0.14);
+  --border-signal: #00e5ff;
+  --text-title: #f8fafc;
+  --text-body: #94a3b8;
+  --text-mono: #38bdf8;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, monospace;
   /* Dark palette tokens consumed by .dark-mode */
   --dark-ink: hsl(210, 40%, 96%);
   --dark-muted: hsl(214, 32%, 85%);
   --dark-faint: hsl(215, 20%, 65%);
-  --dark-surface: rgba(255, 255, 255, 0.06);
-  --dark-surface-raised: rgba(255, 255, 255, 0.08);
-  --dark-line: rgba(255, 255, 255, 0.18);
-  --dark-input-bg: rgba(0, 0, 0, 0.35);
-  --dark-input-line: rgba(255, 255, 255, 0.3);
+  --dark-surface: var(--surface-panel);
+  --dark-surface-raised: var(--surface-active);
+  --dark-line: var(--border-hairline);
+  --dark-input-bg: rgba(0, 0, 0, 0.45);
+  --dark-input-line: var(--border-hairline);
   --dark-danger: hsl(0, 91%, 71%);
   --dark-danger-soft: hsl(0, 94%, 82%);
   --dark-danger-ink: hsl(0, 96%, 89%);
@@ -147,31 +159,26 @@ body[data-bg="ambient"] {
     background: hsl(260, 30%, 12%);
   }
 }
-/* Landing gradient wash */
+/* Industrial Obsidian Engineering Grid Background */
 .landing-bg {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(60% 50% at 80% 0%, rgba(99, 102, 241, 0.1), transparent 70%),
-    radial-gradient(50% 40% at 0% 10%, rgba(14, 165, 233, 0.08), transparent 70%),
-    var(--canvas);
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(rgba(100, 116, 139, 0.18) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(241, 245, 249, 0.9) 100%);
+  background-size: 20px 20px, 100% 100%;
   opacity: 1;
-  transition: opacity 0.3s ease;
-}
-body:not(.view-mode-home) .landing-bg {
-  opacity: 0.6;
 }
 .dark-mode .landing-bg {
-  background:
-    radial-gradient(60% 50% at 80% 0%, rgba(99, 102, 241, 0.2), transparent 70%),
-    radial-gradient(50% 40% at 0% 10%, rgba(14, 165, 233, 0.12), transparent 70%),
-    var(--canvas);
+  background-color: var(--canvas-obsidian, #0b0d13);
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(11, 13, 19, 0) 0%, rgba(11, 13, 19, 0.9) 100%);
+  background-size: 20px 20px, 100% 100%;
   opacity: 1;
-}
-body.dark-mode:not(.view-mode-home) .landing-bg {
-  opacity: 0.7;
 }
 .hero-glass {
   position: relative;
@@ -377,7 +384,7 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
   box-shadow: var(--elev-1);
 }
 
-/* Buttons: states + physical press feedback */
+/* Buttons: states + physical press feedback & hardware keycap bevel */
 .button,
 .icon-button,
 .theme-chip,
@@ -389,13 +396,20 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
     border-color var(--dur-base) ease,
     color var(--dur-fast) ease;
   touch-action: manipulation;
+  border-radius: 7px;
+}
+.button,
+.icon-button,
+.theme-chip {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .button:active,
 .icon-button:active,
 .theme-chip:active,
 .viewport-btn:active {
   transform: scale(0.97);
-  transition: transform 60ms ease-out;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(0, 0, 0, 0.2);
+  transition: transform 50ms ease-out, box-shadow 50ms ease-out;
 }
 .button:disabled,
 .icon-button:disabled,
@@ -404,6 +418,21 @@ button[disabled] {
   cursor: not-allowed;
   transform: none !important;
   box-shadow: none !important;
+}
+.status-pill-mono {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
 }
 .button-primary {
   box-shadow: 0 6px 16px -4px rgba(30, 58, 95, 0.45);
