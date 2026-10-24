@@ -285,16 +285,13 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
 .dark-mode .export-panel p {
   color: var(--muted);
 }
-/* Micro‑animations */
-.button:hover,
-.icon-button:hover {
-  transform: translateY(-1px) scale(1.02);
-  transition: transform 120ms ease;
-}
-/* Focus ring: clean, calm, high-contrast outline */
-:focus-visible {
-  outline: 3px solid var(--blue);
-  outline-offset: 2px;
+/* Micro‑animations: gated to pointer: fine so touch devices do not stick */
+@media (hover: hover) and (pointer: fine) {
+  .button:hover,
+  .icon-button:hover {
+    transform: translateY(-1px);
+    transition: transform 120ms ease;
+  }
 }
 
 /* Preview: let the signature table resolve width:100% against the canvas, not its own content */
@@ -329,13 +326,14 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
   --elev-3: 0 24px 56px rgba(0, 0, 0, 0.55);
 }
 
-/* Focus: one calm, static, high-contrast ring (replaces pulsing animation) */
+/* Focus: one calm, static, high-contrast ring (instantaneous, never transitions) */
 :focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
   animation: none;
   box-shadow: var(--ring);
   border-radius: 8px;
+  transition: outline-offset 0s, box-shadow 0s !important;
 }
 .form-input:focus-visible,
 .form-select:focus-visible,
@@ -343,6 +341,7 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
   outline: 0;
   border-color: var(--blue);
   box-shadow: var(--ring);
+  transition: border-color var(--dur-base) ease, background-color var(--dur-base) ease !important;
 }
 
 /* Sticky glass header */
@@ -368,7 +367,7 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
   box-shadow: var(--elev-1);
 }
 
-/* Buttons: states + press feedback */
+/* Buttons: states + physical press feedback */
 .button,
 .icon-button,
 .theme-chip,
@@ -378,14 +377,15 @@ body.dark-mode:not(.view-mode-home) .landing-bg {
     transform var(--dur-fast) var(--ease-out),
     background-color var(--dur-base) ease,
     border-color var(--dur-base) ease,
-    box-shadow var(--dur-base) ease,
     color var(--dur-fast) ease;
   touch-action: manipulation;
 }
 .button:active,
 .icon-button:active,
-.theme-chip:active {
-  transform: translateY(0) scale(0.98);
+.theme-chip:active,
+.viewport-btn:active {
+  transform: scale(0.97);
+  transition: transform 60ms ease-out;
 }
 .button:disabled,
 .icon-button:disabled,
@@ -471,11 +471,13 @@ button[disabled] {
 .dark-mode .template-card {
   background: rgba(255, 255, 255, 0.06);
 }
-.step-card:hover,
-.template-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--elev-2);
-  border-color: var(--blue);
+@media (hover: hover) and (pointer: fine) {
+  .step-card:hover,
+  .template-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--elev-2);
+    border-color: var(--blue);
+  }
 }
 .control-section {
   background: rgba(255, 255, 255, 0.86);
@@ -562,10 +564,12 @@ button[disabled] {
   position: absolute;
   left: 0;
   bottom: 0;
+  width: 100%;
   height: 3px;
-  width: var(--progress, 0%);
   background: var(--blue);
-  transition: width var(--dur-base) var(--ease-out);
+  transform-origin: left center;
+  transform: scaleX(var(--progress-ratio, 0));
+  transition: transform var(--dur-base) var(--ease-out);
 }
 
 /* Toast + scrollbars */
@@ -714,7 +718,7 @@ button[disabled] {
   color: var(--navy);
   border: 1px solid var(--line);
   flex-shrink: 0;
-  transition: all var(--dur-fast) ease;
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, color var(--dur-fast) ease;
 }
 .dynamic-item-icon-badge .material-symbols-rounded {
   font-size: 20px;
@@ -808,7 +812,7 @@ button[disabled] {
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  transition: all var(--dur-fast) ease;
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, color var(--dur-fast) ease;
 }
 .contrast-badge .material-symbols-rounded { font-size: 16px; }
 .contrast-badge.contrast-good {

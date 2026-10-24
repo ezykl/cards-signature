@@ -526,8 +526,12 @@ function syncControls(state) {
   if (redoBtn) redoBtn.disabled = !studioStore.canRedo();
   const complete = [state.fullName,state.jobTitle,state.contactFields?.some(field => field.value)].filter(Boolean).length;
   const statusEl = document.getElementById('completion-status');
-  if (statusEl) statusEl.textContent = `Profile ${Math.round(complete / 3 * 100)}% complete`;
-  document.querySelector('.editor-progress')?.style.setProperty('--progress', `${Math.round(complete / 3 * 100)}%`);
+  const progressRatio = complete / 3;
+  const progressEl = document.querySelector('.editor-progress');
+  if (progressEl) {
+    progressEl.style.setProperty('--progress', `${Math.round(progressRatio * 100)}%`);
+    progressEl.style.setProperty('--progress-ratio', `${progressRatio}`);
+  }
 
   renderContactFields(state);
   renderActionButtons(state);
