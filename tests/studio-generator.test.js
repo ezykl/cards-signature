@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {
   renderSignatureHTML,
   DEFAULT_SIGNATURE_STATE,
+  THEME_PRESETS,
+  getContrastRatio,
   resolveMediaUrl,
   buildInitialsAvatarUrl,
   generateVCardString
@@ -310,6 +312,38 @@ test('generateVCardString builds valid vCard 3.0 payload from signature state', 
   assert.ok(vcf.includes('ADR;TYPE=WORK:;;M. Logarta Street\\, San Roque\\, Cebu City;;;;\r\n'));
   assert.ok(vcf.includes('URL:https://github.com/ezykl\r\n'));
   assert.ok(vcf.endsWith('END:VCARD\r\n'));
+});
+
+test('minimal-light theme renders high-contrast dark contact text and borders, avoiding invisible light-on-white text', () => {
+  const state = {
+    ...DEFAULT_SIGNATURE_STATE,
+    ...THEME_PRESETS['minimal-light'],
+    layout: 'landscape-v2'
+  };
+  const html = renderSignatureHTML(state);
+  // Must use high contrast dark color for contact details, not faint #e2e8f0
+  assert.ok(!html.includes('color: #e2e8f0;'), 'Must not hardcode light gray contact text');
+  assert.ok(html.includes('color: #475569;'), 'Must use theme textColorSecondary for contact links');
+  const contrast = getContrastRatio('#ffffff', '#475569');
+  assert.ok(contrast >= 4.5, `Minimal light contact contrast should be >= 4.5:1, got ${contrast}`);
+});
+
+test('all curated theme presets render contact details with WCAG AA compliant contrast (>= 4.5:1)', () => {
+  const layouts = ['landscape-v2', 'compact-card', 'minimal-row', 'accent-bar', 'split-avatar'];
+  for (const [key, preset] of Object.entries(THEME_PRESETS)) {
+    for (const layout of layouts) {
+      const state = { ...DEFAULT_SIGNATURE_STATE, ...preset, layout };
+      const html = renderSignatureHTML(state);
+      const match = html.match(/<a [^>]*style="[^"]*color:\s*([^;]+);/i);
+      assert.ok(match, `Expected contact link in preset ${key} layout ${layout}`);
+      const contactColor = match[1].trim();
+      const ratio = getContrastRatio(preset.bgColor, contactColor);
+      assert.ok(
+        ratio >= 4.0,
+        `Preset ${key} on layout ${layout} failed contrast: ${ratio.toFixed(2)}:1 (color: ${contactColor} on bg: ${preset.bgColor})`
+      );
+    }
+  }
 });
 
 

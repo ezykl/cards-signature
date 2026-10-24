@@ -39,7 +39,7 @@ export const THEME_PRESETS = {
     accentColor: '#38bdf8',
     textColorPrimary: '#f8fafc',
     textColorSecondary: '#94a3b8',
-    textColorMuted: '#64748b',
+    textColorMuted: '#94a3b8',
     buttonBg: '#1e293b',
     buttonBorder: 'rgba(255, 255, 255, 0.12)'
   },
@@ -75,7 +75,7 @@ export const THEME_PRESETS = {
     bgType: 'solid',
     bgGradientEnd: '#f1f5f9',
     bgGradientAngle: 135,
-    accentColor: '#0284c7',
+    accentColor: '#0369a1',
     textColorPrimary: '#0f172a',
     textColorSecondary: '#475569',
     textColorMuted: '#64748b',
@@ -620,10 +620,16 @@ function hexToRgb(hex) {
 }
 
 /**
- * Solid (non-alpha) border color: base blended 14% toward white. rgba() borders are dropped by several email clients.
+ * Solid (non-alpha) border color: base blended 14% toward white for dark themes, or 12% toward black for light themes.
  */
 function getBorderColor(state) {
-  const rgb = hexToRgb(safeHex(state.bgColor, '#000440')) || { r: 0, g: 4, b: 64 };
+  const bg = safeHex(state.bgColor, '#000440');
+  const rgb = hexToRgb(bg) || { r: 0, g: 4, b: 64 };
+  const lum = getLuminance(bg);
+  if (lum > 0.65) {
+    const mix = c => Math.round(c * 0.88).toString(16).padStart(2, '0');
+    return `#${mix(rgb.r)}${mix(rgb.g)}${mix(rgb.b)}`;
+  }
   const mix = c => Math.round(c + (255 - c) * 0.14).toString(16).padStart(2, '0');
   return `#${mix(rgb.r)}${mix(rgb.g)}${mix(rgb.b)}`;
 }
@@ -657,11 +663,15 @@ export function getBackgroundStyle(state) {
 }
 
 /**
- * Builds contact rows markup with accent-colored hosted PNG icons.
+ * Builds contact rows markup with accent-colored hosted PNG icons and theme-adaptive accessible text colors.
  */
-function renderContactRows(contactFields, accentColor) {
+function renderContactRows(contactFields, accentColor, textColorSecondary = '#93c5fd', textColorPrimary = '#ffffff', bgColor = '#000440') {
   if (!contactFields || contactFields.length === 0) return '';
   const hex = cleanHex(accentColor);
+
+  const secContrast = getContrastRatio(bgColor, textColorSecondary);
+  const contactTextColor = secContrast >= 4.0 ? textColorSecondary : (getContrastRatio(bgColor, textColorPrimary) >= 4.0 ? textColorPrimary : '#ffffff');
+  const contactMutedColor = secContrast >= 3.0 ? textColorSecondary : contactTextColor;
 
   return contactFields.map(field => {
     const iconFile = CONTACT_ICON_MAP[field.type] || 'star.png';
@@ -669,11 +679,11 @@ function renderContactRows(contactFields, accentColor) {
 
     const href = safeUrl(field.href);
     const textContent = href ? `
-      <a href="${href}" style="font-size: 11.5px; color: #e2e8f0; text-decoration: none; font-weight: 500; word-break: break-all; overflow-wrap: anywhere;">
+      <a href="${href}" style="font-size: 11.5px; color: ${contactTextColor}; text-decoration: none; font-weight: 500; word-break: break-all; overflow-wrap: anywhere;">
         ${escapeHTML(field.value)}
       </a>
     ` : `
-      <span style="font-size: 11.5px; color: #cbd5e1; font-weight: 400; line-height: 1.3; word-break: break-word; overflow-wrap: anywhere;">
+      <span style="font-size: 11.5px; color: ${contactMutedColor}; font-weight: 400; line-height: 1.3; word-break: break-word; overflow-wrap: anywhere;">
         ${escapeHTML(field.value)}
       </span>
     `;
@@ -713,14 +723,18 @@ function renderActionButtons(buttons, state) {
     }
 
     let bgStyle = 'background-color: #121829; background-image: linear-gradient(180deg, #1b233a 0%, #0f1524 100%); border: 1px solid rgba(255, 255, 255, 0.16); color: #f8fafc;';
+    let iconColorHex = 'ffffff';
     if (btn.style === 'brand') {
       bgStyle = 'background-color: #0a66c2; background-image: linear-gradient(180deg, #0d73d9 0%, #0855a4 100%); border: 1px solid #1f82e5; color: #ffffff;';
     } else if (btn.style === 'accent') {
       const accent = safeHex(state.accentColor, '#38bdf8');
-      bgStyle = `background-color: ${accent}; background-image: linear-gradient(180deg, ${accent} 0%, rgba(0, 0, 0, 0.35) 100%); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;`;
+      const textCol = getContrastRatio(accent, '#ffffff') >= 4.0 ? '#ffffff' : '#0f172a';
+      bgStyle = `background-color: ${accent}; background-image: linear-gradient(180deg, ${accent} 0%, rgba(0, 0, 0, 0.2) 100%); border: 1px solid ${accent}; color: ${textCol};`;
+      iconColorHex = cleanHex(textCol);
     } else if (btn.style === 'outline') {
       const accent = safeHex(state.accentColor, '#38bdf8');
       bgStyle = `background-color: transparent; border: 1px solid ${accent}; color: ${accent};`;
+      iconColorHex = cleanHex(state.accentColor);
     }
 
     let radius = 8;
@@ -730,7 +744,6 @@ function renderActionButtons(buttons, state) {
       radius = 2;
     }
 
-    const iconColorHex = btn.style === 'outline' ? cleanHex(state.accentColor) : 'ffffff';
     const iconFile = BUTTON_ICON_MAP[btn.icon] || (btn.icon ? `${btn.icon}.png` : null);
     const iconTag = (iconFile && btn.icon !== 'none') ? `
       <img src="https://img.icons8.com/material-rounded/48/${iconColorHex}/${iconFile}" alt="${escapeHTML(btn.label)}" width="12" height="12" style="display: inline-block; vertical-align: -2px; margin-right: 4px; width: 12px; height: 12px; border: 0;" />
@@ -781,7 +794,7 @@ function renderLandscapeV2(state) {
   const bgStyle = getBackgroundStyle(state);
   const widthCfg = getTableWidthConfig(state, 680, 280);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
-  const contactRows = renderContactRows(state.contactFields, state.accentColor);
+  const contactRows = renderContactRows(state.contactFields, state.accentColor, state.textColorSecondary, state.textColorPrimary, state.bgColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
   const nameSize = state.nameFontSize || 19;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
@@ -834,7 +847,7 @@ function renderCompactCard(state) {
   const targetWidth = (state.maxWidth && state.maxWidth !== 680) ? state.maxWidth : 420;
   const widthCfg = getTableWidthConfig({ ...state, maxWidth: targetWidth }, targetWidth, 260);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
-  const contactRows = renderContactRows(state.contactFields, state.accentColor);
+  const contactRows = renderContactRows(state.contactFields, state.accentColor, state.textColorSecondary, state.textColorPrimary, state.bgColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
   const nameSize = state.nameFontSize || 18;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
@@ -880,7 +893,7 @@ function renderMinimalRow(state) {
   const bgStyle = getBackgroundStyle(state);
   const widthCfg = getTableWidthConfig(state, 680, 280);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 10;
-  const contactRows = renderContactRows(state.contactFields, state.accentColor);
+  const contactRows = renderContactRows(state.contactFields, state.accentColor, state.textColorSecondary, state.textColorPrimary, state.bgColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
   const nameSize = state.nameFontSize || 17;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
@@ -928,7 +941,7 @@ function renderAccentBar(state) {
   const widthCfg = getTableWidthConfig(state, 680, 280);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 12;
   const accent = safeHex(state.accentColor, '#38bdf8');
-  const contactRows = renderContactRows(state.contactFields, state.accentColor);
+  const contactRows = renderContactRows(state.contactFields, state.accentColor, state.textColorSecondary, state.textColorPrimary, state.bgColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
   const nameSize = state.nameFontSize || 19;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
@@ -982,7 +995,7 @@ function renderSplitAvatar(state) {
   const bgStyle = getBackgroundStyle(state);
   const widthCfg = getTableWidthConfig(state, 680, 280);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
-  const contactRows = renderContactRows(state.contactFields, state.accentColor);
+  const contactRows = renderContactRows(state.contactFields, state.accentColor, state.textColorSecondary, state.textColorPrimary, state.bgColor);
   const buttonsMarkup = renderActionButtons(state.buttons, state);
   const nameSize = state.nameFontSize || 19;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
