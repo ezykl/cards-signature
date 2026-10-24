@@ -35,8 +35,27 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`\n🚀 Signature Studio is running locally at:`);
-  console.log(`   http://localhost:${PORT}/\n`);
-  console.log(`Press Ctrl + C to stop the server.`);
-});
+function startServer(port, maxAttempts = 10) {
+  let currentPort = port;
+  let attempts = 0;
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE' && attempts < maxAttempts) {
+      attempts++;
+      console.warn(`⚠️  Port ${currentPort} is already in use. Trying port ${currentPort + 1}...`);
+      currentPort++;
+      server.listen(currentPort);
+    } else {
+      console.error(`❌ Failed to start server:`, err.message);
+      process.exit(1);
+    }
+  });
+
+  server.listen(currentPort, () => {
+    console.log(`\n🚀 Signature Studio is running locally at:`);
+    console.log(`   http://localhost:${currentPort}/\n`);
+    console.log(`Press Ctrl + C to stop the server.`);
+  });
+}
+
+startServer(PORT);
