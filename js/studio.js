@@ -84,6 +84,24 @@ export function createStudioStore(initialState = DEFAULT_SIGNATURE_STATE) {
       if (preset) commit({ ...state, ...preset, themePreset: nextKey });
       return nextKey;
     },
+    shuffleDesign: () => {
+      const themeKeys = Object.keys(THEME_PRESETS);
+      const availableThemes = themeKeys.filter(k => k !== state.themePreset);
+      const nextThemeKey = availableThemes[Math.floor(Math.random() * availableThemes.length)] || themeKeys[0];
+      const preset = THEME_PRESETS[nextThemeKey] || {};
+
+      const layoutKeys = LAYOUT_CYCLE.map(l => l.id);
+      const availableLayouts = layoutKeys.filter(l => l !== state.layout);
+      const nextLayout = availableLayouts[Math.floor(Math.random() * availableLayouts.length)] || layoutKeys[0];
+
+      commit({
+        ...state,
+        ...preset,
+        themePreset: nextThemeKey,
+        layout: nextLayout
+      });
+      return { theme: nextThemeKey, layout: nextLayout };
+    },
     undo: () => { if (!past.length) return; future.push(clone(state)); state = past.pop(); notify(); },
     redo: () => { if (!future.length) return; past.push(clone(state)); state = future.pop(); notify(); },
     subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); }
@@ -555,12 +573,15 @@ export function syncControls(state) {
 
     const heroLayoutTitle = document.getElementById('hero-layout-title');
     const heroLayoutCounter = document.getElementById('hero-layout-counter');
-    if (heroLayoutTitle || heroLayoutCounter) {
+    const heroLayoutIndicator = document.getElementById('hero-layout-indicator');
+    if (heroLayoutTitle || heroLayoutCounter || heroLayoutIndicator) {
       const layoutIdx = LAYOUT_CYCLE.findIndex(l => l.id === state.layout);
       const curr = layoutIdx >= 0 ? LAYOUT_CYCLE[layoutIdx] : LAYOUT_CYCLE[0];
+      const themeName = THEME_PRESETS[state.themePreset]?.name || state.themePreset || '';
       const idxDisplay = (layoutIdx >= 0 ? layoutIdx : 0) + 1;
       if (heroLayoutTitle) heroLayoutTitle.textContent = `Layout: ${curr.label}`;
       if (heroLayoutCounter) heroLayoutCounter.textContent = `${idxDisplay} / ${LAYOUT_CYCLE.length}`;
+      if (heroLayoutIndicator) heroLayoutIndicator.textContent = themeName ? `${curr.label} • ${themeName}` : curr.label;
     }
   }
 }
@@ -1156,6 +1177,19 @@ export function initStudio() {
 
   document.getElementById('btn-hero-prev-layout')?.addEventListener('click', () => cycleHeroLayout('prev'));
   document.getElementById('btn-hero-next-layout')?.addEventListener('click', () => cycleHeroLayout('next'));
+
+  // Hero Preview Shuffle Design button
+  document.getElementById('btn-hero-shuffle-design')?.addEventListener('click', () => {
+    const result = studioStore.shuffleDesign();
+    const themeName = THEME_PRESETS[result.theme]?.name || result.theme;
+    const layoutLabel = LAYOUT_CYCLE.find(l => l.id === result.layout)?.label || result.layout;
+    showStudioToast(`Shuffled: ${layoutLabel} • ${themeName}`);
+  });
+
+  // Hero Preview Use This Template button
+  document.getElementById('btn-hero-use-template')?.addEventListener('click', () => {
+    showStudioToast('Loaded template into Signature Studio');
+  });
 
   // Dynamic items add buttons
   document.getElementById('btn-add-contact-field')?.addEventListener('click', () => studioStore.addContactField({ type: 'website', label: 'Website', value: '', href: 'https://' }));

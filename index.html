@@ -83,17 +83,35 @@
                 <span class="preview-tab-icon material-symbols-rounded" aria-hidden="true">terminal</span>
                 <span class="preview-tab-title" id="hero-layout-title">Layout: Landscape V2</span>
               </div>
-              <div class="hero-layout-stepper" role="group" aria-label="Cycle layout architecture">
-                <button type="button" id="btn-hero-prev-layout" class="hero-stepper-btn" aria-label="Previous layout" title="Previous layout architecture">
-                  <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+              <div class="hero-preview-bar-actions">
+                <button type="button" id="btn-hero-shuffle-design" class="hero-action-btn hero-action-shuffle" title="Surprise me with a fresh layout and theme">
+                  <span class="material-symbols-rounded" aria-hidden="true">shuffle</span>
+                  <span>Shuffle Design</span>
                 </button>
-                <span class="hero-stepper-label" id="hero-layout-counter">1 / 5</span>
-                <button type="button" id="btn-hero-next-layout" class="hero-stepper-btn" aria-label="Next layout" title="Next layout architecture">
-                  <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
-                </button>
+                <div class="hero-layout-stepper" role="group" aria-label="Cycle layout architecture">
+                  <button type="button" id="btn-hero-prev-layout" class="hero-stepper-btn" aria-label="Previous layout" title="Previous layout architecture">
+                    <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+                  </button>
+                  <span class="hero-stepper-label" id="hero-layout-counter">1 / 5</span>
+                  <button type="button" id="btn-hero-next-layout" class="hero-stepper-btn" aria-label="Next layout" title="Next layout architecture">
+                    <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+                  </button>
+                </div>
               </div>
             </div>
-            <div class="hero-signature" id="hero-signature-preview"></div>
+            <div class="hero-signature-viewport">
+              <div class="hero-signature" id="hero-signature-preview"></div>
+            </div>
+            <div class="hero-preview-footer">
+              <div class="hero-preview-footer-info">
+                <span class="preview-client-badge"><span class="material-symbols-rounded" aria-hidden="true">verified</span> Live email client simulation</span>
+                <span class="preview-layout-indicator" id="hero-layout-indicator">Landscape V2 &bull; Developer Cyan</span>
+              </div>
+              <button type="button" id="btn-hero-use-template" class="button button-primary button-small hero-use-template-btn" data-view="studio">
+                <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+                <span>Use this template</span>
+              </button>
+            </div>
           </div>
         </div>
         <section class="guarantees-section" aria-labelledby="guarantees-title">

@@ -1154,13 +1154,82 @@ body.view-mode-gallery .home-only {
   }
 }
 
-/* Hero Workspace Simulation Bar & Layout Stepper */
+/* Hero Workspace Simulation Bar & Layout Actions */
+.hero-preview {
+  padding: 0 !important;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--elev-2);
+  transform: none !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 .preview-tab-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding: 8px 14px;
+  background: var(--soft);
+  border-bottom: 1px solid var(--line);
 }
+.hero-preview-bar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.hero-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all var(--dur-fast) ease;
+}
+.hero-action-btn:hover {
+  background: var(--soft);
+  border-color: var(--blue);
+  color: var(--blue);
+  transform: translateY(-1px);
+}
+.hero-action-shuffle {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.25);
+  color: var(--blue);
+}
+.hero-action-shuffle:hover {
+  background: rgba(37, 99, 235, 0.16);
+  border-color: var(--blue);
+}
+.hero-action-btn .material-symbols-rounded {
+  font-size: 16px;
+}
+.dark-mode .hero-action-btn {
+  background: var(--surface-panel);
+  border-color: var(--border-hairline);
+  color: #e2e8f0;
+}
+.dark-mode .hero-action-btn:hover {
+  border-color: var(--border-signal, #00e5ff);
+  color: var(--border-signal, #00e5ff);
+}
+.dark-mode .hero-action-shuffle {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: rgba(0, 229, 255, 0.3);
+  color: var(--border-signal, #00e5ff);
+}
+.dark-mode .hero-action-shuffle:hover {
+  background: rgba(0, 229, 255, 0.2);
+}
+
 .hero-layout-stepper {
   display: inline-flex;
   align-items: center;
@@ -1211,6 +1280,105 @@ body.view-mode-gallery .home-only {
 .dark-mode .hero-stepper-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--border-signal, #00e5ff);
+}
+
+/* Centered Live Signature Viewport */
+.hero-signature-viewport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  padding: 40px 24px;
+  background: #ffffff;
+  overflow: auto;
+  width: 100%;
+}
+.dark-mode .hero-signature-viewport {
+  background: #080d1a;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+.hero-signature {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+.hero-signature > * {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.hero-signature table {
+  margin: 0 auto !important;
+}
+
+/* Hero Preview Footer / Use This Template Bar */
+.hero-preview-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.dark-mode .hero-preview-footer {
+  background: var(--surface-panel);
+  border-top-color: var(--border-hairline);
+}
+.hero-preview-footer-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.preview-client-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--blue);
+  background: rgba(37, 99, 235, 0.08);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.dark-mode .preview-client-badge {
+  color: var(--border-signal, #00e5ff);
+  background: rgba(0, 229, 255, 0.1);
+}
+.preview-layout-indicator {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hero-use-template-btn {
+  font-weight: 700;
+  box-shadow: var(--elev-1);
+  white-space: nowrap;
+}
+@media (max-width: 680px) {
+  .hero-preview-bar-actions .hero-action-shuffle span {
+    display: none;
+  }
+  .hero-preview-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-use-template-btn {
+    width: 100%;
+  }
 }
 
 /* Status dot in monospace pill */

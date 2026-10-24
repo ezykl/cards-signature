@@ -772,6 +772,12 @@ test('context-aware header and streamlined studio workspace contracts in index.h
   assert.ok(html.includes('id="btn-hero-next-layout"'));
   assert.ok(html.includes('id="hero-layout-title"'));
   assert.ok(html.includes('id="hero-layout-counter"'));
+
+  // 9. Hero preview contains Shuffle Design, Use this template, and centered viewport
+  assert.ok(html.includes('id="btn-hero-shuffle-design"'));
+  assert.ok(html.includes('id="btn-hero-use-template"'));
+  assert.ok(html.includes('id="hero-layout-indicator"'));
+  assert.ok(html.includes('class="hero-signature-viewport"'));
 });
 
 test('syncControls activates corresponding layout chip across comparator cards and wizard chips', () => {
@@ -894,6 +900,17 @@ test('hero layout stepper cycles through all 5 architectures and syncs title and
     delete globalThis.document;
   }
 });
+
+test('store supports shuffleDesign to randomize both layout and theme preset simultaneously', () => {
+  const store = createStudioStore();
+  const res = store.shuffleDesign();
+  assert.ok(res.theme);
+  assert.ok(res.layout);
+  assert.equal(store.getState().themePreset, res.theme);
+  assert.equal(store.getState().layout, res.layout);
+  assert.equal(store.getState().bgColor, THEME_PRESETS[res.theme].bgColor);
+});
+
 
 
 
