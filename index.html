@@ -26,7 +26,7 @@
           <img class="brand-logo" src="Logo.svg" width="34" height="34" alt="" aria-hidden="true" />
           <span class="brand-text">Signature Studio</span>
         </a>
-        <span class="status-pill-mono studio-only" title="HTML Engine Status"><span class="status-dot"></span>ENGINE v1.0 &bull; LOCAL</span>
+        <span class="status-pill-mono studio-only" title="HTML Engine Status">ENGINE v1.0 &bull; LOCAL</span>
       </div>
       <div class="header-center studio-only">
         <div class="profile-slots-bar" role="group" aria-label="Saved profile slots">
@@ -77,13 +77,20 @@
               <span class="repo-credit-author">Crafted by <a href="https://github.com/ezykl" target="_blank" rel="noopener noreferrer">@ezykl</a></span>
             </div>
           </div>
-          <div class="hero-preview" aria-label="Live email signature preview">
-            <div class="preview-window-bar preview-tab-bar" role="toolbar" aria-label="Composer preview controls">
-              <div class="preview-tab preview-tab-active">
-                <span class="preview-tab-icon material-symbols-rounded" aria-hidden="true">terminal</span>
-                <span class="preview-tab-title" id="hero-layout-title">Layout: Landscape V2</span>
+          <div class="hero-preview email-composer-window" aria-label="Live email client composer simulation">
+            <div class="composer-titlebar">
+              <div class="composer-traffic-lights" aria-hidden="true">
+                <span class="traffic-dot traffic-close"></span>
+                <span class="traffic-dot traffic-min"></span>
+                <span class="traffic-dot traffic-expand"></span>
               </div>
-              <div class="hero-preview-bar-actions">
+              <div class="composer-window-meta">
+                <span class="composer-window-title">New Message</span>
+                <span class="composer-window-sep" aria-hidden="true">&bull;</span>
+                <span class="composer-window-layout" id="hero-layout-indicator">Landscape V2 &bull; Developer Cyan</span>
+                <span class="sr-only" id="hero-layout-title">Layout: Landscape V2</span>
+              </div>
+              <div class="composer-titlebar-actions">
                 <button type="button" id="btn-hero-shuffle-design" class="hero-action-btn hero-action-shuffle" title="Surprise me with a fresh layout and theme">
                   <span class="material-symbols-rounded" aria-hidden="true">shuffle</span>
                   <span>Shuffle Design</span>
@@ -99,13 +106,37 @@
                 </div>
               </div>
             </div>
-            <div class="hero-signature-viewport">
-              <div class="hero-signature" id="hero-signature-preview"></div>
+
+            <div class="composer-headers">
+              <div class="composer-field-row">
+                <span class="composer-field-label">To:</span>
+                <div class="composer-recipient-tag">
+                  <span class="recipient-avatar">AR</span>
+                  <span class="recipient-address">alex.rivers@acme.dev</span>
+                </div>
+              </div>
+              <div class="composer-field-row">
+                <span class="composer-field-label">Subject:</span>
+                <span class="composer-subject-text">Design system handoff &amp; verified HTML signatures</span>
+              </div>
             </div>
-            <div class="hero-preview-footer">
-              <div class="hero-preview-footer-info">
-                <span class="preview-client-badge"><span class="material-symbols-rounded" aria-hidden="true">verified</span> Live email client simulation</span>
-                <span class="preview-layout-indicator" id="hero-layout-indicator">Landscape V2 &bull; Developer Cyan</span>
+
+            <div class="composer-body">
+              <p class="composer-body-para">Hi Alex,</p>
+              <p class="composer-body-para">Attaching the finalized email templates and client-safe signatures for the team. All styling renders cleanly across desktop and mobile.</p>
+              <p class="composer-body-para signoff">Best regards,</p>
+              <div class="hero-signature-viewport">
+                <div class="hero-signature" id="hero-signature-preview"></div>
+              </div>
+            </div>
+
+            <div class="composer-toolbar-footer">
+              <div class="composer-tools-group" aria-label="Composer actions">
+                <span class="composer-tool-btn" title="Send (Simulated)" aria-hidden="true"><span class="material-symbols-rounded">send</span></span>
+                <span class="composer-tool-btn" title="Formatting" aria-hidden="true"><span class="material-symbols-rounded">text_format</span></span>
+                <span class="composer-tool-btn" title="Attachments" aria-hidden="true"><span class="material-symbols-rounded">attach_file</span></span>
+                <span class="composer-tool-btn" title="Insert link" aria-hidden="true"><span class="material-symbols-rounded">link</span></span>
+                <span class="composer-client-note"><span class="material-symbols-rounded" aria-hidden="true">verified</span> Email-safe 100% Client-Side</span>
               </div>
               <button type="button" id="btn-hero-use-template" class="button button-primary button-small hero-use-template-btn" data-view="studio">
                 <span class="material-symbols-rounded" aria-hidden="true">edit</span>
