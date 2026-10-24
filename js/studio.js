@@ -838,13 +838,23 @@ export function initStudio() {
     btn.addEventListener('click', () => switchProfileSlot(btn.dataset.slot));
   });
 
-  // Quick-Start Onboarding Modal
+  // Quick-Start Onboarding Modal & Dialog Focus Management
   const onboardingModal = document.getElementById('onboarding-modal');
-  const openOnboardingModal = () => {
+  let onboardingTriggerEl = null;
+
+  const getModalFocusables = (modal) => {
+    if (!modal) return [];
+    return Array.from(modal.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(el => !el.hidden && el.style.display !== 'none');
+  };
+
+  const openOnboardingModal = (trigger) => {
     if (!onboardingModal) {
       setView('studio');
       return;
     }
+    onboardingTriggerEl = (trigger && trigger.target) ? trigger.target : (trigger || document.activeElement);
     const alreadyOnboarded = localStorage.getItem(ONBOARDED_KEY) === 'true';
     const current = studioStore.getState();
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
@@ -860,17 +870,54 @@ export function initStudio() {
       setVal('onboard-location', locField?.value || '');
       setVal('onboard-primary-url', firstBtn?.url || '');
     }
+    const nameInput = document.getElementById('onboard-full-name');
+    const nameError = document.getElementById('onboard-full-name-error');
+    if (nameInput) nameInput.removeAttribute?.('aria-invalid');
+    if (nameError) nameError.hidden = true;
+
     onboardingModal.hidden = false;
-    document.getElementById('onboard-full-name')?.focus?.();
+    nameInput?.focus?.();
   };
   const skipOnboardingModal = () => {
     try { localStorage.setItem(ONBOARDED_KEY, 'true'); } catch {}
     if (onboardingModal) onboardingModal.hidden = true;
     setView('studio');
+    if (onboardingTriggerEl && typeof onboardingTriggerEl.focus === 'function') {
+      try { onboardingTriggerEl.focus(); } catch {}
+    }
   };
-  document.getElementById('btn-open-onboarding')?.addEventListener('click', openOnboardingModal);
+  document.getElementById('btn-open-onboarding')?.addEventListener('click', (e) => openOnboardingModal(e));
   document.getElementById('btn-close-onboarding')?.addEventListener('click', skipOnboardingModal);
   document.getElementById('btn-skip-onboarding')?.addEventListener('click', skipOnboardingModal);
+  
+  onboardingModal?.addEventListener('keydown', event => {
+    if (event.key === 'Tab') {
+      const focusables = getModalFocusables(onboardingModal);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey) {
+        if (document.activeElement === first || !onboardingModal.contains(document.activeElement)) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !onboardingModal.contains(document.activeElement)) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  });
+
+  document.getElementById('onboard-full-name')?.addEventListener('input', (e) => {
+    if (e.target?.value?.trim()) {
+      e.target?.removeAttribute?.('aria-invalid');
+      const err = document.getElementById('onboard-full-name-error');
+      if (err) err.hidden = true;
+    }
+  });
+
   onboardingModal?.addEventListener('click', event => {
     if (event.target === onboardingModal) skipOnboardingModal();
     const vibeBtn = event.target?.closest?.('.onboard-vibe-card');
@@ -886,12 +933,21 @@ export function initStudio() {
   });
   document.getElementById('onboarding-form')?.addEventListener('submit', event => {
     event?.preventDefault?.();
-    const fullName = document.getElementById('onboard-full-name')?.value || '';
+    const nameInput = document.getElementById('onboard-full-name');
+    const nameError = document.getElementById('onboard-full-name-error');
+    const fullName = nameInput?.value || '';
     if (!fullName.trim()) {
-      document.getElementById('onboard-full-name')?.focus?.();
+      if (nameInput) {
+        nameInput.setAttribute?.('aria-invalid', 'true');
+        nameInput.focus?.();
+      }
+      if (nameError) nameError.hidden = false;
       showStudioToast('Please enter your full name to generate your signature.');
       return;
     }
+    if (nameInput) nameInput.removeAttribute?.('aria-invalid');
+    if (nameError) nameError.hidden = true;
+
     const nextState = buildStateFromOnboarding(studioStore.getState(), {
       fullName,
       jobTitle: document.getElementById('onboard-job-title')?.value || '',
@@ -907,6 +963,9 @@ export function initStudio() {
     renderGallery();
     setView('studio');
     showStudioToast('Signature generated! Ready to copy or customize.');
+    if (onboardingTriggerEl && typeof onboardingTriggerEl.focus === 'function') {
+      try { onboardingTriggerEl.focus(); } catch {}
+    }
   });
 
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
@@ -1234,17 +1293,45 @@ export function initStudio() {
 
   // Email Client Installation Guide Modal
   const installModal = document.getElementById('install-guide-modal');
-  const openInstallModal = () => {
+  let installTriggerEl = null;
+
+  const openInstallModal = (trigger) => {
     if (!installModal) return;
+    installTriggerEl = (trigger && trigger.target) ? trigger.target : (trigger || document.activeElement);
     installModal.hidden = false;
+    const initialFocus = installModal.querySelector('.install-tab.active') || installModal.querySelector('#btn-close-install-guide');
+    initialFocus?.focus?.();
   };
   const closeInstallModal = () => {
     if (!installModal) return;
     installModal.hidden = true;
+    if (installTriggerEl && typeof installTriggerEl.focus === 'function') {
+      try { installTriggerEl.focus(); } catch {}
+    }
   };
-  document.getElementById('btn-open-install-guide')?.addEventListener('click', openInstallModal);
-  document.getElementById('btn-wiz-open-install-guide')?.addEventListener('click', openInstallModal);
+  document.getElementById('btn-open-install-guide')?.addEventListener('click', (e) => openInstallModal(e));
+  document.getElementById('btn-wiz-open-install-guide')?.addEventListener('click', (e) => openInstallModal(e));
   document.getElementById('btn-close-install-guide')?.addEventListener('click', closeInstallModal);
+
+  installModal?.addEventListener('keydown', event => {
+    if (event.key === 'Tab') {
+      const focusables = getModalFocusables(installModal);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey) {
+        if (document.activeElement === first || !installModal.contains(document.activeElement)) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last || !installModal.contains(document.activeElement)) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  });
   installModal?.addEventListener('click', event => {
     if (event.target === installModal || event.target.matches?.('[data-close-modal="true"]')) closeInstallModal();
     const tab = event.target.closest?.('.install-tab');

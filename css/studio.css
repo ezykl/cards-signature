@@ -899,4 +899,15 @@ body,
     align-items: stretch;
   }
 }
+
+.form-error-text {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--danger, #ef4444);
+  margin-top: 5px;
+  display: block;
+}
+.form-error-text[hidden] {
+  display: none !important;
+}
 

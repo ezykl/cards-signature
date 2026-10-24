@@ -77,7 +77,7 @@
               <div class="control-body">
                 <label class="form-group" for="wiz-full-name"><span>Full name</span><input id="wiz-full-name" class="form-input" type="text" autocomplete="name" maxlength="80" required /></label>
                 <label class="form-group" for="wiz-job-title"><span>Role or team</span><input id="wiz-job-title" class="form-input" type="text" maxlength="120" /></label>
-                <label class="form-group" for="wiz-logo-url"><span>Logo or Avatar image URL <small>Google Drive, GitHub, Dropbox, or Direct URL</small></span><input id="wiz-logo-url" class="form-input" type="url" inputmode="url" placeholder="Paste Google Drive, GitHub, Dropbox, or image URL..." /></label>
+                <label class="form-group" for="wiz-logo-url"><span>Logo or Avatar image URL <small>Google Drive, GitHub, Dropbox, or Direct URL</small></span><input id="wiz-logo-url" class="form-input" type="url" inputmode="url" spellcheck="false" placeholder="Paste Google Drive, GitHub, Dropbox, or image URL…" /></label>
                 <div id="wiz-logo-url-status" class="media-status-pill" aria-live="polite" hidden></div>
                 <div class="avatar-helper-bar" role="group" aria-label="Quick avatar and logo options">
                   <button type="button" id="btn-wiz-avatar-initials" class="avatar-helper-chip" title="Generate a hosted monogram badge from your name &amp; theme"><span class="material-symbols-rounded" aria-hidden="true">abc</span> Initials Badge</button>
@@ -165,7 +165,8 @@
           <div class="onboarding-grid">
             <label class="form-group" for="onboard-full-name">
               <span>Full name <strong>*</strong></span>
-              <input id="onboard-full-name" class="form-input" type="text" autocomplete="name" placeholder="e.g. Alex Rivera" maxlength="80" required />
+              <input id="onboard-full-name" class="form-input" type="text" autocomplete="name" placeholder="e.g. Alex Rivera" maxlength="80" aria-describedby="onboard-full-name-error" required />
+              <span id="onboard-full-name-error" class="form-error-text" aria-live="polite" hidden>Please enter your full name.</span>
             </label>
             <label class="form-group" for="onboard-job-title">
               <span>Role &amp; Company</span>
@@ -173,11 +174,11 @@
             </label>
             <label class="form-group" for="onboard-email">
               <span>Email address</span>
-              <input id="onboard-email" class="form-input" type="email" autocomplete="email" placeholder="e.g. alex@domain.com" />
+              <input id="onboard-email" class="form-input" type="email" autocomplete="email" inputmode="email" spellcheck="false" placeholder="e.g. alex@domain.com" />
             </label>
             <label class="form-group" for="onboard-phone">
               <span>Phone number <small>(optional)</small></span>
-              <input id="onboard-phone" class="form-input" type="tel" autocomplete="tel" placeholder="e.g. +1 555 234 5678" />
+              <input id="onboard-phone" class="form-input" type="tel" autocomplete="tel" inputmode="tel" placeholder="e.g. +1 555 234 5678" />
             </label>
             <label class="form-group" for="onboard-location">
               <span>Location <small>(optional)</small></span>
@@ -185,7 +186,7 @@
             </label>
             <label class="form-group" for="onboard-primary-url">
               <span>GitHub, LinkedIn, or Website <small>(auto-loads avatar)</small></span>
-              <input id="onboard-primary-url" class="form-input" type="url" placeholder="https://github.com/yourhandle or website" />
+              <input id="onboard-primary-url" class="form-input" type="url" inputmode="url" spellcheck="false" placeholder="https://github.com/yourhandle or website" />
             </label>
           </div>
           <div class="onboarding-vibe-section">
