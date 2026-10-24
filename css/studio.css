@@ -1006,7 +1006,29 @@ body.view-mode-gallery .home-only {
 .home-nav-links {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+}
+.nav-repo-link.icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--ink);
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+.nav-repo-link.icon-link:hover {
+  background: var(--soft);
+  color: var(--blue);
+  transform: translateY(-1px);
+}
+.dark-mode .nav-repo-link.icon-link {
+  color: #e2e8f0;
+}
+.dark-mode .nav-repo-link.icon-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--border-signal, #00e5ff);
 }
 
 .studio-header-actions {
@@ -1130,6 +1152,65 @@ body.view-mode-gallery .home-only {
     padding: 6px 8px;
     font-size: 11.5px;
   }
+}
+
+/* Hero Workspace Simulation Bar & Layout Stepper */
+.preview-tab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.hero-layout-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.hero-stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.hero-stepper-btn:hover {
+  background: var(--soft);
+  color: var(--blue);
+}
+.hero-stepper-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+.hero-stepper-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 32px;
+  text-align: center;
+  user-select: none;
+}
+.dark-mode .hero-layout-stepper {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--border-hairline);
+}
+.dark-mode .hero-stepper-btn {
+  color: #e2e8f0;
+}
+.dark-mode .hero-stepper-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--border-signal, #00e5ff);
 }
 
 /* Status dot in monospace pill */

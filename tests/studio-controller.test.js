@@ -16,7 +16,8 @@ import {
   attachPreviewLogoLoader,
   switchProfileSlot,
   buildStateFromOnboarding,
-  syncControls
+  syncControls,
+  LAYOUT_CYCLE
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -756,6 +757,21 @@ test('context-aware header and streamlined studio workspace contracts in index.h
       `Expected index.html to contain layout chip for ${layout}`
     );
   }
+
+  // 6. Home navbar has direct GitHub logo link and no Templates button
+  assert.ok(!html.includes('data-view="gallery">Templates</button>'));
+  assert.ok(html.includes('class="nav-repo-link icon-link"'));
+  assert.ok(html.includes('https://github.com/ezykl/cards-signature'));
+
+  // 7. Eyebrow badge and separate homepage comparator are omitted
+  assert.ok(!html.includes('EMAIL-CLIENT COMPILED &bull; ZERO TRACKING'));
+  assert.ok(!html.includes('id="layout-comparator-section"'));
+
+  // 8. Hero preview bar contains layout stepper
+  assert.ok(html.includes('id="btn-hero-prev-layout"'));
+  assert.ok(html.includes('id="btn-hero-next-layout"'));
+  assert.ok(html.includes('id="hero-layout-title"'));
+  assert.ok(html.includes('id="hero-layout-counter"'));
 });
 
 test('syncControls activates corresponding layout chip across comparator cards and wizard chips', () => {
@@ -825,6 +841,60 @@ test('syncControls activates corresponding layout chip across comparator cards a
     delete globalThis.document;
   }
 });
+
+test('hero layout stepper cycles through all 5 architectures and syncs title and counter', () => {
+  assert.equal(LAYOUT_CYCLE.length, 5);
+  assert.deepEqual(
+    LAYOUT_CYCLE.map(l => l.id),
+    ['landscape-v2', 'compact-card', 'minimal-row', 'accent-bar', 'split-avatar']
+  );
+
+  const elements = new Map();
+  const getEl = (id) => {
+    if (!elements.has(id)) {
+      elements.set(id, {
+        id,
+        value: '',
+        textContent: '',
+        innerHTML: '',
+        contains() { return false; },
+        style: { setProperty() {} },
+        classList: { toggle() {}, add() {}, remove() {}, contains() { return false; } },
+        setAttribute() {}
+      });
+    }
+    return elements.get(id);
+  };
+
+  const titleEl = getEl('hero-layout-title');
+  const counterEl = getEl('hero-layout-counter');
+
+  globalThis.document = {
+    getElementById: (id) => getEl(id),
+    querySelectorAll: () => [],
+    querySelector: () => null
+  };
+
+  try {
+    // 1. Sync for default state (landscape-v2) -> "Layout: Landscape V2", "1 / 5"
+    syncControls({ ...DEFAULT_SIGNATURE_STATE, layout: 'landscape-v2' });
+    assert.equal(titleEl.textContent, 'Layout: Landscape V2');
+    assert.equal(counterEl.textContent, '1 / 5');
+
+    // 2. Sync for minimal-row -> "Layout: Minimal Row", "3 / 5"
+    syncControls({ ...DEFAULT_SIGNATURE_STATE, layout: 'minimal-row' });
+    assert.equal(titleEl.textContent, 'Layout: Minimal Row');
+    assert.equal(counterEl.textContent, '3 / 5');
+
+    // 3. Sync for split-avatar -> "Layout: Split Avatar", "5 / 5"
+    syncControls({ ...DEFAULT_SIGNATURE_STATE, layout: 'split-avatar' });
+    assert.equal(titleEl.textContent, 'Layout: Split Avatar');
+    assert.equal(counterEl.textContent, '5 / 5');
+  } finally {
+    delete globalThis.document;
+  }
+});
+
 
 
 

@@ -40,8 +40,11 @@
       </div>
       <nav class="site-nav" aria-label="Primary navigation">
         <div class="home-nav-links home-only">
-          <button type="button" class="nav-link" data-view="gallery">Templates</button>
-          <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="nav-repo-link" title="View source on GitHub"><span class="material-symbols-rounded" aria-hidden="true">code</span><span>GitHub</span></a>
+          <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="nav-repo-link icon-link" title="View source on GitHub" aria-label="View source on GitHub">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+            </svg>
+          </a>
           <button type="button" class="button button-primary button-small" id="nav-studio-btn" data-view="studio">Launch Studio</button>
         </div>
         <div class="studio-header-actions studio-only">
@@ -59,7 +62,6 @@
       <section id="home-view" class="landing-view" aria-labelledby="hero-title">
         <div class="hero-glass" id="home">
           <div class="hero-copy">
-            <div class="eyebrow-badge"><span class="status-dot"></span> EMAIL-CLIENT COMPILED &bull; ZERO TRACKING</div>
             <h1 id="hero-title">Industrial email signatures, engineered to look flawless everywhere.</h1>
             <p class="hero-lead">Compile lightweight, responsive table signatures with zero code. Instant client-side preview for Gmail, Apple Mail, and Outlook with hardware-accurate styling.</p>
             <div class="hero-actions">
@@ -76,62 +78,24 @@
             </div>
           </div>
           <div class="hero-preview" aria-label="Live email signature preview">
-            <div class="preview-window-bar preview-tab-bar" role="tablist" aria-label="Composer preview tabs">
-              <div class="preview-tab preview-tab-active" role="tab" aria-selected="true">
-                <span class="preview-tab-icon material-symbols-rounded" aria-hidden="true">tab</span>
-                <span class="preview-tab-title">Workspace Live Simulation &bull; Output</span>
-                <span class="preview-tab-close material-symbols-rounded" aria-hidden="true">close</span>
+            <div class="preview-window-bar preview-tab-bar" role="toolbar" aria-label="Composer preview controls">
+              <div class="preview-tab preview-tab-active">
+                <span class="preview-tab-icon material-symbols-rounded" aria-hidden="true">terminal</span>
+                <span class="preview-tab-title" id="hero-layout-title">Layout: Landscape V2</span>
+              </div>
+              <div class="hero-layout-stepper" role="group" aria-label="Cycle layout architecture">
+                <button type="button" id="btn-hero-prev-layout" class="hero-stepper-btn" aria-label="Previous layout" title="Previous layout architecture">
+                  <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+                </button>
+                <span class="hero-stepper-label" id="hero-layout-counter">1 / 5</span>
+                <button type="button" id="btn-hero-next-layout" class="hero-stepper-btn" aria-label="Next layout" title="Next layout architecture">
+                  <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+                </button>
               </div>
             </div>
             <div class="hero-signature" id="hero-signature-preview"></div>
           </div>
         </div>
-        <section id="layout-comparator-section" class="comparator-section" aria-labelledby="comparator-title">
-          <div class="section-subhead-row">
-            <div>
-              <p class="eyebrow">Architecture Comparison</p>
-              <h2 id="comparator-title" class="comparator-title">Engineered Layouts</h2>
-            </div>
-            <span class="comparator-hint">Click any architecture to switch immediately</span>
-          </div>
-          <div class="comparator-grid" role="radiogroup" aria-label="Signature Layout Architectures">
-            <button type="button" class="comparator-card active" data-comparator-layout="landscape-v2" role="radio" aria-checked="true">
-              <div class="comparator-card-header">
-                <span class="comparator-name">Landscape V2</span>
-                <span class="comparator-badge">Desktop Wide</span>
-              </div>
-              <p class="comparator-desc">Spacious side-by-side presentation with left-aligned brand badge and horizontal contact block.</p>
-            </button>
-            <button type="button" class="comparator-card" data-comparator-layout="compact-card" role="radio" aria-checked="false">
-              <div class="comparator-card-header">
-                <span class="comparator-name">Compact Card</span>
-                <span class="comparator-badge">Balanced</span>
-              </div>
-              <p class="comparator-desc">Centered modular footprint optimized for mobile readers and high-cadence correspondence.</p>
-            </button>
-            <button type="button" class="comparator-card" data-comparator-layout="minimal-row" role="radio" aria-checked="false">
-              <div class="comparator-card-header">
-                <span class="comparator-name">Minimal Row</span>
-                <span class="comparator-badge">Ultra-Dense</span>
-              </div>
-              <p class="comparator-desc">Single-line horizontal flow with inline separators for minimal visual footprint.</p>
-            </button>
-            <button type="button" class="comparator-card" data-comparator-layout="accent-bar" role="radio" aria-checked="false">
-              <div class="comparator-card-header">
-                <span class="comparator-name">Executive Accent</span>
-                <span class="comparator-badge">Solid Pillar</span>
-              </div>
-              <p class="comparator-desc">Vertical color accent rail with serif editorial typography and high-contrast metadata.</p>
-            </button>
-            <button type="button" class="comparator-card" data-comparator-layout="split-avatar" role="radio" aria-checked="false">
-              <div class="comparator-card-header">
-                <span class="comparator-name">Split Avatar</span>
-                <span class="comparator-badge">Portrait Focus</span>
-              </div>
-              <p class="comparator-desc">Prominent circular avatar container paired with rounded pill action buttons.</p>
-            </button>
-          </div>
-        </section>
         <section class="guarantees-section" aria-labelledby="guarantees-title">
           <div class="section-subhead-row">
             <div>

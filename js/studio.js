@@ -17,6 +17,14 @@ export const WIZARD_STEPS = [
   { step: 5, title: 'Final Output & Export', badge: 'Step 5 of 5' }
 ];
 
+export const LAYOUT_CYCLE = [
+  { id: 'landscape-v2', label: 'Landscape V2' },
+  { id: 'compact-card', label: 'Compact Card' },
+  { id: 'minimal-row', label: 'Minimal Row' },
+  { id: 'accent-bar', label: 'Executive Accent' },
+  { id: 'split-avatar', label: 'Split Avatar' }
+];
+
 function reorderArrayItem(list = [], id, direction) {
   const arr = [...list];
   const index = arr.findIndex(item => item.id === id);
@@ -544,6 +552,16 @@ export function syncControls(state) {
       card.classList?.toggle('active', isActive);
       card.setAttribute?.('aria-checked', String(isActive));
     });
+
+    const heroLayoutTitle = document.getElementById('hero-layout-title');
+    const heroLayoutCounter = document.getElementById('hero-layout-counter');
+    if (heroLayoutTitle || heroLayoutCounter) {
+      const layoutIdx = LAYOUT_CYCLE.findIndex(l => l.id === state.layout);
+      const curr = layoutIdx >= 0 ? LAYOUT_CYCLE[layoutIdx] : LAYOUT_CYCLE[0];
+      const idxDisplay = (layoutIdx >= 0 ? layoutIdx : 0) + 1;
+      if (heroLayoutTitle) heroLayoutTitle.textContent = `Layout: ${curr.label}`;
+      if (heroLayoutCounter) heroLayoutCounter.textContent = `${idxDisplay} / ${LAYOUT_CYCLE.length}`;
+    }
   }
 }
 
@@ -1120,6 +1138,24 @@ export function initStudio() {
     const cardName = compCard.querySelector('.comparator-name, .chip-title')?.textContent || targetLayout;
     showStudioToast(`Switched layout to ${cardName}`);
   });
+
+  // Hero Preview Layout Stepper (Next/Prev layout switcher)
+  const cycleHeroLayout = (direction) => {
+    const current = studioStore.getState().layout;
+    let idx = LAYOUT_CYCLE.findIndex(l => l.id === current);
+    if (idx === -1) idx = 0;
+    if (direction === 'next') {
+      idx = (idx + 1) % LAYOUT_CYCLE.length;
+    } else {
+      idx = (idx - 1 + LAYOUT_CYCLE.length) % LAYOUT_CYCLE.length;
+    }
+    const nextLayout = LAYOUT_CYCLE[idx];
+    studioStore.setField('layout', nextLayout.id);
+    showStudioToast(`Switched layout to ${nextLayout.label}`);
+  };
+
+  document.getElementById('btn-hero-prev-layout')?.addEventListener('click', () => cycleHeroLayout('prev'));
+  document.getElementById('btn-hero-next-layout')?.addEventListener('click', () => cycleHeroLayout('next'));
 
   // Dynamic items add buttons
   document.getElementById('btn-add-contact-field')?.addEventListener('click', () => studioStore.addContactField({ type: 'website', label: 'Website', value: '', href: 'https://' }));
