@@ -78,7 +78,7 @@ button { cursor:pointer; }
 }
 .dark-mode .mode-tab.active {
   background: var(--surface);
-  color: #60a5fa;
+  color: #bae6fd;
 }
 
 /* Hero Shuffle Button */
@@ -473,6 +473,7 @@ button { cursor:pointer; }
 }
 .dark-mode .modal-card {
   background: #1e293b;
+  color: var(--dark-ink);
   border-color: rgba(255, 255, 255, 0.16);
 }
 .modal-header {

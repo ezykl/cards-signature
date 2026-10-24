@@ -8,6 +8,8 @@
   --glass-blur: 12px;
   /* Text on an accent fill: deep ink, so any accent preset clears 4.5:1 */
   --accent-ink: hsl(220, 45%, 8%);
+  --color-accent-ink: var(--accent-ink);
+  caret-color: var(--blue, #2563eb);
   /* Tinted paper replaces pure white on dark surfaces and form options */
   --paper: hsl(210, 40%, 98%);
   --paper-ink: hsl(222, 47%, 11%);
@@ -25,6 +27,14 @@
   --dark-danger-ink: hsl(0, 96%, 89%);
   --dark-danger-bg: rgba(127, 29, 29, 0.35);
   --dark-danger-line: rgba(248, 113, 113, 0.5);
+}
+::selection {
+  background: rgba(37, 99, 235, 0.25);
+  color: inherit;
+}
+.dark-mode ::selection {
+  background: rgba(56, 189, 248, 0.35);
+  color: inherit;
 }
 /* Preset overrides */
 :root[data-theme="midnight"] {
