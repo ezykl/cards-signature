@@ -311,62 +311,104 @@
             <span class="material-symbols-rounded" aria-hidden="true">close</span>
           </button>
         </div>
+        <div class="onboarding-stepper" role="tablist" aria-label="Setup steps">
+          <button type="button" class="onboard-step-pill active" data-onboard-step="1" role="tab" aria-selected="true" aria-controls="onboard-step-1">
+            <span class="step-num">1</span>
+            <span class="step-text">Profile</span>
+          </button>
+          <div class="step-separator" aria-hidden="true"></div>
+          <button type="button" class="onboard-step-pill" data-onboard-step="2" role="tab" aria-selected="false" aria-controls="onboard-step-2">
+            <span class="step-num">2</span>
+            <span class="step-text">Contact &amp; Links</span>
+          </button>
+          <div class="step-separator" aria-hidden="true"></div>
+          <button type="button" class="onboard-step-pill" data-onboard-step="3" role="tab" aria-selected="false" aria-controls="onboard-step-3">
+            <span class="step-num">3</span>
+            <span class="step-text">Aesthetic</span>
+          </button>
+        </div>
         <form id="onboarding-form" class="onboarding-body" novalidate>
-          <p class="onboarding-lead">Fill in what you want included. You can tweak colors, layouts, and links right after.</p>
-          <div class="onboarding-grid">
-            <label class="form-group" for="onboard-full-name">
-              <span>Full name <strong>*</strong></span>
-              <input id="onboard-full-name" class="form-input" type="text" autocomplete="name" placeholder="e.g. Alex Rivera" maxlength="80" aria-describedby="onboard-full-name-error" required />
-              <span id="onboard-full-name-error" class="form-error-text" aria-live="polite" hidden>Please enter your full name.</span>
-            </label>
-            <label class="form-group" for="onboard-job-title">
-              <span>Role &amp; Company</span>
-              <input id="onboard-job-title" class="form-input" type="text" autocomplete="organization-title" placeholder="e.g. Product Designer &bull; Linear" maxlength="120" />
-            </label>
-            <label class="form-group" for="onboard-email">
-              <span>Email address</span>
-              <input id="onboard-email" class="form-input" type="email" autocomplete="email" inputmode="email" spellcheck="false" placeholder="e.g. alex@domain.com" />
-            </label>
-            <label class="form-group" for="onboard-phone">
-              <span>Phone number <small>(optional)</small></span>
-              <input id="onboard-phone" class="form-input" type="tel" autocomplete="tel" inputmode="tel" placeholder="e.g. +1 555 234 5678" />
-            </label>
-            <label class="form-group" for="onboard-location">
-              <span>Location <small>(optional)</small></span>
-              <input id="onboard-location" class="form-input" type="text" placeholder="e.g. San Francisco, CA" />
-            </label>
-            <label class="form-group" for="onboard-primary-url">
-              <span>GitHub, LinkedIn, or Website <small>(auto-loads avatar)</small></span>
-              <input id="onboard-primary-url" class="form-input" type="url" inputmode="url" spellcheck="false" placeholder="https://github.com/yourhandle or website" />
-            </label>
-          </div>
-          <div class="onboarding-vibe-section">
-            <span class="onboarding-vibe-label">Pick a starting aesthetic</span>
-            <input id="onboard-vibe" type="hidden" value="developer-cyan" />
-            <div class="onboarding-vibe-grid" role="radiogroup" aria-label="Starting aesthetic">
-              <button type="button" class="onboard-vibe-card active" data-vibe="developer-cyan" role="radio" aria-checked="true">
-                <span class="vibe-swatch" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-color:#38bdf8;"><span style="background:#38bdf8;"></span></span>
-                <span class="vibe-info"><strong>Developer Cyan</strong><small>Dark wide card &bull; Mono</small></span>
-              </button>
-              <button type="button" class="onboard-vibe-card" data-vibe="cosmic-blue" role="radio" aria-checked="false">
-                <span class="vibe-swatch" style="background:linear-gradient(135deg,#090d16 0%,#1e1b4b 100%);border-color:#60a5fa;"><span style="background:#60a5fa;"></span></span>
-                <span class="vibe-info"><strong>Cosmic Blue</strong><small>Deep indigo &bull; Modern Sans</small></span>
-              </button>
-              <button type="button" class="onboard-vibe-card" data-vibe="executive-minimal" role="radio" aria-checked="false">
-                <span class="vibe-swatch" style="background:#ffffff;border-color:#cbd5e1;"><span style="background:#2563eb;"></span></span>
-                <span class="vibe-info"><strong>Executive Minimal</strong><small>Clean light row &bull; Crisp</small></span>
-              </button>
-              <button type="button" class="onboard-vibe-card" data-vibe="creative-split" role="radio" aria-checked="false">
-                <span class="vibe-swatch" style="background:linear-gradient(135deg,#fff1f2 0%,#ffe4e6 100%);border-color:#f43f5e;"><span style="background:#e11d48;"></span></span>
-                <span class="vibe-info"><strong>Creative Split</strong><small>Round avatar &bull; Pill CTAs</small></span>
+          <!-- Step 1: Profile -->
+          <div id="onboard-step-1" class="onboarding-step-pane active" role="tabpanel" aria-label="Step 1: Profile">
+            <p class="onboarding-lead">Step 1 of 3: Primary identity details for your email signature header.</p>
+            <div class="onboarding-grid">
+              <label class="form-group" for="onboard-full-name">
+                <span>Full name <strong>*</strong></span>
+                <input id="onboard-full-name" class="form-input" type="text" autocomplete="name" placeholder="e.g. Alex Rivera" maxlength="80" aria-describedby="onboard-full-name-error" required />
+                <span id="onboard-full-name-error" class="form-error-text" aria-live="polite" hidden>Please enter your full name.</span>
+              </label>
+              <label class="form-group" for="onboard-job-title">
+                <span>Role &amp; Company</span>
+                <input id="onboard-job-title" class="form-input" type="text" autocomplete="organization-title" placeholder="e.g. Product Designer &bull; Linear" maxlength="120" />
+              </label>
+              <label class="form-group" for="onboard-email">
+                <span>Email address</span>
+                <input id="onboard-email" class="form-input" type="email" autocomplete="email" inputmode="email" spellcheck="false" placeholder="e.g. alex@domain.com" />
+              </label>
+            </div>
+            <div class="onboarding-actions">
+              <button type="button" id="btn-skip-onboarding" class="button button-quiet">Skip &mdash; use demo template</button>
+              <button type="button" id="btn-onboard-next-1" class="button button-primary">
+                <span>Next: Contact &amp; Links &rarr;</span>
               </button>
             </div>
           </div>
-          <div class="onboarding-actions">
-            <button type="button" id="btn-skip-onboarding" class="button button-quiet">Skip &mdash; use demo template</button>
-            <button type="submit" id="btn-submit-onboarding" class="button button-primary button-large">
-              <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span> Generate My Signature
-            </button>
+
+          <!-- Step 2: Contact & Links -->
+          <div id="onboard-step-2" class="onboarding-step-pane" role="tabpanel" aria-label="Step 2: Contact and Links" hidden>
+            <p class="onboarding-lead">Step 2 of 3: How recipients can connect and reach you.</p>
+            <div class="onboarding-grid">
+              <label class="form-group" for="onboard-primary-url">
+                <span>GitHub, LinkedIn, or Website <small>(auto-loads avatar)</small></span>
+                <input id="onboard-primary-url" class="form-input" type="url" inputmode="url" spellcheck="false" placeholder="https://github.com/yourhandle or website" />
+              </label>
+              <label class="form-group" for="onboard-phone">
+                <span>Phone number <small>(optional)</small></span>
+                <input id="onboard-phone" class="form-input" type="tel" autocomplete="tel" inputmode="tel" placeholder="e.g. +1 555 234 5678" />
+              </label>
+              <label class="form-group" for="onboard-location">
+                <span>Location <small>(optional)</small></span>
+                <input id="onboard-location" class="form-input" type="text" placeholder="e.g. San Francisco, CA" />
+              </label>
+            </div>
+            <div class="onboarding-actions">
+              <button type="button" id="btn-onboard-prev-2" class="button button-secondary">&larr; Back</button>
+              <button type="button" id="btn-onboard-next-2" class="button button-primary">
+                <span>Next: Choose Aesthetic &rarr;</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Aesthetic -->
+          <div id="onboard-step-3" class="onboarding-step-pane" role="tabpanel" aria-label="Step 3: Aesthetic" hidden>
+            <p class="onboarding-lead">Step 3 of 3: Pick a starting visual aesthetic. You can customize colors and typography right after.</p>
+            <div class="onboarding-vibe-section">
+              <input id="onboard-vibe" type="hidden" value="developer-cyan" />
+              <div class="onboarding-vibe-grid" role="radiogroup" aria-label="Starting aesthetic">
+                <button type="button" class="onboard-vibe-card active" data-vibe="developer-cyan" role="radio" aria-checked="true">
+                  <span class="vibe-swatch" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border-color:#38bdf8;"><span style="background:#38bdf8;"></span></span>
+                  <span class="vibe-info"><strong>Developer Cyan</strong><small>Dark wide card &bull; Mono</small></span>
+                </button>
+                <button type="button" class="onboard-vibe-card" data-vibe="cosmic-blue" role="radio" aria-checked="false">
+                  <span class="vibe-swatch" style="background:linear-gradient(135deg,#090d16 0%,#1e1b4b 100%);border-color:#60a5fa;"><span style="background:#60a5fa;"></span></span>
+                  <span class="vibe-info"><strong>Cosmic Blue</strong><small>Deep indigo &bull; Modern Sans</small></span>
+                </button>
+                <button type="button" class="onboard-vibe-card" data-vibe="executive-minimal" role="radio" aria-checked="false">
+                  <span class="vibe-swatch" style="background:#ffffff;border-color:#cbd5e1;"><span style="background:#2563eb;"></span></span>
+                  <span class="vibe-info"><strong>Executive Minimal</strong><small>Clean light row &bull; Crisp</small></span>
+                </button>
+                <button type="button" class="onboard-vibe-card" data-vibe="creative-split" role="radio" aria-checked="false">
+                  <span class="vibe-swatch" style="background:linear-gradient(135deg,#fff1f2 0%,#ffe4e6 100%);border-color:#f43f5e;"><span style="background:#e11d48;"></span></span>
+                  <span class="vibe-info"><strong>Creative Split</strong><small>Round avatar &bull; Pill CTAs</small></span>
+                </button>
+              </div>
+            </div>
+            <div class="onboarding-actions">
+              <button type="button" id="btn-onboard-prev-3" class="button button-secondary">&larr; Back</button>
+              <button type="submit" id="btn-submit-onboarding" class="button button-primary button-large">
+                <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span> Generate My Signature
+              </button>
+            </div>
           </div>
         </form>
       </div>

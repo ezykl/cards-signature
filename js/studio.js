@@ -923,6 +923,7 @@ export function initStudio() {
     if (nameInput) nameInput.removeAttribute?.('aria-invalid');
     if (nameError) nameError.hidden = true;
 
+    setOnboardingStep(1);
     onboardingModal.hidden = false;
     nameInput?.focus?.();
   };
@@ -934,6 +935,60 @@ export function initStudio() {
       try { onboardingTriggerEl.focus(); } catch {}
     }
   };
+
+  let currentOnboardStep = 1;
+  const setOnboardingStep = (step) => {
+    currentOnboardStep = Math.max(1, Math.min(3, step));
+    for (let i = 1; i <= 3; i++) {
+      const pane = document.getElementById(`onboard-step-${i}`);
+      const pill = document.querySelector?.(`.onboard-step-pill[data-onboard-step="${i}"]`);
+      if (pane) pane.hidden = (i !== currentOnboardStep);
+      if (pill) {
+        pill.classList?.toggle?.('active', i === currentOnboardStep);
+        pill.classList?.toggle?.('completed', i < currentOnboardStep);
+        pill.setAttribute?.('aria-selected', String(i === currentOnboardStep));
+      }
+    }
+    if (currentOnboardStep === 1) {
+      document.getElementById('onboard-full-name')?.focus?.();
+    } else if (currentOnboardStep === 2) {
+      document.getElementById('onboard-primary-url')?.focus?.();
+    }
+  };
+
+  const validateOnboardStep1 = () => {
+    const nameInput = document.getElementById('onboard-full-name');
+    const nameError = document.getElementById('onboard-full-name-error');
+    const fullName = nameInput?.value || '';
+    if (!fullName.trim()) {
+      if (nameInput) {
+        nameInput.setAttribute?.('aria-invalid', 'true');
+        nameInput.focus?.();
+      }
+      if (nameError) nameError.hidden = false;
+      showStudioToast('Please enter your full name to continue.');
+      return false;
+    }
+    if (nameInput) nameInput.removeAttribute?.('aria-invalid');
+    if (nameError) nameError.hidden = true;
+    return true;
+  };
+
+  document.getElementById('btn-onboard-next-1')?.addEventListener('click', () => {
+    if (validateOnboardStep1()) setOnboardingStep(2);
+  });
+  document.getElementById('btn-onboard-prev-2')?.addEventListener('click', () => setOnboardingStep(1));
+  document.getElementById('btn-onboard-next-2')?.addEventListener('click', () => setOnboardingStep(3));
+  document.getElementById('btn-onboard-prev-3')?.addEventListener('click', () => setOnboardingStep(2));
+
+  document.querySelectorAll?.('.onboard-step-pill')?.forEach(pill => {
+    pill.addEventListener?.('click', () => {
+      const targetStep = Number(pill.dataset?.onboardStep || 1);
+      if (targetStep > 1 && !validateOnboardStep1()) return;
+      setOnboardingStep(targetStep);
+    });
+  });
+
   document.getElementById('btn-open-onboarding')?.addEventListener('click', (e) => openOnboardingModal(e));
   document.getElementById('btn-studio-open-onboarding')?.addEventListener('click', (e) => openOnboardingModal(e));
   document.querySelectorAll?.('.btn-open-onboarding')?.forEach(btn => {

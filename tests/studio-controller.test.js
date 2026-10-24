@@ -920,6 +920,21 @@ test('email composer simulated tool buttons are buttons with type="button" and d
   assert.ok(!html.includes('<span class="composer-tool-btn"'));
 });
 
+test('30-second quick setup modal is partitioned into 3 sequential steps with step indicators', () => {
+  const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
+  assert.ok(html.includes('class="onboarding-stepper"'));
+  assert.ok(html.includes('data-onboard-step="1"'));
+  assert.ok(html.includes('data-onboard-step="2"'));
+  assert.ok(html.includes('data-onboard-step="3"'));
+  assert.ok(html.includes('id="onboard-step-1"'));
+  assert.ok(html.includes('id="onboard-step-2"'));
+  assert.ok(html.includes('id="onboard-step-3"'));
+  assert.ok(html.includes('id="btn-onboard-next-1"'));
+  assert.ok(html.includes('id="btn-onboard-next-2"'));
+  assert.ok(html.includes('id="btn-onboard-prev-2"'));
+  assert.ok(html.includes('id="btn-onboard-prev-3"'));
+});
+
 
 
 
