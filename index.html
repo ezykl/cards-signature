@@ -16,50 +16,146 @@
     <div class="landing-bg" aria-hidden="true"></div>
     <a class="skip-link" href="#main-content">Skip to the signature editor</a>
     <header class="site-header">
-      <a class="brand" href="#home" data-view="home" aria-label="Signature Studio home"><img class="brand-logo" src="Logo.svg" width="34" height="34" alt="" aria-hidden="true" /><span>Signature Studio</span></a>
-      <button type="button" class="button button-quiet" id="btn-toggle-dark" aria-label="Switch to dark theme" aria-pressed="false" title="Toggle theme"><span class="theme-toggle-icon material-symbols-rounded" aria-hidden="true">dark_mode</span><span class="sr-only">Toggle theme</span></button>
-      <nav class="site-nav" aria-label="Primary navigation"><a href="#how-it-works" data-nav="how-it-works">How it works</a><button type="button" class="nav-link" data-view="gallery">Templates</button><a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="nav-repo-link" title="View source on GitHub"><span class="material-symbols-rounded" aria-hidden="true">code</span><span>GitHub</span></a><button type="button" class="button button-primary button-small" data-view="studio">Create a signature</button></nav>
+      <div class="header-brand-block">
+        <a class="brand" href="#home" data-view="home" aria-label="Signature Studio home">
+          <img class="brand-logo" src="Logo.svg" width="34" height="34" alt="" aria-hidden="true" />
+          <span class="brand-text">Signature Studio</span>
+        </a>
+        <span class="status-pill-mono" title="HTML Engine Status"><span class="status-dot"></span>ENGINE v1.0 &bull; EMAIL-SAFE</span>
+      </div>
+      <div class="header-center-slots">
+        <div class="profile-slots-bar" role="group" aria-label="Saved profile slots">
+          <span class="slots-label"><span class="material-symbols-rounded" aria-hidden="true">bookmarks</span> Profiles:</span>
+          <div class="slots-buttons">
+            <button type="button" class="slot-chip active" id="slot-btn-1" data-slot="slot-1" aria-pressed="true">Primary</button>
+            <button type="button" class="slot-chip" id="slot-btn-2" data-slot="slot-2" aria-pressed="false">Work</button>
+            <button type="button" class="slot-chip" id="slot-btn-3" data-slot="slot-3" aria-pressed="false">Personal</button>
+          </div>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <button type="button" id="btn-open-onboarding" class="button button-quiet button-small btn-open-onboarding" title="Re-run 30-second quick setup"><span class="material-symbols-rounded" aria-hidden="true">bolt</span> Quick Setup</button>
+        <button type="button" class="nav-link" data-view="gallery">Templates</button>
+        <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="nav-repo-link" title="View source on GitHub"><span class="material-symbols-rounded" aria-hidden="true">code</span><span>GitHub</span></a>
+        <button type="button" class="button button-quiet" id="btn-toggle-dark" aria-label="Switch to dark theme" aria-pressed="false" title="Toggle theme"><span class="theme-toggle-icon material-symbols-rounded" aria-hidden="true">dark_mode</span><span class="sr-only">Toggle theme</span></button>
+        <button type="button" class="button button-primary button-small" id="nav-studio-btn" data-view="studio">Launch Studio</button>
+      </nav>
     </header>
     <main id="main-content">
       <section id="home-view" class="landing-view" aria-labelledby="hero-title">
         <div class="hero-glass" id="home">
-  <div class="hero-copy">
-    <p class="eyebrow">Email-client friendly HTML</p>
-    <h1 id="hero-title">A signature that looks professional everywhere.</h1>
-    <p class="hero-lead">Create a polished email signature without touching code. Customize your details, preview the result, then copy it directly into Gmail or Outlook.</p>
-    <div class="hero-actions">
-      <button type="button" class="button button-primary button-large" data-view="studio">Start creating</button>
-      <button type="button" class="button button-secondary button-large" data-view="gallery">Browse templates</button>
-    </div>
-    <ul class="trust-list">
-      <li><span class="material-symbols-rounded" aria-hidden="true">lock_open</span> No account required</li>
-      <li><span class="material-symbols-rounded" aria-hidden="true">shield</span> Your draft stays in your browser</li>
-      <li><span class="material-symbols-rounded" aria-hidden="true">devices</span> Responsive table layouts</li>
-    </ul>
-    <div class="hero-repo-credit" aria-label="Open source repository and author credits">
-      <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="repo-credit-badge">
-        <span class="material-symbols-rounded" aria-hidden="true">terminal</span>
-        <span>Open-source repo: <strong>ezykl/cards-signature</strong></span>
-      </a>
-      <span class="repo-credit-sep" aria-hidden="true">&bull;</span>
-      <span class="repo-credit-author">Crafted by <a href="https://github.com/ezykl" target="_blank" rel="noopener noreferrer">@ezykl</a></span>
-    </div>
-  </div>
-  <div class="hero-preview" aria-label="Example email signature preview">
-    <div class="preview-window-bar preview-tab-bar" role="tablist" aria-label="Composer preview tabs">
-      <div class="preview-tab preview-tab-active" role="tab" aria-selected="true">
-        <span class="preview-tab-icon material-symbols-rounded" aria-hidden="true">tab</span>
-        <span class="preview-tab-title">New message &bull; Preview</span>
-        <span class="preview-tab-close material-symbols-rounded" aria-hidden="true">close</span>
-      </div>
-    </div>
-    <div class="hero-signature" id="hero-signature-preview"></div>
-  </div>
-</div>
-        <section id="how-it-works" class="steps-section" aria-labelledby="steps-title"><div class="section-heading"><p class="eyebrow">A clear workflow</p><h2 id="steps-title">From details to inbox in three steps.</h2></div><div class="steps-grid"><article class="step-card"><span class="step-number">01</span><span class="material-symbols-rounded" aria-hidden="true">edit_note</span><h3>Make it yours</h3><p>Add your name, role, contact details, links, and logo.</p></article><article class="step-card"><span class="step-number">02</span><span class="material-symbols-rounded" aria-hidden="true">preview</span><h3>Check every layout</h3><p>Switch between desktop and mobile previews before exporting.</p></article><article class="step-card"><span class="step-number">03</span><span class="material-symbols-rounded" aria-hidden="true">content_copy</span><h3>Copy with confidence</h3><p>Paste the rich signature into your email client, or download its HTML.</p></article></div></section>
+          <div class="hero-copy">
+            <div class="eyebrow-badge"><span class="status-dot"></span> EMAIL-CLIENT COMPILED &bull; ZERO TRACKING</div>
+            <h1 id="hero-title">Industrial email signatures, engineered to look flawless everywhere.</h1>
+            <p class="hero-lead">Compile lightweight, responsive table signatures with zero code. Instant client-side preview for Gmail, Apple Mail, and Outlook with hardware-accurate styling.</p>
+            <div class="hero-actions">
+              <button type="button" id="btn-hero-start" class="button button-primary button-large" data-view="studio"><span class="material-symbols-rounded" aria-hidden="true">terminal</span> Launch Studio</button>
+              <button type="button" class="button button-secondary button-large" data-view="gallery">Browse Templates</button>
+            </div>
+            <ul class="trust-list">
+              <li><span class="material-symbols-rounded" aria-hidden="true">bolt</span> &lt; 10 KB Clean HTML</li>
+              <li><span class="material-symbols-rounded" aria-hidden="true">shield</span> 100% Client-Side Privacy</li>
+              <li><span class="material-symbols-rounded" aria-hidden="true">verified</span> Tested Across 20+ Clients</li>
+            </ul>
+            <div class="hero-repo-credit" aria-label="Open source repository and author credits">
+              <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="repo-credit-badge">
+                <span class="material-symbols-rounded" aria-hidden="true">terminal</span>
+                <span>Open-source: <strong>ezykl/cards-signature</strong></span>
+              </a>
+              <span class="repo-credit-sep" aria-hidden="true">&bull;</span>
+              <span class="repo-credit-author">Crafted by <a href="https://github.com/ezykl" target="_blank" rel="noopener noreferrer">@ezykl</a></span>
+            </div>
+          </div>
+          <div class="hero-preview" aria-label="Live email signature preview">
+            <div class="preview-window-bar preview-tab-bar" role="tablist" aria-label="Composer preview tabs">
+              <div class="preview-tab preview-tab-active" role="tab" aria-selected="true">
+                <span class="preview-tab-icon material-symbols-rounded" aria-hidden="true">tab</span>
+                <span class="preview-tab-title">Workspace Live Simulation &bull; Output</span>
+                <span class="preview-tab-close material-symbols-rounded" aria-hidden="true">close</span>
+              </div>
+            </div>
+            <div class="hero-signature" id="hero-signature-preview"></div>
+          </div>
+        </div>
+        <section id="layout-comparator-section" class="comparator-section" aria-labelledby="comparator-title">
+          <div class="section-subhead-row">
+            <div>
+              <p class="eyebrow">Architecture Comparison</p>
+              <h2 id="comparator-title" class="comparator-title">Engineered Layouts</h2>
+            </div>
+            <span class="comparator-hint">Click any architecture to switch immediately</span>
+          </div>
+          <div class="comparator-grid" role="radiogroup" aria-label="Signature Layout Architectures">
+            <button type="button" class="comparator-card active" data-comparator-layout="landscape-v2" role="radio" aria-checked="true">
+              <div class="comparator-card-header">
+                <span class="comparator-name">Landscape V2</span>
+                <span class="comparator-badge">Desktop Wide</span>
+              </div>
+              <p class="comparator-desc">Spacious side-by-side presentation with left-aligned brand badge and horizontal contact block.</p>
+            </button>
+            <button type="button" class="comparator-card" data-comparator-layout="compact-card" role="radio" aria-checked="false">
+              <div class="comparator-card-header">
+                <span class="comparator-name">Compact Card</span>
+                <span class="comparator-badge">Balanced</span>
+              </div>
+              <p class="comparator-desc">Centered modular footprint optimized for mobile readers and high-cadence correspondence.</p>
+            </button>
+            <button type="button" class="comparator-card" data-comparator-layout="minimal-row" role="radio" aria-checked="false">
+              <div class="comparator-card-header">
+                <span class="comparator-name">Minimal Row</span>
+                <span class="comparator-badge">Ultra-Dense</span>
+              </div>
+              <p class="comparator-desc">Single-line horizontal flow with inline separators for minimal visual footprint.</p>
+            </button>
+            <button type="button" class="comparator-card" data-comparator-layout="accent-bar" role="radio" aria-checked="false">
+              <div class="comparator-card-header">
+                <span class="comparator-name">Executive Accent</span>
+                <span class="comparator-badge">Solid Pillar</span>
+              </div>
+              <p class="comparator-desc">Vertical color accent rail with serif editorial typography and high-contrast metadata.</p>
+            </button>
+            <button type="button" class="comparator-card" data-comparator-layout="split-avatar" role="radio" aria-checked="false">
+              <div class="comparator-card-header">
+                <span class="comparator-name">Split Avatar</span>
+                <span class="comparator-badge">Portrait Focus</span>
+              </div>
+              <p class="comparator-desc">Prominent circular avatar container paired with rounded pill action buttons.</p>
+            </button>
+          </div>
+        </section>
+        <section class="guarantees-section" aria-labelledby="guarantees-title">
+          <div class="section-subhead-row">
+            <div>
+              <p class="eyebrow">Technical Benchmarks</p>
+              <h3 id="guarantees-title" class="comparator-title">Email-Safe Guarantees</h3>
+            </div>
+          </div>
+          <div class="guarantees-grid">
+            <div class="guarantee-card">
+              <span class="material-symbols-rounded guarantee-icon" aria-hidden="true">memory</span>
+              <h4>&lt; 10 KB Payload</h4>
+              <p>Strict inline styles without external CSS stylesheets that get blocked or stripped by corporate firewalls.</p>
+            </div>
+            <div class="guarantee-card">
+              <span class="material-symbols-rounded guarantee-icon" aria-hidden="true">lock</span>
+              <h4>100% Client-Side Privacy</h4>
+              <p>Your contacts, phone numbers, and images never leave your browser. Zero telemetry or tracker beacons.</p>
+            </div>
+            <div class="guarantee-card">
+              <span class="material-symbols-rounded guarantee-icon" aria-hidden="true">mail</span>
+              <h4>Cross-Client Rendering</h4>
+              <p>Rock-solid compatibility verified on Gmail Web/App, Outlook Desktop/Web/365, Apple Mail, and Thunderbird.</p>
+            </div>
+            <div class="guarantee-card">
+              <span class="material-symbols-rounded guarantee-icon" aria-hidden="true">badge</span>
+              <h4>Universal vCard 3.0</h4>
+              <p>One-click downloadable .vcf digital contact card compatible with iOS Contacts, Android, and macOS.</p>
+            </div>
+          </div>
+        </section>
       </section>
       <section id="studio-view" class="app-view" aria-labelledby="studio-title" hidden>
-        <div class="studio-topbar"><div><button type="button" class="text-button" data-view="home"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Back to home</button><p class="eyebrow">Signature editor</p><h1 id="studio-title">Build your signature</h1><p class="studio-description">Changes are saved automatically on this device.</p></div><div class="history-actions"><button id="btn-open-onboarding" type="button" class="button button-secondary button-small" title="Re-run 30-second quick setup"><span class="material-symbols-rounded" aria-hidden="true">bolt</span> Quick Setup</button><button id="btn-undo" type="button" class="icon-button" aria-label="Undo last change" title="Undo"><span class="material-symbols-rounded" aria-hidden="true">undo</span></button><button id="btn-redo" type="button" class="icon-button" aria-label="Redo last change" title="Redo"><span class="material-symbols-rounded" aria-hidden="true">redo</span></button><button id="btn-reset" type="button" class="button button-quiet">Reset draft</button></div></div>
+        <div class="studio-topbar"><div><button type="button" class="text-button" data-view="home"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Back to home</button><p class="eyebrow">Signature editor</p><div class="workbench-title-row"><h1 id="studio-title">Signature Compiler</h1><span class="status-pill-mono"><span class="status-dot"></span>LIVE STATE &bull; LOCAL STORAGE</span></div><p class="studio-description">Draft state is compiled and saved automatically on this device with zero server tracking.</p></div><div class="history-actions"><button id="btn-studio-open-onboarding" type="button" class="button button-secondary button-small btn-open-onboarding" title="Re-run 30-second quick setup"><span class="material-symbols-rounded" aria-hidden="true">bolt</span> Quick Setup</button><button id="btn-undo" type="button" class="icon-button" aria-label="Undo last change" title="Undo"><span class="material-symbols-rounded" aria-hidden="true">undo</span></button><button id="btn-redo" type="button" class="icon-button" aria-label="Redo last change" title="Redo"><span class="material-symbols-rounded" aria-hidden="true">redo</span></button><button id="btn-reset" type="button" class="button button-quiet">Reset draft</button></div></div>
         <div id="form-error-summary" class="form-alert" role="alert" tabindex="-1" hidden></div>
         <div class="studio-layout"><aside class="studio-sidebar" aria-label="Signature settings"><div class="profile-slots-bar" role="group" aria-label="Saved profile slots"><span class="slots-label"><span class="material-symbols-rounded" aria-hidden="true">bookmarks</span> Profiles:</span><div class="slots-buttons"><button type="button" class="slot-chip active" data-slot="slot-1" aria-pressed="true">Primary</button><button type="button" class="slot-chip" data-slot="slot-2" aria-pressed="false">Work</button><button type="button" class="slot-chip" data-slot="slot-3" aria-pressed="false">Personal</button></div></div><div class="studio-mode-toggle" role="tablist" aria-label="Editor view mode"><button type="button" id="btn-mode-guided" class="mode-tab active" role="tab" aria-selected="true"><span class="material-symbols-rounded" aria-hidden="true">auto_fix_high</span> Step-by-Step Guide</button><button type="button" id="btn-mode-advanced" class="mode-tab" role="tab" aria-selected="false"><span class="material-symbols-rounded" aria-hidden="true">tune</span> All Controls</button></div>
           <div id="guided-mode-pane" class="guided-wizard-pane">

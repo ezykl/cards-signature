@@ -911,4 +911,217 @@ body,
 .form-error-text[hidden] {
   display: none !important;
 }
+
+/* ============================================================
+   Industrial Obsidian & Workspace-First Architecture
+   ============================================================ */
+
+/* Command Bar & Header */
+.header-brand-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-brand-block .brand-text {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+.header-center-slots {
+  display: flex;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .header-center-slots {
+    display: none;
+  }
+}
+
+/* Status dot in monospace pill */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-signal, #00e5ff);
+  box-shadow: 0 0 8px var(--border-signal, #00e5ff);
+  display: inline-block;
+  animation: pulseDot 2.4s ease-in-out infinite;
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Workbench title row */
+.workbench-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 2px;
+}
+.workbench-title-row h1 {
+  margin: 0;
+  font: 700 clamp(24px, 3.2vw, 36px)/1.15 'Poppins', sans-serif;
+  letter-spacing: -0.03em;
+}
+
+/* Layout Comparator Section */
+.comparator-section {
+  margin-top: 48px;
+  padding-top: 36px;
+  border-top: 1px solid var(--line);
+}
+.section-subhead-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.comparator-title {
+  margin: 6px 0 0;
+  font: 600 clamp(20px, 2.4vw, 28px)/1.2 'Poppins', sans-serif;
+  letter-spacing: -0.02em;
+}
+.comparator-hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+.comparator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+.comparator-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: var(--elev-1);
+  transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-base) ease, box-shadow var(--dur-base) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .comparator-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--blue);
+    box-shadow: var(--elev-2);
+  }
+}
+.comparator-card:active {
+  transform: scale(0.97);
+  transition: transform 50ms ease-out;
+}
+.comparator-card.active {
+  border-color: var(--blue);
+  background: rgba(37, 99, 235, 0.05);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+.dark-mode .comparator-card.active {
+  border-color: var(--border-signal, #00e5ff);
+  background: rgba(0, 229, 255, 0.08);
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.25);
+}
+.comparator-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.comparator-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+}
+.comparator-badge {
+  font-size: 10.5px;
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--soft);
+  color: var(--muted);
+}
+.comparator-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* Technical Guarantees Strip */
+.guarantees-section {
+  margin-top: 32px;
+  padding: 28px 24px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--elev-1);
+}
+.dark-mode .guarantees-section {
+  background: var(--surface-panel, #151923);
+  border-color: var(--border-hairline, rgba(255, 255, 255, 0.08));
+}
+.guarantees-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+.guarantee-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.guarantee-icon {
+  font-size: 26px;
+  color: var(--blue);
+  margin-bottom: 2px;
+}
+.dark-mode .guarantee-icon {
+  color: var(--border-signal, #00e5ff);
+}
+.guarantee-card h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.guarantee-card p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.eyebrow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--blue);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.dark-mode .eyebrow-badge {
+  color: var(--border-signal, #00e5ff);
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.25);
+}
 

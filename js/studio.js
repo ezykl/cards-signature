@@ -536,6 +536,15 @@ function syncControls(state) {
   renderContactFields(state);
   renderActionButtons(state);
   updateMediaStatusPill(state, false);
+
+  // Sync layout comparator cards
+  if (typeof document !== 'undefined') {
+    document.querySelectorAll?.('.comparator-card[data-comparator-layout]')?.forEach(card => {
+      const isActive = card.dataset.comparatorLayout === state.layout;
+      card.classList?.toggle('active', isActive);
+      card.setAttribute?.('aria-checked', String(isActive));
+    });
+  }
 }
 
 export function attachPreviewLogoLoader(container, forceTransition = false, onSettled = null) {
@@ -887,6 +896,10 @@ export function initStudio() {
     }
   };
   document.getElementById('btn-open-onboarding')?.addEventListener('click', (e) => openOnboardingModal(e));
+  document.getElementById('btn-studio-open-onboarding')?.addEventListener('click', (e) => openOnboardingModal(e));
+  document.querySelectorAll?.('.btn-open-onboarding')?.forEach(btn => {
+    btn.addEventListener?.('click', (e) => openOnboardingModal(e));
+  });
   document.getElementById('btn-close-onboarding')?.addEventListener('click', skipOnboardingModal);
   document.getElementById('btn-skip-onboarding')?.addEventListener('click', skipOnboardingModal);
   
@@ -1096,6 +1109,16 @@ export function initStudio() {
     const card = event.target.closest('.theme-preview-card, .theme-chip');
     if (!card || !card.dataset.preset) return;
     studioStore.applyThemePreset(card.dataset.preset);
+  });
+
+  // Layout Comparator click delegator
+  document.addEventListener('click', event => {
+    const compCard = event.target.closest('.comparator-card[data-comparator-layout]');
+    if (!compCard || !compCard.dataset.comparatorLayout) return;
+    const targetLayout = compCard.dataset.comparatorLayout;
+    studioStore.setField('layout', targetLayout);
+    const cardName = compCard.querySelector('.comparator-name')?.textContent || targetLayout;
+    showStudioToast(`Switched layout to ${cardName}`);
   });
 
   // Dynamic items add buttons

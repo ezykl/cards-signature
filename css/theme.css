@@ -14,16 +14,16 @@
   --paper: hsl(210, 40%, 98%);
   --paper-ink: hsl(222, 47%, 11%);
   /* Industrial Obsidian Tokens */
-  --canvas-obsidian: #0b0d13;
-  --surface-workbench: #10131b;
-  --surface-panel: #151923;
-  --surface-active: #1c2130;
+  --canvas-obsidian: hsl(225, 24%, 6%);
+  --surface-workbench: hsl(225, 20%, 9%);
+  --surface-panel: hsl(225, 18%, 12%);
+  --surface-active: hsl(225, 16%, 16%);
   --border-hairline: rgba(255, 255, 255, 0.08);
   --border-highlight: rgba(255, 255, 255, 0.14);
-  --border-signal: #00e5ff;
-  --text-title: #f8fafc;
-  --text-body: #94a3b8;
-  --text-mono: #38bdf8;
+  --border-signal: hsl(187, 100%, 50%);
+  --text-title: hsl(210, 40%, 98%);
+  --text-body: hsl(215, 20%, 75%);
+  --text-mono: hsl(187, 85%, 65%);
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, monospace;
   /* Dark palette tokens consumed by .dark-mode */
   --dark-ink: hsl(210, 40%, 96%);
@@ -427,12 +427,12 @@ button[disabled] {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   border-radius: 4px;
-  background: rgba(56, 189, 248, 0.1);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(0, 229, 255, 0.1);
+  color: var(--text-mono);
+  border: 1px solid rgba(0, 229, 255, 0.25);
 }
 .button-primary {
   box-shadow: 0 6px 16px -4px rgba(30, 58, 95, 0.45);
