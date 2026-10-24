@@ -16,14 +16,19 @@
     <div class="landing-bg" aria-hidden="true"></div>
     <a class="skip-link" href="#main-content">Skip to the signature editor</a>
     <header class="site-header">
-      <div class="header-brand-block">
+      <div class="header-left">
+        <button type="button" class="button button-quiet button-small studio-back-btn studio-only" data-view="home" title="Return to Home">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+          <span>Home</span>
+        </button>
+        <span class="header-divider studio-only" aria-hidden="true">/</span>
         <a class="brand" href="#home" data-view="home" aria-label="Signature Studio home">
           <img class="brand-logo" src="Logo.svg" width="34" height="34" alt="" aria-hidden="true" />
           <span class="brand-text">Signature Studio</span>
         </a>
-        <span class="status-pill-mono" title="HTML Engine Status"><span class="status-dot"></span>ENGINE v1.0 &bull; EMAIL-SAFE</span>
+        <span class="status-pill-mono studio-only" title="HTML Engine Status"><span class="status-dot"></span>ENGINE v1.0 &bull; LOCAL</span>
       </div>
-      <div class="header-center-slots">
+      <div class="header-center studio-only">
         <div class="profile-slots-bar" role="group" aria-label="Saved profile slots">
           <span class="slots-label"><span class="material-symbols-rounded" aria-hidden="true">bookmarks</span> Profiles:</span>
           <div class="slots-buttons">
@@ -34,11 +39,20 @@
         </div>
       </div>
       <nav class="site-nav" aria-label="Primary navigation">
-        <button type="button" id="btn-open-onboarding" class="button button-quiet button-small btn-open-onboarding" title="Re-run 30-second quick setup"><span class="material-symbols-rounded" aria-hidden="true">bolt</span> Quick Setup</button>
-        <button type="button" class="nav-link" data-view="gallery">Templates</button>
-        <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="nav-repo-link" title="View source on GitHub"><span class="material-symbols-rounded" aria-hidden="true">code</span><span>GitHub</span></a>
+        <div class="home-nav-links home-only">
+          <button type="button" class="nav-link" data-view="gallery">Templates</button>
+          <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="nav-repo-link" title="View source on GitHub"><span class="material-symbols-rounded" aria-hidden="true">code</span><span>GitHub</span></a>
+          <button type="button" class="button button-primary button-small" id="nav-studio-btn" data-view="studio">Launch Studio</button>
+        </div>
+        <div class="studio-header-actions studio-only">
+          <button type="button" id="btn-open-onboarding" class="button button-secondary button-small btn-open-onboarding" title="Re-run 30-second quick setup"><span class="material-symbols-rounded" aria-hidden="true">bolt</span> Quick Setup</button>
+          <div class="history-actions-group" role="group" aria-label="Edit history">
+            <button id="btn-undo" type="button" class="icon-button" aria-label="Undo last change" title="Undo (Ctrl+Z)"><span class="material-symbols-rounded" aria-hidden="true">undo</span></button>
+            <button id="btn-redo" type="button" class="icon-button" aria-label="Redo last change" title="Redo (Ctrl+Y)"><span class="material-symbols-rounded" aria-hidden="true">redo</span></button>
+          </div>
+          <button id="btn-reset" type="button" class="button button-quiet button-small" title="Reset draft to default">Reset draft</button>
+        </div>
         <button type="button" class="button button-quiet" id="btn-toggle-dark" aria-label="Switch to dark theme" aria-pressed="false" title="Toggle theme"><span class="theme-toggle-icon material-symbols-rounded" aria-hidden="true">dark_mode</span><span class="sr-only">Toggle theme</span></button>
-        <button type="button" class="button button-primary button-small" id="nav-studio-btn" data-view="studio">Launch Studio</button>
       </nav>
     </header>
     <main id="main-content">
@@ -52,11 +66,6 @@
               <button type="button" id="btn-hero-start" class="button button-primary button-large" data-view="studio"><span class="material-symbols-rounded" aria-hidden="true">terminal</span> Launch Studio</button>
               <button type="button" class="button button-secondary button-large" data-view="gallery">Browse Templates</button>
             </div>
-            <ul class="trust-list">
-              <li><span class="material-symbols-rounded" aria-hidden="true">bolt</span> &lt; 10 KB Clean HTML</li>
-              <li><span class="material-symbols-rounded" aria-hidden="true">shield</span> 100% Client-Side Privacy</li>
-              <li><span class="material-symbols-rounded" aria-hidden="true">verified</span> Tested Across 20+ Clients</li>
-            </ul>
             <div class="hero-repo-credit" aria-label="Open source repository and author credits">
               <a href="https://github.com/ezykl/cards-signature" target="_blank" rel="noopener noreferrer" class="repo-credit-badge">
                 <span class="material-symbols-rounded" aria-hidden="true">terminal</span>
@@ -155,9 +164,9 @@
         </section>
       </section>
       <section id="studio-view" class="app-view" aria-labelledby="studio-title" hidden>
-        <div class="studio-topbar"><div><button type="button" class="text-button" data-view="home"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Back to home</button><p class="eyebrow">Signature editor</p><div class="workbench-title-row"><h1 id="studio-title">Signature Compiler</h1><span class="status-pill-mono"><span class="status-dot"></span>LIVE STATE &bull; LOCAL STORAGE</span></div><p class="studio-description">Draft state is compiled and saved automatically on this device with zero server tracking.</p></div><div class="history-actions"><button id="btn-studio-open-onboarding" type="button" class="button button-secondary button-small btn-open-onboarding" title="Re-run 30-second quick setup"><span class="material-symbols-rounded" aria-hidden="true">bolt</span> Quick Setup</button><button id="btn-undo" type="button" class="icon-button" aria-label="Undo last change" title="Undo"><span class="material-symbols-rounded" aria-hidden="true">undo</span></button><button id="btn-redo" type="button" class="icon-button" aria-label="Redo last change" title="Redo"><span class="material-symbols-rounded" aria-hidden="true">redo</span></button><button id="btn-reset" type="button" class="button button-quiet">Reset draft</button></div></div>
+        <h1 id="studio-title" class="sr-only">Signature Compiler</h1>
         <div id="form-error-summary" class="form-alert" role="alert" tabindex="-1" hidden></div>
-        <div class="studio-layout"><aside class="studio-sidebar" aria-label="Signature settings"><div class="profile-slots-bar" role="group" aria-label="Saved profile slots"><span class="slots-label"><span class="material-symbols-rounded" aria-hidden="true">bookmarks</span> Profiles:</span><div class="slots-buttons"><button type="button" class="slot-chip active" data-slot="slot-1" aria-pressed="true">Primary</button><button type="button" class="slot-chip" data-slot="slot-2" aria-pressed="false">Work</button><button type="button" class="slot-chip" data-slot="slot-3" aria-pressed="false">Personal</button></div></div><div class="studio-mode-toggle" role="tablist" aria-label="Editor view mode"><button type="button" id="btn-mode-guided" class="mode-tab active" role="tab" aria-selected="true"><span class="material-symbols-rounded" aria-hidden="true">auto_fix_high</span> Step-by-Step Guide</button><button type="button" id="btn-mode-advanced" class="mode-tab" role="tab" aria-selected="false"><span class="material-symbols-rounded" aria-hidden="true">tune</span> All Controls</button></div>
+        <div class="studio-layout"><aside class="studio-sidebar" aria-label="Signature settings"><div class="studio-mode-toggle" role="tablist" aria-label="Editor view mode"><button type="button" id="btn-mode-guided" class="mode-tab active" role="tab" aria-selected="true"><span class="material-symbols-rounded" aria-hidden="true">auto_fix_high</span> Step-by-Step Guide</button><button type="button" id="btn-mode-advanced" class="mode-tab" role="tab" aria-selected="false"><span class="material-symbols-rounded" aria-hidden="true">tune</span> All Controls</button></div>
           <div id="guided-mode-pane" class="guided-wizard-pane">
             <div class="wizard-step-header">
               <div class="wizard-header-info">
@@ -192,9 +201,34 @@
               </div>
             </div>
             <div id="wizard-step-3" class="wizard-step-panel" hidden>
-              <p class="wizard-step-desc">Choose the right layout and typography for your emails.</p>
+              <p class="wizard-step-desc">Choose the right layout architecture and typography for your emails.</p>
               <div class="control-body">
-                <label class="form-group" for="wiz-layout"><span>Signature style</span><select id="wiz-layout" class="form-select"><option value="landscape-v2">Landscape (Modern Wide)</option><option value="compact-card">Compact Card (Minimal)</option><option value="minimal-row">Minimal Row (Concise)</option><option value="accent-bar">Executive Accent-Bar</option><option value="split-avatar">Split Avatar (Round Portrait)</option></select></label>
+                <div class="form-group">
+                  <span class="field-label-mono">LAYOUT ARCHITECTURE</span>
+                  <div class="wizard-layout-chips" role="radiogroup" aria-label="Signature Layout Architecture">
+                    <button type="button" class="wizard-layout-chip active" data-comparator-layout="landscape-v2" role="radio" aria-checked="true">
+                      <span class="chip-title">Landscape V2</span>
+                      <span class="chip-badge">Desktop Wide</span>
+                    </button>
+                    <button type="button" class="wizard-layout-chip" data-comparator-layout="compact-card" role="radio" aria-checked="false">
+                      <span class="chip-title">Compact Card</span>
+                      <span class="chip-badge">Balanced</span>
+                    </button>
+                    <button type="button" class="wizard-layout-chip" data-comparator-layout="minimal-row" role="radio" aria-checked="false">
+                      <span class="chip-title">Minimal Row</span>
+                      <span class="chip-badge">Ultra-Dense</span>
+                    </button>
+                    <button type="button" class="wizard-layout-chip" data-comparator-layout="accent-bar" role="radio" aria-checked="false">
+                      <span class="chip-title">Executive Accent</span>
+                      <span class="chip-badge">Solid Pillar</span>
+                    </button>
+                    <button type="button" class="wizard-layout-chip" data-comparator-layout="split-avatar" role="radio" aria-checked="false">
+                      <span class="chip-title">Split Avatar</span>
+                      <span class="chip-badge">Portrait Focus</span>
+                    </button>
+                  </div>
+                </div>
+                <label class="form-group sr-only" for="wiz-layout"><span>Signature style</span><select id="wiz-layout" class="form-select"><option value="landscape-v2">Landscape (Modern Wide)</option><option value="compact-card">Compact Card (Minimal)</option><option value="minimal-row">Minimal Row (Concise)</option><option value="accent-bar">Executive Accent-Bar</option><option value="split-avatar">Split Avatar (Round Portrait)</option></select></label>
                 <div class="form-row">
                   <label class="form-group" for="wiz-title-style"><span>Role styling</span><select id="wiz-title-style" class="form-select"><option value="regular">Regular</option><option value="uppercase">Uppercase</option><option value="italic">Italic</option></select></label>
                   <label class="form-group" for="wiz-name-font-size"><span><span>Name size</span><output id="val-wiz-name-font-size" for="wiz-name-font-size">19px</output></span><input id="wiz-name-font-size" class="range-input" type="range" min="14" max="26" step="1" value="19" /></label>

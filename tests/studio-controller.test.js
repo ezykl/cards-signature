@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -13,7 +15,8 @@ import {
   extractGithubUsername,
   attachPreviewLogoLoader,
   switchProfileSlot,
-  buildStateFromOnboarding
+  buildStateFromOnboarding,
+  syncControls
 } from '../js/studio.js';
 import { DEFAULT_SIGNATURE_STATE, THEME_PRESETS } from '../js/studio-templates.js';
 
@@ -717,6 +720,112 @@ test('clicking Start creating for the first time opens onboarding modal and subm
     delete globalThis.window;
   }
 });
+
+test('context-aware header and streamlined studio workspace contracts in index.html', () => {
+  const htmlPath = path.resolve(process.cwd(), 'index.html');
+  const html = fs.readFileSync(htmlPath, 'utf8');
+
+  // 1. Site header contains context-aware studio-only and home-only components
+  assert.ok(html.includes('class="site-header"'));
+  assert.ok(html.includes('studio-back-btn studio-only'));
+  assert.ok(html.includes('header-divider studio-only'));
+  assert.ok(html.includes('header-center studio-only'));
+  assert.ok(html.includes('studio-header-actions studio-only'));
+  assert.ok(html.includes('home-nav-links home-only'));
+
+  // 2. Undo, Redo, Reset, and Quick Setup are hoisted into studio-header-actions
+  assert.ok(html.includes('id="btn-undo"'));
+  assert.ok(html.includes('id="btn-redo"'));
+  assert.ok(html.includes('id="btn-reset"'));
+  assert.ok(html.includes('id="btn-open-onboarding"'));
+
+  // 3. Homepage trust-list removed to deduplicate with Guarantees section
+  assert.ok(!html.includes('class="trust-list"'));
+  assert.ok(html.includes('class="guarantees-grid"'));
+
+  // 4. Studio topbar and duplicate profile slots removed from studio-view
+  assert.ok(!html.includes('class="studio-topbar"'));
+  assert.ok(html.includes('id="studio-title" class="sr-only"'));
+
+  // 5. Step 3 contains wizard-layout-chips with all 5 architectures
+  assert.ok(html.includes('wizard-layout-chips'));
+  const layouts = ['landscape-v2', 'compact-card', 'minimal-row', 'accent-bar', 'split-avatar'];
+  for (const layout of layouts) {
+    assert.ok(
+      html.includes(`data-comparator-layout="${layout}"`),
+      `Expected index.html to contain layout chip for ${layout}`
+    );
+  }
+});
+
+test('syncControls activates corresponding layout chip across comparator cards and wizard chips', () => {
+  const elements = new Map();
+  const getEl = (id) => {
+    if (!elements.has(id)) {
+      elements.set(id, {
+        id,
+        value: '',
+        innerHTML: '',
+        contains() { return false; },
+        style: { setProperty() {} },
+        classList: { toggle() {}, add() {}, remove() {}, contains() { return false; } },
+        setAttribute() {}
+      });
+    }
+    return elements.get(id);
+  };
+
+  const createMockChip = (layout) => {
+    let active = false;
+    let checked = 'false';
+    return {
+      dataset: { comparatorLayout: layout },
+      classList: {
+        toggle(cls, val) { if (cls === 'active') active = Boolean(val); },
+        contains(cls) { return cls === 'active' ? active : false; }
+      },
+      setAttribute(attr, val) {
+        if (attr === 'aria-checked') checked = String(val);
+      },
+      get checked() { return checked; }
+    };
+  };
+
+  const chipCompact = createMockChip('compact-card');
+  const chipLandscape = createMockChip('landscape-v2');
+  const chipAccent = createMockChip('accent-bar');
+  const allChips = [chipCompact, chipLandscape, chipAccent];
+
+  globalThis.document = {
+    getElementById: (id) => getEl(id),
+    querySelectorAll: (sel) => {
+      if (sel === '[data-comparator-layout]') return allChips;
+      return [];
+    },
+    querySelector: () => null
+  };
+
+  try {
+    const testState = {
+      ...DEFAULT_SIGNATURE_STATE,
+      layout: 'compact-card'
+    };
+
+    syncControls(testState);
+
+    assert.equal(chipCompact.classList.contains('active'), true);
+    assert.equal(chipCompact.checked, 'true');
+
+    assert.equal(chipLandscape.classList.contains('active'), false);
+    assert.equal(chipLandscape.checked, 'false');
+
+    assert.equal(chipAccent.classList.contains('active'), false);
+    assert.equal(chipAccent.checked, 'false');
+  } finally {
+    delete globalThis.document;
+  }
+});
+
 
 
 

@@ -406,7 +406,7 @@ function renderThemeChips(state) {
   });
 }
 
-function syncControls(state) {
+export function syncControls(state) {
   const values = {
     'ctrl-layout': state.layout,
     'ctrl-width-mode': state.widthMode,
@@ -537,9 +537,9 @@ function syncControls(state) {
   renderActionButtons(state);
   updateMediaStatusPill(state, false);
 
-  // Sync layout comparator cards
+  // Sync layout comparator cards and wizard layout chips
   if (typeof document !== 'undefined') {
-    document.querySelectorAll?.('.comparator-card[data-comparator-layout]')?.forEach(card => {
+    document.querySelectorAll?.('[data-comparator-layout]')?.forEach(card => {
       const isActive = card.dataset.comparatorLayout === state.layout;
       card.classList?.toggle('active', isActive);
       card.setAttribute?.('aria-checked', String(isActive));
@@ -1113,11 +1113,11 @@ export function initStudio() {
 
   // Layout Comparator click delegator
   document.addEventListener('click', event => {
-    const compCard = event.target.closest('.comparator-card[data-comparator-layout]');
+    const compCard = event.target.closest('[data-comparator-layout]');
     if (!compCard || !compCard.dataset.comparatorLayout) return;
     const targetLayout = compCard.dataset.comparatorLayout;
     studioStore.setField('layout', targetLayout);
-    const cardName = compCard.querySelector('.comparator-name')?.textContent || targetLayout;
+    const cardName = compCard.querySelector('.comparator-name, .chip-title')?.textContent || targetLayout;
     showStudioToast(`Switched layout to ${cardName}`);
   });
 
