@@ -459,7 +459,9 @@ export function syncControls(state) {
     'wiz-layout': state.layout,
     'wiz-title-style': state.titleStyle,
     'wiz-name-font-size': state.nameFontSize,
-    'wiz-button-shape': state.buttonShape
+    'wiz-button-shape': state.buttonShape,
+    'ctrl-logo-size': state.logoSize ?? 70,
+    'wiz-logo-size': state.logoSize ?? 70
   };
   Object.entries(values).forEach(([id, value]) => {
     const el = document.getElementById(id);
@@ -476,6 +478,44 @@ export function syncControls(state) {
   if (nameSizeVal) nameSizeVal.value = `${state.nameFontSize ?? 19}px`;
   const wizNameSizeVal = document.getElementById('val-wiz-name-font-size');
   if (wizNameSizeVal) wizNameSizeVal.value = `${state.nameFontSize ?? 19}px`;
+
+  const logoSize = state.logoSize ?? 70;
+  const logoSizeVal = document.getElementById('val-logo-size');
+  if (logoSizeVal) logoSizeVal.value = `${logoSize}px`;
+  const wizLogoSizeVal = document.getElementById('val-wiz-logo-size');
+  if (wizLogoSizeVal) wizLogoSizeVal.value = `${logoSize}px`;
+
+  document.querySelectorAll?.('[data-logo-size]')?.forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.logoSize) === Number(logoSize));
+  });
+
+  const activeShape = state.logoShape || 'default';
+  document.querySelectorAll?.('[data-logo-shape]')?.forEach(btn => {
+    const isActive = btn.dataset.logoShape === activeShape;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-checked', String(isActive));
+  });
+
+  const activeFit = state.logoFit || 'contain';
+  document.querySelectorAll?.('[data-logo-fit]')?.forEach(btn => {
+    const isActive = btn.dataset.logoFit === activeFit;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-checked', String(isActive));
+  });
+
+  const activeBorder = state.logoBorder || 'none';
+  document.querySelectorAll?.('[data-logo-border]')?.forEach(btn => {
+    const isActive = btn.dataset.logoBorder === activeBorder;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-checked', String(isActive));
+  });
+
+  const activeAlign = state.logoAlignment || 'default';
+  document.querySelectorAll?.('[data-logo-align]')?.forEach(btn => {
+    const isActive = btn.dataset.logoAlign === activeAlign;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-checked', String(isActive));
+  });
   
   const angleVal = document.getElementById('val-bg-gradient-angle');
   if (angleVal) angleVal.value = `${state.bgGradientAngle ?? 135}°`;
@@ -1109,7 +1149,9 @@ export function initStudio() {
     'ctrl-font-family': 'fontFamily',
     'ctrl-name-font-size': 'nameFontSize',
     'ctrl-title-style': 'titleStyle',
-    'ctrl-button-shape': 'buttonShape'
+    'ctrl-button-shape': 'buttonShape',
+    'ctrl-logo-size': 'logoSize',
+    'wiz-logo-size': 'logoSize'
   };
   Object.entries(bindings).forEach(([id,key]) => {
     const input = document.getElementById(id);
@@ -1125,6 +1167,33 @@ export function initStudio() {
       if (out) out.value = `${event.target.value}px`;
     });
   }
+
+  // Logo adjustments interactive controls
+  document.querySelectorAll('[data-logo-size]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      studioStore.setField('logoSize', Number(btn.dataset.logoSize));
+    });
+  });
+  document.querySelectorAll('[data-logo-shape]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      studioStore.setField('logoShape', btn.dataset.logoShape);
+    });
+  });
+  document.querySelectorAll('[data-logo-fit]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      studioStore.setField('logoFit', btn.dataset.logoFit);
+    });
+  });
+  document.querySelectorAll('[data-logo-border]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      studioStore.setField('logoBorder', btn.dataset.logoBorder);
+    });
+  });
+  document.querySelectorAll('[data-logo-align]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      studioStore.setField('logoAlignment', btn.dataset.logoAlign);
+    });
+  });
 
   // Wizard mode switcher tabs
   document.getElementById('btn-mode-guided')?.addEventListener('click', () => {

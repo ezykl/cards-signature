@@ -279,6 +279,11 @@ export const DEFAULT_SIGNATURE_STATE = {
   fullName: 'Ezekiel P. Villadolid',
   jobTitle: 'Software Developer + UI/UX | Graphic Design',
   logoUrl: 'https://raw.githubusercontent.com/ezykl/Portfolio/refs/heads/master/public/assets/logo.png',
+  logoSize: 70,
+  logoShape: 'default', // 'default' | 'circle' | 'rounded' | 'square'
+  logoFit: 'contain', // 'contain' | 'cover'
+  logoBorder: 'none', // 'none' | 'subtle' | 'accent'
+  logoAlignment: 'default', // 'default' | 'left' | 'center' | 'right'
   contactFields: [
     { id: 'c1', type: 'phone', label: 'Phone', value: '09939389798', href: 'tel:09939389798' },
     { id: 'c2', type: 'email', label: 'Email', value: 'zyk.graphics@gmail.com', href: 'mailto:zyk.graphics@gmail.com' },
@@ -788,6 +793,60 @@ function getTableWidthConfig(state, defaultWidth = 680, minResponsiveWidth = 280
 }
 
 /**
+ * Resolves styling and HTML attributes for Logo / Avatar
+ */
+export function getLogoRenderConfig(state, defaultSize = 70, defaultShape = 'rounded', defaultAlign = 'right') {
+  const size = Math.max(28, Math.min(140, Number(state.logoSize) || defaultSize));
+  const shape = (state.logoShape && state.logoShape !== 'default') ? state.logoShape : defaultShape;
+  let borderRadius = '8px';
+  if (shape === 'circle') {
+    borderRadius = '50%';
+  } else if (shape === 'square') {
+    borderRadius = '0';
+  } else {
+    borderRadius = `${Math.max(4, Math.round(size * 0.14))}px`;
+  }
+
+  const fit = state.logoFit === 'cover' ? 'cover' : 'contain';
+  const isCover = fit === 'cover';
+
+  let border = '0';
+  if (state.logoBorder === 'subtle') {
+    border = `1px solid ${getBorderColor(state)}`;
+  } else if (state.logoBorder === 'accent') {
+    border = `2px solid ${state.accentColor || '#38bdf8'}`;
+  }
+
+  const align = (state.logoAlignment && state.logoAlignment !== 'default')
+    ? state.logoAlignment
+    : defaultAlign;
+
+  let margin = '0';
+  if (align === 'center') {
+    margin = '0 auto';
+  } else if (align === 'right') {
+    margin = '0 0 0 auto';
+  }
+
+  const heightAttr = isCover ? String(size) : 'auto';
+  const heightStyle = isCover ? `${size}px` : 'auto';
+  const maxHeightStyle = isCover ? `${size}px` : `${Math.round(size * 0.9)}px`;
+
+  return {
+    size,
+    shape,
+    fit,
+    borderRadius,
+    border,
+    align,
+    margin,
+    heightAttr,
+    heightStyle,
+    maxHeightStyle
+  };
+}
+
+/**
  * Renders Landscape V2 Layout
  */
 function renderLandscapeV2(state) {
@@ -815,12 +874,14 @@ function renderLandscapeV2(state) {
               ${escapeHTML(state.jobTitle)}
             </span>
           </td>
-          ${safeUrl(state.logoUrl) ? `
+          ${safeUrl(state.logoUrl) ? (() => {
+            const cfg = getLogoRenderConfig(state, 70, 'rounded', 'right');
+            return `
           <!-- Logo (Top Right) -->
-          <td align="right" style="vertical-align: middle; padding-left: 14px; width: 70px;">
-            <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="70" height="46" style="display: block; border: 0; outline: none; max-width: 70px; width: 100%; height: auto;" />
-          </td>
-          ` : ''}
+          <td align="${cfg.align}" style="vertical-align: middle; padding-left: 14px; width: ${cfg.size}px;">
+            <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="${cfg.size}" height="${cfg.heightAttr}" style="display: block; margin: ${cfg.margin}; border: ${cfg.border}; outline: none; border-radius: ${cfg.borderRadius}; max-width: ${cfg.size}px; width: 100%; height: ${cfg.heightStyle}; max-height: ${cfg.maxHeightStyle}; object-fit: ${cfg.fit};" />
+          </td>`;
+          })() : ''}
         </tr>
       </table>
 
@@ -856,15 +917,17 @@ function renderCompactCard(state) {
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
   <tr>
     <td style="padding: 20px; border-radius: ${radius}px; text-align: center;">
-      ${safeUrl(state.logoUrl) ? `
+      ${safeUrl(state.logoUrl) ? (() => {
+        const cfg = getLogoRenderConfig(state, 60, 'rounded', 'center');
+        return `
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
         <tr>
-          <td align="center" style="padding-bottom: 12px;">
-            <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="60" height="40" style="display: block; margin: 0 auto; border: 0; outline: none; max-width: 60px; height: auto;" />
+          <td align="${cfg.align}" style="padding-bottom: 12px;">
+            <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="${cfg.size}" height="${cfg.heightAttr}" style="display: block; margin: ${cfg.margin}; border: ${cfg.border}; outline: none; border-radius: ${cfg.borderRadius}; max-width: ${cfg.size}px; height: ${cfg.heightStyle}; max-height: ${cfg.maxHeightStyle}; object-fit: ${cfg.fit};" />
           </td>
         </tr>
-      </table>
-      ` : ''}
+      </table>`;
+      })() : ''}
 
       <div style="margin: 0 0 4px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
         ${escapeHTML(state.fullName)}
@@ -904,11 +967,13 @@ function renderMinimalRow(state) {
     <td style="padding: 14px 18px; border-radius: ${radius}px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
         <tr>
-          ${safeUrl(state.logoUrl) ? `
-          <td style="vertical-align: middle; padding-right: 14px; width: 50px;">
-            <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="50" height="34" style="display: block; border: 0; outline: none; max-width: 50px; height: auto;" />
-          </td>
-          ` : ''}
+          ${safeUrl(state.logoUrl) ? (() => {
+            const cfg = getLogoRenderConfig(state, 50, 'rounded', 'left');
+            return `
+          <td align="${cfg.align}" style="vertical-align: middle; padding-right: 14px; width: ${cfg.size}px;">
+            <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="${cfg.size}" height="${cfg.heightAttr}" style="display: block; margin: ${cfg.margin}; border: ${cfg.border}; outline: none; border-radius: ${cfg.borderRadius}; max-width: ${cfg.size}px; height: ${cfg.heightStyle}; max-height: ${cfg.maxHeightStyle}; object-fit: ${cfg.fit};" />
+          </td>`;
+          })() : ''}
           <td style="vertical-align: middle;">
             <div style="font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
               ${escapeHTML(state.fullName)}
@@ -964,11 +1029,13 @@ function renderAccentBar(state) {
                     ${escapeHTML(state.jobTitle)}
                   </div>
                 </td>
-                ${safeUrl(state.logoUrl) ? `
-                <td align="right" style="vertical-align: middle; padding-left: 12px; width: 60px;">
-                  <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="60" height="40" style="display: block; border: 0; outline: none; max-width: 60px; height: auto;" />
-                </td>
-                ` : ''}
+                ${safeUrl(state.logoUrl) ? (() => {
+                  const cfg = getLogoRenderConfig(state, 60, 'rounded', 'right');
+                  return `
+                <td align="${cfg.align}" style="vertical-align: middle; padding-left: 12px; width: ${cfg.size}px;">
+                  <img src="${safeUrl(state.logoUrl)}" alt="Logo" width="${cfg.size}" height="${cfg.heightAttr}" style="display: block; margin: ${cfg.margin}; border: ${cfg.border}; outline: none; border-radius: ${cfg.borderRadius}; max-width: ${cfg.size}px; height: ${cfg.heightStyle}; max-height: ${cfg.maxHeightStyle}; object-fit: ${cfg.fit};" />
+                </td>`;
+                })() : ''}
               </tr>
             </table>
 
@@ -1000,6 +1067,7 @@ function renderSplitAvatar(state) {
   const nameSize = state.nameFontSize || 19;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
   const avatarUrl = safeUrl(state.logoUrl, 'https://raw.githubusercontent.com/ezykl/Portfolio/refs/heads/master/public/assets/logo.png');
+  const cfg = getLogoRenderConfig(state, 70, 'circle', 'center');
 
   return `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
@@ -1008,8 +1076,8 @@ function renderSplitAvatar(state) {
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
         <tr>
           <!-- Left Column: Circular Avatar -->
-          <td style="width: 70px; vertical-align: top; padding-right: 18px;" align="center">
-            <img src="${avatarUrl}" alt="Avatar" width="70" height="70" style="display: block; width: 70px; height: 70px; border-radius: 50%; border: 0; outline: none; object-fit: cover;" />
+          <td style="width: ${cfg.size}px; vertical-align: top; padding-right: 18px;" align="${cfg.align}">
+            <img src="${avatarUrl}" alt="Avatar" width="${cfg.size}" height="${cfg.size}" style="display: block; margin: ${cfg.margin}; width: ${cfg.size}px; height: ${cfg.size}px; border-radius: ${cfg.borderRadius}; border: ${cfg.border}; outline: none; object-fit: ${cfg.fit};" />
           </td>
           <!-- Right Column: Details & Buttons -->
           <td style="vertical-align: top;">

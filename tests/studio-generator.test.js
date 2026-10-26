@@ -346,4 +346,49 @@ test('all curated theme presets render contact details with WCAG AA compliant co
   }
 });
 
+test('renderSignatureHTML respects custom logoSize, logoShape, logoFit, logoBorder, and logoAlignment', () => {
+  // 1. Circle shape with accent ring and size 84
+  const stateCircle = {
+    ...DEFAULT_SIGNATURE_STATE,
+    layout: 'landscape-v2',
+    logoSize: 84,
+    logoShape: 'circle',
+    logoFit: 'cover',
+    logoBorder: 'accent',
+    logoAlignment: 'left'
+  };
+  const htmlCircle = renderSignatureHTML(stateCircle);
+  assert.ok(htmlCircle.includes('width="84"'));
+  assert.match(htmlCircle, /border-radius:\s*50%/);
+  assert.match(htmlCircle, /border:\s*2px solid/);
+  assert.match(htmlCircle, /object-fit:\s*cover/);
+  assert.match(htmlCircle, /align="left"/);
 
+  // 2. Square shape with subtle border and size 48
+  const stateSquare = {
+    ...DEFAULT_SIGNATURE_STATE,
+    layout: 'compact-card',
+    logoSize: 48,
+    logoShape: 'square',
+    logoFit: 'contain',
+    logoBorder: 'subtle',
+    logoAlignment: 'center'
+  };
+  const htmlSquare = renderSignatureHTML(stateSquare);
+  assert.ok(htmlSquare.includes('width="48"'));
+  assert.match(htmlSquare, /border-radius:\s*0/);
+  assert.match(htmlSquare, /border:\s*1px solid/);
+  assert.match(htmlSquare, /align="center"/);
+
+  // 3. Rounded shape with no border
+  const stateRounded = {
+    ...DEFAULT_SIGNATURE_STATE,
+    layout: 'minimal-row',
+    logoSize: 60,
+    logoShape: 'rounded',
+    logoBorder: 'none'
+  };
+  const htmlRounded = renderSignatureHTML(stateRounded);
+  assert.ok(htmlRounded.includes('width="60"'));
+  assert.match(htmlRounded, /border-radius:\s*[0-9]+px/);
+});

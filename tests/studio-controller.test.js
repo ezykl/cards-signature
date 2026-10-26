@@ -935,6 +935,164 @@ test('30-second quick setup modal is partitioned into 3 sequential steps with st
   assert.ok(html.includes('id="btn-onboard-prev-3"'));
 });
 
+test('index.html contains comprehensive logo and avatar adjustment controls', () => {
+  const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
+  assert.ok(html.includes('id="ctrl-logo-size"'));
+  assert.ok(html.includes('id="wiz-logo-size"'));
+  assert.ok(html.includes('id="val-logo-size"'));
+  assert.ok(html.includes('id="val-wiz-logo-size"'));
+  assert.ok(html.includes('data-logo-size="48"'));
+  assert.ok(html.includes('data-logo-size="64"'));
+  assert.ok(html.includes('data-logo-size="80"'));
+  assert.ok(html.includes('data-logo-size="96"'));
+  assert.ok(html.includes('data-logo-shape="circle"'));
+  assert.ok(html.includes('data-logo-shape="rounded"'));
+  assert.ok(html.includes('data-logo-shape="square"'));
+  assert.ok(html.includes('data-logo-fit="contain"'));
+  assert.ok(html.includes('data-logo-fit="cover"'));
+  assert.ok(html.includes('data-logo-border="none"'));
+  assert.ok(html.includes('data-logo-border="subtle"'));
+  assert.ok(html.includes('data-logo-border="accent"'));
+  assert.ok(html.includes('data-logo-align="left"'));
+  assert.ok(html.includes('data-logo-align="center"'));
+  assert.ok(html.includes('data-logo-align="right"'));
+});
+
+test('syncControls synchronizes logo size, shape, fit, border, and alignment controls', () => {
+  const logoSizeCtrl = { id: 'ctrl-logo-size', value: '' };
+  const logoSizeWiz = { id: 'wiz-logo-size', value: '' };
+  const logoSizeVal = { id: 'val-logo-size', value: '' };
+  const logoSizeWizVal = { id: 'val-wiz-logo-size', value: '' };
+
+  const shapeButtons = [
+    { dataset: { logoShape: 'default' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } },
+    { dataset: { logoShape: 'circle' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } },
+    { dataset: { logoShape: 'rounded' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } },
+    { dataset: { logoShape: 'square' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } }
+  ];
+  shapeButtons.forEach(b => {
+    b.classList.toggle = (cls, cond) => (cond ? b.classList.add(cls) : b.classList.delete(cls));
+  });
+
+  const fitButtons = [
+    { dataset: { logoFit: 'contain' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } },
+    { dataset: { logoFit: 'cover' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } }
+  ];
+  fitButtons.forEach(b => {
+    b.classList.toggle = (cls, cond) => (cond ? b.classList.add(cls) : b.classList.delete(cls));
+  });
+
+  const borderButtons = [
+    { dataset: { logoBorder: 'none' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } },
+    { dataset: { logoBorder: 'subtle' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } },
+    { dataset: { logoBorder: 'accent' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } }
+  ];
+  borderButtons.forEach(b => {
+    b.classList.toggle = (cls, cond) => (cond ? b.classList.add(cls) : b.classList.delete(cls));
+  });
+
+  const alignButtons = [
+    { dataset: { logoAlign: 'default' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } },
+    { dataset: { logoAlign: 'left' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } },
+    { dataset: { logoAlign: 'center' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } },
+    { dataset: { logoAlign: 'right' }, classList: new Set(), setAttribute(k, v) { this[k] = v; } }
+  ];
+  alignButtons.forEach(b => {
+    b.classList.toggle = (cls, cond) => (cond ? b.classList.add(cls) : b.classList.delete(cls));
+  });
+
+  const sizePresetButtons = [
+    { dataset: { logoSize: '48' }, classList: new Set() },
+    { dataset: { logoSize: '64' }, classList: new Set() },
+    { dataset: { logoSize: '80' }, classList: new Set() },
+    { dataset: { logoSize: '96' }, classList: new Set() }
+  ];
+  sizePresetButtons.forEach(b => {
+    b.classList.toggle = (cls, cond) => (cond ? b.classList.add(cls) : b.classList.delete(cls));
+  });
+
+  const dom = {
+    'ctrl-logo-size': logoSizeCtrl,
+    'wiz-logo-size': logoSizeWiz,
+    'val-logo-size': logoSizeVal,
+    'val-wiz-logo-size': logoSizeWizVal
+  };
+
+  globalThis.document = {
+    getElementById: id => dom[id] || null,
+    querySelectorAll: sel => {
+      if (sel === '[data-logo-shape]') return shapeButtons;
+      if (sel === '[data-logo-fit]') return fitButtons;
+      if (sel === '[data-logo-border]') return borderButtons;
+      if (sel === '[data-logo-align]') return alignButtons;
+      if (sel === '[data-logo-size]') return sizePresetButtons;
+      return [];
+    },
+    querySelector: () => null,
+    activeElement: null
+  };
+
+  try {
+    syncControls({
+      ...DEFAULT_SIGNATURE_STATE,
+      logoSize: 96,
+      logoShape: 'circle',
+      logoFit: 'cover',
+      logoBorder: 'accent',
+      logoAlignment: 'center'
+    });
+
+    assert.equal(logoSizeCtrl.value, 96);
+    assert.equal(logoSizeWiz.value, 96);
+    assert.equal(logoSizeVal.value, '96px');
+    assert.equal(logoSizeWizVal.value, '96px');
+
+    const circleBtn = shapeButtons.find(b => b.dataset.logoShape === 'circle');
+    const roundedBtn = shapeButtons.find(b => b.dataset.logoShape === 'rounded');
+    assert.ok(circleBtn.classList.has('active'));
+    assert.equal(circleBtn['aria-checked'], 'true');
+    assert.ok(!roundedBtn.classList.has('active'));
+
+    const coverBtn = fitButtons.find(b => b.dataset.logoFit === 'cover');
+    const containBtn = fitButtons.find(b => b.dataset.logoFit === 'contain');
+    assert.ok(coverBtn.classList.has('active'));
+    assert.equal(coverBtn['aria-checked'], 'true');
+    assert.ok(!containBtn.classList.has('active'));
+
+    const accentBorderBtn = borderButtons.find(b => b.dataset.logoBorder === 'accent');
+    assert.ok(accentBorderBtn.classList.has('active'));
+    assert.equal(accentBorderBtn['aria-checked'], 'true');
+
+    const centerAlignBtn = alignButtons.find(b => b.dataset.logoAlign === 'center');
+    assert.ok(centerAlignBtn.classList.has('active'));
+    assert.equal(centerAlignBtn['aria-checked'], 'true');
+
+    const p96Btn = sizePresetButtons.find(b => b.dataset.logoSize === '96');
+    const p48Btn = sizePresetButtons.find(b => b.dataset.logoSize === '48');
+    assert.ok(p96Btn.classList.has('active'));
+    assert.ok(!p48Btn.classList.has('active'));
+  } finally {
+    delete globalThis.document;
+  }
+});
+
+test('store updates all logo customization properties accurately', () => {
+  const store = createStudioStore();
+  store.setField('logoSize', 84);
+  store.setField('logoShape', 'square');
+  store.setField('logoFit', 'cover');
+  store.setField('logoBorder', 'subtle');
+  store.setField('logoAlignment', 'left');
+
+  const state = store.getState();
+  assert.equal(state.logoSize, 84);
+  assert.equal(state.logoShape, 'square');
+  assert.equal(state.logoFit, 'cover');
+  assert.equal(state.logoBorder, 'subtle');
+  assert.equal(state.logoAlignment, 'left');
+});
+
+
 
 
 
