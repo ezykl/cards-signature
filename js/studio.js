@@ -1611,18 +1611,6 @@ export function initStudio() {
       localStorage.setItem('darkMode', JSON.stringify(nextDark));
     });
   }
-  document.getElementById('btn-inbox-light')?.addEventListener('click', () => {
-    canvas?.classList.remove('inbox-sim-dark');
-    canvas?.classList.add('inbox-sim-light');
-    document.getElementById('btn-inbox-light')?.classList.add('active');
-    document.getElementById('btn-inbox-dark')?.classList.remove('active');
-  });
-  document.getElementById('btn-inbox-dark')?.addEventListener('click', () => {
-    canvas?.classList.remove('inbox-sim-light');
-    canvas?.classList.add('inbox-sim-dark');
-    document.getElementById('btn-inbox-dark')?.classList.add('active');
-    document.getElementById('btn-inbox-light')?.classList.remove('active');
-  });
   document.getElementById('btn-vp-desktop').addEventListener('click', () => { canvas.classList.remove('viewport-mobile'); document.getElementById('btn-vp-desktop').classList.add('active'); document.getElementById('btn-vp-mobile').classList.remove('active'); });
   document.getElementById('btn-vp-mobile').addEventListener('click', () => { canvas.classList.add('viewport-mobile'); document.getElementById('btn-vp-mobile').classList.add('active'); document.getElementById('btn-vp-desktop').classList.remove('active'); });
   document.getElementById('btn-undo').addEventListener('click', () => studioStore.undo());

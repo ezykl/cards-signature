@@ -457,7 +457,7 @@ test('attachPreviewLogoLoader adds loading state to logo cell while image loads 
   assert.equal(cellClasses.has('is-loading'), false);
 });
 
-test('switchProfileSlot persists per-slot state and initStudio wires inbox simulator and vCard buttons', () => {
+test('switchProfileSlot persists per-slot state and initStudio wires viewport toggle and vCard buttons', () => {
   const storage = new Map();
   const elements = new Map();
   const getEl = (id) => {
@@ -538,15 +538,16 @@ test('switchProfileSlot persists per-slot state and initStudio wires inbox simul
     assert.ok(Array.isArray(getEl('btn-studio-download-vcf').listeners.click));
     assert.ok(Array.isArray(getEl('btn-wiz-download-vcf').listeners.click));
 
-    // Verify Inbox Dark / Light simulator buttons toggle .inbox-sim-dark on #studio-canvas-wrapper
-    const darkInboxBtn = getEl('btn-inbox-dark');
-    const lightInboxBtn = getEl('btn-inbox-light');
-    assert.ok(Array.isArray(darkInboxBtn.listeners.click));
-    darkInboxBtn.listeners.click[0]();
-    assert.equal(getEl('studio-canvas-wrapper').classList.contains('inbox-sim-dark'), true);
+    // Verify Desktop / Mobile viewport buttons toggle .viewport-mobile on #studio-canvas-wrapper
+    const vpMobileBtn = getEl('btn-vp-mobile');
+    const vpDesktopBtn = getEl('btn-vp-desktop');
+    assert.ok(Array.isArray(vpMobileBtn.listeners.click));
+    assert.ok(Array.isArray(vpDesktopBtn.listeners.click));
+    vpMobileBtn.listeners.click[0]();
+    assert.equal(getEl('studio-canvas-wrapper').classList.contains('viewport-mobile'), true);
 
-    lightInboxBtn.listeners.click[0]();
-    assert.equal(getEl('studio-canvas-wrapper').classList.contains('inbox-sim-dark'), false);
+    vpDesktopBtn.listeners.click[0]();
+    assert.equal(getEl('studio-canvas-wrapper').classList.contains('viewport-mobile'), false);
 
     // Switch profile slots and verify independent state persistence
     getEl('ctrl-full-name').value = 'Slot One User';
@@ -1090,6 +1091,15 @@ test('store updates all logo customization properties accurately', () => {
   assert.equal(state.logoFit, 'cover');
   assert.equal(state.logoBorder, 'subtle');
   assert.equal(state.logoAlignment, 'left');
+});
+
+test('Live preview top bar keeps only desktop and mobile viewport toggle and omits redundant inbox-sim toggle', () => {
+  const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
+  assert.ok(html.includes('id="btn-vp-desktop"'));
+  assert.ok(html.includes('id="btn-vp-mobile"'));
+  assert.ok(!html.includes('id="btn-inbox-light"'));
+  assert.ok(!html.includes('id="btn-inbox-dark"'));
+  assert.ok(!html.includes('inbox-sim-toggle'));
 });
 
 
