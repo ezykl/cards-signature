@@ -234,7 +234,7 @@ export function getContactPlaceholders(type) {
       return { val: 'Email address (e.g. name@domain.com)', href: 'mailto:name@domain.com' };
     case 'location':
     case 'address':
-      return { val: 'Location (e.g. San Roque, Cebu City)', href: 'Optional map link (https://...)' };
+      return { val: 'Location (e.g. San Roque, Cebu City)', href: 'Optional map link (https://…)' };
     case 'phone':
       return { val: 'Phone number (e.g. +63 993 938 9798)', href: 'tel:+639939389798' };
     case 'website':
@@ -314,9 +314,9 @@ function renderContactFields(state) {
       </div>
       <div class="form-row">
         <label class="sr-only" for="value-${escapeHTML(field.id)}">Display text</label>
-        <input id="value-${escapeHTML(field.id)}" class="form-input field-val-input" data-id="${escapeHTML(field.id)}" placeholder="${placeholders.val}" value="${escapeHTML(field.value)}" />
+        <input id="value-${escapeHTML(field.id)}" class="form-input field-val-input" data-id="${escapeHTML(field.id)}" maxlength="160" placeholder="${placeholders.val}" value="${escapeHTML(field.value)}" />
         <label class="sr-only" for="link-${escapeHTML(field.id)}">Link</label>
-        <input id="link-${escapeHTML(field.id)}" class="form-input field-href-input" data-id="${escapeHTML(field.id)}" placeholder="${placeholders.href}" value="${escapeHTML(field.href)}" />
+        <input id="link-${escapeHTML(field.id)}" class="form-input field-href-input" data-id="${escapeHTML(field.id)}" maxlength="500" spellcheck="false" placeholder="${placeholders.href}" value="${escapeHTML(field.href)}" />
       </div>
     </article>`;
   }).join('');
@@ -403,9 +403,9 @@ function renderActionButtons(state) {
       </div>
       <div class="form-row">
         <label class="sr-only" for="label-${escapeHTML(button.id)}">Button label</label>
-        <input id="label-${escapeHTML(button.id)}" class="form-input btn-label-input" data-id="${escapeHTML(button.id)}" placeholder="Button label" value="${escapeHTML(button.label)}" />
+        <input id="label-${escapeHTML(button.id)}" class="form-input btn-label-input" data-id="${escapeHTML(button.id)}" maxlength="48" placeholder="Button label" value="${escapeHTML(button.label)}" />
         <label class="sr-only" for="url-${escapeHTML(button.id)}">Button URL</label>
-        <input id="url-${escapeHTML(button.id)}" class="form-input btn-url-input" data-id="${escapeHTML(button.id)}" placeholder="https://..." value="${escapeHTML(button.url)}" />
+        <input id="url-${escapeHTML(button.id)}" class="form-input btn-url-input" data-id="${escapeHTML(button.id)}" maxlength="500" spellcheck="false" placeholder="https://…" value="${escapeHTML(button.url)}" />
       </div>
     </article>`;
   }).join('');
@@ -705,7 +705,7 @@ function updateMediaStatusPill(state, isLoading = false) {
       el.textContent = `⚠ ${info.warning}`;
     } else if (isLoading) {
       el.className = 'media-status-pill status-loading';
-      el.textContent = `⟳ ${info.converted ? 'Reconstructing raw image' : 'Loading image'} — ${info.label}...`;
+      el.textContent = `⟳ ${info.converted ? 'Reconstructing raw image' : 'Loading image'} — ${info.label}…`;
     } else {
       el.className = 'media-status-pill status-ok';
       el.textContent = `✓ ${info.label}`;
@@ -889,7 +889,7 @@ export async function exportSignaturePNG() {
   const originalText = btn ? btn.innerHTML : '';
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span> Generating PNG...';
+    btn.innerHTML = '<span class="material-symbols-rounded" aria-hidden="true">hourglass_top</span> Generating PNG…';
   }
 
   try {

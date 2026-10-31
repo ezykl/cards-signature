@@ -2,7 +2,7 @@
 
 /* Dark palette is applied via the .dark-mode class (see css/theme.css), toggled in js/studio.js. */
 
-.dark-mode { background: var(--canvas); color: var(--ink); }
+.dark-mode { background: var(--canvas); color: var(--ink); color-scheme: dark; }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; }
 body { margin:0; min-width:320px; color:var(--ink); background:var(--canvas); font:400 16px/1.55 "Open Sans",Arial,sans-serif; }
@@ -465,7 +465,7 @@ button { cursor:pointer; }
   color: var(--navy);
   cursor: pointer;
   text-align: center;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .preset-pill:hover {
   border-color: var(--blue);
@@ -635,6 +635,7 @@ button { cursor:pointer; }
   width: min(620px, 100%);
   max-height: calc(100vh - 40px);
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line);
@@ -1258,7 +1259,7 @@ body.view-mode-gallery .home-only {
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
-  transition: all var(--dur-fast) ease;
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, color var(--dur-fast) ease;
 }
 .studio-back-btn:hover {
   background: var(--soft);

@@ -64,12 +64,22 @@ function tonesFor(bg) {
   };
 }
 
-function initialsOf(name = '') {
+export function initialsOf(name = '') {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return '?';
-  const first = parts[0][0] || '';
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
-  return (first + last).toUpperCase();
+  const alphaParts = parts.filter(p => /[\p{L}\p{N}]/u.test(p));
+  const useParts = alphaParts.length ? alphaParts : parts;
+  const firstChar = word => {
+    const clean = alphaParts.length ? word.replace(/^[^\p{L}\p{N}]+/u, '') : word;
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      const seg = new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(clean || word)[Symbol.iterator]().next().value;
+      if (seg && seg.segment) return seg.segment;
+    }
+    return Array.from(clean || word)[0] || '';
+  };
+  const first = firstChar(useParts[0]);
+  const last = useParts.length > 1 ? firstChar(useParts[useParts.length - 1]) : '';
+  return (first + last).toUpperCase() || '?';
 }
 
 /**
@@ -217,8 +227,8 @@ function compactContacts(fields = [], tones) {
       const href = safeUrl(f.href);
       const text = escapeHTML(f.value);
       return href
-        ? `<a href="${href}" style="color: ${tones.secondary}; text-decoration: none;">${text}</a>`
-        : `<span style="color: ${tones.secondary};">${text}</span>`;
+        ? `<a href="${href}" style="color: ${tones.secondary}; text-decoration: none; overflow-wrap: anywhere; word-break: break-word;">${text}</a>`
+        : `<span style="color: ${tones.secondary}; overflow-wrap: anywhere; word-break: break-word;">${text}</span>`;
     })
     .join('&nbsp;&nbsp;&middot;&nbsp;&nbsp;');
 }
@@ -231,21 +241,22 @@ function textBlock(state, cfg, format) {
   const titleAttr = getTitleStyleAttr(state.titleStyle, titleColor);
   const baseName = state.nameFontSize || 19;
   const nameSize = format === 'compact' ? Math.max(14, baseName - 3) : baseName;
+  const roleText = String(state.jobTitle || '').trim();
 
   const head = `
-    <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${tones.primary}; letter-spacing: -0.2px; line-height: 1.2; text-align: ${align};">${escapeHTML(state.fullName)}</div>
-    <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.2px; text-align: ${align}; ${titleAttr}">${escapeHTML(state.jobTitle)}</div>`;
+    <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${tones.primary}; letter-spacing: -0.2px; line-height: 1.2; text-align: ${align}; overflow-wrap: anywhere; word-break: break-word;">${escapeHTML(state.fullName)}</div>${roleText ? `
+    <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.2px; text-align: ${align}; overflow-wrap: anywhere; word-break: break-word; ${titleAttr}">${escapeHTML(roleText)}</div>` : ''}`;
 
   if (format === 'compact') {
     const line = compactContacts(state.contactFields, tones);
-    return `${head}${line ? `<div style="margin-top: 6px; font-size: 11px; line-height: 1.4; text-align: left;">${line}</div>` : ''}`;
+    return `${head}${line ? `<div style="margin-top: 6px; font-size: 11px; line-height: 1.4; text-align: left; overflow-wrap: anywhere; word-break: break-word;">${line}</div>` : ''}`;
   }
 
   const rows = renderContactRows(state.contactFields, accent, tones.secondary, tones.primary, cfg.bodyBg);
   const contacts = rows
     ? `<table role="presentation"${align === 'center' ? ' align="center"' : ''} cellpadding="0" cellspacing="0" border="0">${rows}</table>`
     : '';
-  const buttons = renderActionButtons(state.buttons, state);
+  const buttons = renderActionButtons(state.buttons, { ...state, format });
 
   if (cfg.bodyDivider && format === 'landscape') {
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="padding-right: 16px; border-right: 2px solid ${cfg.bodyDivider};">${head}${buttons}</td><td valign="middle" style="padding-left: 16px;">${contacts}</td></tr></table>`;
@@ -272,7 +283,7 @@ function cornerCell(cfg) {
 function buildDesign(state, format, cfg) {
   const photo = renderPhoto(state, cfg.photo, format);
   const baseRadius = state.borderRadius !== undefined ? state.borderRadius : 16;
-  const radius = (cfg.pillWrap && format !== 'portrait') ? 999 : baseRadius;
+  const radius = cfg.pillWrap ? (format === 'compact' ? 999 : format === 'landscape' ? 44 : baseRadius) : baseRadius;
   const requested = (state.maxWidth && state.maxWidth !== 680) ? state.maxWidth : FORMAT_WIDTH[format];
   const target = format === 'portrait' ? Math.min(requested, PORTRAIT_MAX_WIDTH) : requested;
   const widthCfg = getTableWidthConfig({ ...state, maxWidth: target }, target, 240);

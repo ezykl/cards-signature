@@ -1,7 +1,8 @@
+import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_SIGNATURE_STATE, renderSignatureHTML } from '../js/studio-templates.js';
-import { DESIGN_FAMILIES, DESIGN_FORMATS, renderAllFormats, renderDesignArtSVG } from '../js/studio-designs.js';
+import { DEFAULT_SIGNATURE_STATE, renderSignatureHTML, buildInitialsAvatarUrl } from '../js/studio-templates.js';
+import { DESIGN_FAMILIES, DESIGN_FORMATS, renderAllFormats, renderDesignArtSVG, initialsOf } from '../js/studio-designs.js';
 import { renderMultiFormatPreview, buildAllFormatsHTMLSheet, loadPresetByCardId } from '../js/studio.js';
 
 const NEW_FAMILIES = DESIGN_FAMILIES.filter(f => f.id !== 'classic').map(f => f.id);
@@ -146,3 +147,54 @@ test('loadPresetByCardId supports all 8 art-directed design family gallery cards
     assert.ok(NEW_FAMILIES.includes(presetState.design));
   }
 });
+
+test('Break-UI: initialsOf and buildInitialsAvatarUrl handle emoji/surrogate pairs and diacritics without broken surrogates', () => {
+  assert.equal(initialsOf('🦊 Fox'), 'F');
+  assert.equal(initialsOf('🦊 Fox Vulpes'), 'FV');
+  assert.equal(initialsOf('👨‍💻 Alex Rivera'), 'AR');
+  assert.equal(initialsOf('Élodie Ångström'), 'ÉÅ');
+  assert.equal(initialsOf('🦊'), '🦊');
+  assert.ok(!/[\uD800-\uDFFF]/.test(initialsOf('🦊 Fox').replace(/\p{Emoji}/gu, '')));
+
+  const avatarUrl = buildInitialsAvatarUrl({ ...DEFAULT_SIGNATURE_STATE, fullName: '🦊 Fox Vulpes' });
+  assert.ok(avatarUrl.includes('Fox%20Vulpes'));
+});
+
+test('Break-UI: compact format wraps long unbreakable emails and violet-pill uses 44px stadium radius in landscape', () => {
+  const longEmail = 'bartholomew.fitzgerald@northwind-industries-holdings-international.example.com';
+  const compactHtml = render('lime-panel', 'compact', {
+    contactFields: [{ id: 'c1', type: 'email', label: 'Email', value: longEmail, href: `mailto:${longEmail}` }]
+  });
+  assert.match(compactHtml, /overflow-wrap:\s*anywhere/i);
+  assert.match(compactHtml, /word-break:\s*break-word/i);
+
+  const pillLandscape = render('violet-pill', 'landscape');
+  const pillCompact = render('violet-pill', 'compact');
+  assert.match(pillLandscape, /border-radius:\s*44px/);
+  assert.match(pillCompact, /border-radius:\s*999px/);
+});
+
+test('Break-UI: portrait format chunks >2 action buttons into a 2x2 grid and omits empty jobTitle cleanly', () => {
+  const fourButtons = [
+    { id: 'b1', icon: 'github', label: 'GitHub', url: 'https://github.com', style: 'dark' },
+    { id: 'b2', icon: 'linkedin', label: 'LinkedIn', url: 'https://linkedin.com', style: 'brand' },
+    { id: 'b3', icon: 'calendar', label: 'Terminvereinbarung', url: 'https://cal.com', style: 'accent' },
+    { id: 'b4', icon: 'globe', label: 'Portfolio', url: 'https://example.com', style: 'outline' }
+  ];
+  const portraitHtml = render('ocean-split', 'portrait', { buttons: fourButtons, jobTitle: '' });
+  assert.match(portraitHtml, /width:\s*50\.00%/);
+  assert.match(portraitHtml, /padding-bottom:\s*6px/);
+  assert.ok(!portraitHtml.includes('Role or Team'));
+  assert.ok(!portraitHtml.includes(DEFAULT_SIGNATURE_STATE.jobTitle));
+});
+
+test('Web Interface Guidelines: CSS and HTML contracts are enforced', () => {
+  const css = fs.readFileSync(new URL('../css/studio.css', import.meta.url), 'utf8');
+  const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(css, /\.dark-mode\s*\{[^}]*color-scheme:\s*dark/i);
+  assert.match(css, /\.modal-card\s*\{[^}]*overscroll-behavior:\s*contain/i);
+  assert.ok(!/transition:\s*all\b/i.test(css), 'studio.css must not use transition: all');
+  assert.match(html, /id="ctrl-logo-url"[^>]*spellcheck="false"/i);
+  assert.ok(!html.includes('...'), 'index.html should use typographic ellipsis (…)');
+});
+

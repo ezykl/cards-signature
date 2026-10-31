@@ -539,9 +539,11 @@ export function resolveMediaUrl(rawUrl, mode = 'image') {
  */
 export function buildInitialsAvatarUrl(state = DEFAULT_SIGNATURE_STATE) {
   const rawName = String(state?.fullName || 'Your Name').trim() || 'Your Name';
+  const alphaWords = rawName.split(/\s+/).map(w => w.replace(/^[^\p{L}\p{N}]+/u, '')).filter(Boolean);
+  const safeName = alphaWords.length ? alphaWords.join(' ') : rawName;
   const bgHex = cleanHex(state?.bgColor || '#000440');
   const colorHex = cleanHex(state?.accentColor || '#38bdf8');
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=${bgHex}&color=${colorHex}&size=128&bold=true&rounded=true&format=png`;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=${bgHex}&color=${colorHex}&size=128&bold=true&rounded=true&format=png`;
 }
 
 /**
@@ -714,23 +716,30 @@ export function renderContactRows(contactFields, accentColor, textColorSecondary
 
 /**
  * Builds modular action buttons row markup.
+ * Automatically wraps into a 2x2 grid when rendering >2 buttons in portrait/compact-card layouts.
  */
-export function renderActionButtons(buttons, state) {
+export function renderActionButtons(buttons, state = {}) {
   if (!buttons || buttons.length === 0) return '';
 
-  const count = buttons.length;
-  const colWidth = `${(100 / count).toFixed(2)}%`;
+  const isNarrow = state?.format === 'portrait' || state?.layout === 'compact-card';
+  const rows = (isNarrow && buttons.length > 2)
+    ? [buttons.slice(0, 2), buttons.slice(2)]
+    : [buttons];
 
-  const cells = buttons.map((btn, index) => {
+  const renderCell = (btn, index, rowCount, padBottom) => {
     const isFirst = index === 0;
-    const isLast = index === count - 1;
+    const isLast = index === rowCount - 1;
+    const colWidth = `${(100 / rowCount).toFixed(2)}%`;
     let paddingStyle = 'padding: 0 3px;';
-    if (count === 1) {
+    if (rowCount === 1) {
       paddingStyle = 'padding: 0;';
     } else if (isFirst) {
       paddingStyle = 'padding-right: 4px;';
     } else if (isLast) {
       paddingStyle = 'padding-left: 4px;';
+    }
+    if (padBottom) {
+      paddingStyle += ' padding-bottom: 6px;';
     }
 
     let bgStyle = 'background-color: #121829; background-image: linear-gradient(180deg, #1b233a 0%, #0f1524 100%); border: 1px solid rgba(255, 255, 255, 0.16); color: #f8fafc;';
@@ -762,18 +771,24 @@ export function renderActionButtons(buttons, state) {
 
     return `
       <td style="${paddingStyle} width: ${colWidth}; vertical-align: middle;">
-        <a href="${safeUrl(btn.url, '#')}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; ${bgStyle} font-size: 10.5px; font-weight: 600; text-decoration: none; padding: 7px 6px; border-radius: ${radius}px; line-height: 14px; white-space: nowrap;">
+        <a href="${safeUrl(btn.url, '#')}" target="_blank" rel="noopener noreferrer" style="display: block; text-align: center; ${bgStyle} font-size: 10.5px; font-weight: 600; text-decoration: none; padding: 7px 6px; border-radius: ${radius}px; line-height: 14px; overflow-wrap: anywhere; word-break: break-word;">
           ${iconTag.trim()}${escapeHTML(btn.label)}
         </a>
       </td>
     `;
+  };
+
+  const trs = rows.map((row, rowIdx) => {
+    const padBottom = rowIdx < rows.length - 1;
+    const cells = row.map((btn, idx) => renderCell(btn, idx, row.length, padBottom)).join('');
+    return `
+      <tr>
+        ${cells}
+      </tr>`;
   }).join('');
 
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 14px;">
-      <tr>
-        ${cells}
-      </tr>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 14px;">${trs}
     </table>
   `;
 }
@@ -863,6 +878,7 @@ function renderLandscapeV2(state) {
   const buttonsMarkup = renderActionButtons(state.buttons, state);
   const nameSize = state.nameFontSize || 19;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
+  const roleText = String(state.jobTitle || '').trim();
 
   return `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
@@ -873,12 +889,12 @@ function renderLandscapeV2(state) {
         <tr>
           <!-- Name & Title -->
           <td style="vertical-align: middle;">
-            <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; letter-spacing: -0.2px; line-height: 1.2;">
+            <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; letter-spacing: -0.2px; line-height: 1.2; overflow-wrap: anywhere; word-break: break-word;">
               ${escapeHTML(state.fullName)}
             </div>
-            <span style="display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.2px; ${titleStyleAttr}">
-              ${escapeHTML(state.jobTitle)}
-            </span>
+            ${roleText ? `<span style="display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.2px; overflow-wrap: anywhere; word-break: break-word; ${titleStyleAttr}">
+              ${escapeHTML(roleText)}
+            </span>` : ''}
           </td>
           ${safeUrl(state.logoUrl) ? (() => {
             const cfg = getLogoRenderConfig(state, 70, 'rounded', 'right');
@@ -915,9 +931,10 @@ function renderCompactCard(state) {
   const widthCfg = getTableWidthConfig({ ...state, maxWidth: targetWidth }, targetWidth, 260);
   const radius = state.borderRadius !== undefined ? state.borderRadius : 16;
   const contactRows = renderContactRows(state.contactFields, state.accentColor, state.textColorSecondary, state.textColorPrimary, state.bgColor);
-  const buttonsMarkup = renderActionButtons(state.buttons, state);
+  const buttonsMarkup = renderActionButtons(state.buttons, { ...state, layout: 'compact-card' });
   const nameSize = state.nameFontSize || 18;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
+  const roleText = String(state.jobTitle || '').trim();
 
   return `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
@@ -935,12 +952,12 @@ function renderCompactCard(state) {
       </table>`;
       })() : ''}
 
-      <div style="margin: 0 0 4px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
+      <div style="margin: 0 0 4px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2; overflow-wrap: anywhere; word-break: break-word;">
         ${escapeHTML(state.fullName)}
       </div>
-      <span style="display: inline-block; font-size: 12px; font-weight: 600; margin-bottom: 12px; ${titleStyleAttr}">
-        ${escapeHTML(state.jobTitle)}
-      </span>
+      ${roleText ? `<span style="display: inline-block; font-size: 12px; font-weight: 600; margin-bottom: 12px; overflow-wrap: anywhere; word-break: break-word; ${titleStyleAttr}">
+        ${escapeHTML(roleText)}
+      </span>` : ''}
 
       ${contactRows ? `
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 10px; text-align: left;">
@@ -966,6 +983,7 @@ function renderMinimalRow(state) {
   const buttonsMarkup = renderActionButtons(state.buttons, state);
   const nameSize = state.nameFontSize || 17;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
+  const roleText = String(state.jobTitle || '').trim();
 
   return `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
@@ -981,12 +999,12 @@ function renderMinimalRow(state) {
           </td>`;
           })() : ''}
           <td style="vertical-align: middle;">
-            <div style="font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
+            <div style="font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2; overflow-wrap: anywhere; word-break: break-word;">
               ${escapeHTML(state.fullName)}
             </div>
-            <div style="font-size: 11.5px; font-weight: 600; margin-top: 2px; ${titleStyleAttr}">
-              ${escapeHTML(state.jobTitle)}
-            </div>
+            ${roleText ? `<div style="font-size: 11.5px; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; word-break: break-word; ${titleStyleAttr}">
+              ${escapeHTML(roleText)}
+            </div>` : ''}
           </td>
         </tr>
       </table>
@@ -1016,6 +1034,7 @@ function renderAccentBar(state) {
   const buttonsMarkup = renderActionButtons(state.buttons, state);
   const nameSize = state.nameFontSize || 19;
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
+  const roleText = String(state.jobTitle || '').trim();
 
   return `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
@@ -1028,12 +1047,12 @@ function renderAccentBar(state) {
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
               <tr>
                 <td style="vertical-align: middle;">
-                  <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
+                  <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2; overflow-wrap: anywhere; word-break: break-word;">
                     ${escapeHTML(state.fullName)}
                   </div>
-                  <div style="font-size: 12px; font-weight: 600; ${titleStyleAttr}">
-                    ${escapeHTML(state.jobTitle)}
-                  </div>
+                  ${roleText ? `<div style="font-size: 12px; font-weight: 600; overflow-wrap: anywhere; word-break: break-word; ${titleStyleAttr}">
+                    ${escapeHTML(roleText)}
+                  </div>` : ''}
                 </td>
                 ${safeUrl(state.logoUrl) ? (() => {
                   const cfg = getLogoRenderConfig(state, 60, 'rounded', 'right');
@@ -1074,6 +1093,7 @@ function renderSplitAvatar(state) {
   const titleStyleAttr = getTitleStyleAttr(state.titleStyle, state.textColorSecondary || '#93c5fd');
   const avatarUrl = safeUrl(state.logoUrl, 'https://raw.githubusercontent.com/ezykl/Portfolio/refs/heads/master/public/assets/logo.png');
   const cfg = getLogoRenderConfig(state, 70, 'circle', 'center');
+  const roleText = String(state.jobTitle || '').trim();
 
   return `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${widthCfg.widthAttr}" style="${widthCfg.widthStyle} margin: 0; border-collapse: separate; ${bgStyle} border: 1px solid ${getBorderColor(state)}; border-radius: ${radius}px; font-family: ${getFontFamily(state.fontFamily)}; overflow: hidden;">
@@ -1087,12 +1107,12 @@ function renderSplitAvatar(state) {
           </td>
           <!-- Right Column: Details & Buttons -->
           <td style="vertical-align: top;">
-            <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2;">
+            <div style="margin: 0 0 2px 0; font-size: ${nameSize}px; font-weight: 700; color: ${state.textColorPrimary || '#ffffff'}; line-height: 1.2; overflow-wrap: anywhere; word-break: break-word;">
               ${escapeHTML(state.fullName)}
             </div>
-            <div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; ${titleStyleAttr}">
-              ${escapeHTML(state.jobTitle)}
-            </div>
+            ${roleText ? `<div style="font-size: 12px; font-weight: 600; margin-bottom: 8px; overflow-wrap: anywhere; word-break: break-word; ${titleStyleAttr}">
+              ${escapeHTML(roleText)}
+            </div>` : ''}
 
             ${contactRows ? `
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 6px;">
@@ -1118,7 +1138,7 @@ export function renderSignatureHTML(state = DEFAULT_SIGNATURE_STATE) {
     ...DEFAULT_SIGNATURE_STATE,
     ...state,
     fullName: (typeof state.fullName === 'string' && state.fullName.trim() !== '') ? state.fullName : (state.fullName === '' ? 'Your Name' : DEFAULT_SIGNATURE_STATE.fullName),
-    jobTitle: (typeof state.jobTitle === 'string' && state.jobTitle.trim() !== '') ? state.jobTitle : (state.jobTitle === '' ? 'Role or Team' : DEFAULT_SIGNATURE_STATE.jobTitle),
+    jobTitle: typeof state.jobTitle === 'string' ? state.jobTitle : DEFAULT_SIGNATURE_STATE.jobTitle,
     maxWidth: Math.max(280, Math.min(720, Number(state.maxWidth) || DEFAULT_SIGNATURE_STATE.maxWidth)),
     borderRadius: Math.max(0, Math.min(32, Number.isFinite(Number(state.borderRadius)) ? Number(state.borderRadius) : DEFAULT_SIGNATURE_STATE.borderRadius)),
     bgColor: safeHex(state.bgColor, DEFAULT_SIGNATURE_STATE.bgColor),
