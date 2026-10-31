@@ -1,4 +1,5 @@
 import { renderSignatureHTML, DEFAULT_SIGNATURE_STATE, THEME_PRESETS, getContrastRatio, getBackgroundStyle, resolveMediaUrl, buildInitialsAvatarUrl, generateVCardString } from './studio-templates.js';
+import { DESIGN_FAMILIES, DESIGN_FORMATS, renderAllFormats } from './studio-designs.js';
 
 const DRAFT_KEY = 'signature-studio-draft-v2';
 const SLOTS_KEY = 'signature-studio-slots-v1';
@@ -94,13 +95,18 @@ export function createStudioStore(initialState = DEFAULT_SIGNATURE_STATE) {
       const availableLayouts = layoutKeys.filter(l => l !== state.layout);
       const nextLayout = availableLayouts[Math.floor(Math.random() * availableLayouts.length)] || layoutKeys[0];
 
+      const designKeys = DESIGN_FAMILIES.map(d => d.id);
+      const availableDesigns = designKeys.filter(d => d !== state.design);
+      const nextDesign = availableDesigns[Math.floor(Math.random() * availableDesigns.length)] || designKeys[0];
+
       commit({
         ...state,
         ...preset,
         themePreset: nextThemeKey,
-        layout: nextLayout
+        layout: nextLayout,
+        design: nextDesign
       });
-      return { theme: nextThemeKey, layout: nextLayout };
+      return { theme: nextThemeKey, layout: nextLayout, design: nextDesign };
     },
     undo: () => { if (!past.length) return; future.push(clone(state)); state = past.pop(); notify(); },
     redo: () => { if (!future.length) return; past.push(clone(state)); state = future.pop(); notify(); },
@@ -113,11 +119,19 @@ function cryptoId() { return globalThis.crypto?.randomUUID?.().slice(0, 8) || Ma
 export function loadPresetByCardId(cardId, baseIdentity = DEFAULT_SIGNATURE_STATE) {
   const base = clone(baseIdentity || DEFAULT_SIGNATURE_STATE);
   const variants = {
-    1: { layout: 'compact-card', maxWidth: 420, borderRadius: 16, themePreset: 'minimal-light' },
-    2: { layout: 'minimal-row', maxWidth: 680, borderRadius: 10, themePreset: 'slate-tech', buttons: (base.buttons || []).slice(0, 2) },
-    3: { layout: 'landscape-v2', maxWidth: 680, borderRadius: 16, themePreset: 'developer-cyan', fontFamily: 'mono', buttonShape: 'pill' },
-    4: { layout: 'accent-bar', maxWidth: 640, borderRadius: 8, themePreset: 'monochrome-pro', fontFamily: 'serif', buttonShape: 'sharp' },
-    5: { layout: 'split-avatar', maxWidth: 660, borderRadius: 18, themePreset: 'rose-gold', fontFamily: 'grotesk', buttonShape: 'pill', titleStyle: 'uppercase' }
+    1: { design: 'classic', format: 'landscape', layout: 'compact-card', maxWidth: 420, borderRadius: 16, themePreset: 'minimal-light' },
+    2: { design: 'classic', format: 'landscape', layout: 'minimal-row', maxWidth: 680, borderRadius: 10, themePreset: 'slate-tech', buttons: (base.buttons || []).slice(0, 2) },
+    3: { design: 'classic', format: 'landscape', layout: 'landscape-v2', maxWidth: 680, borderRadius: 16, themePreset: 'developer-cyan', fontFamily: 'mono', buttonShape: 'pill' },
+    4: { design: 'classic', format: 'landscape', layout: 'accent-bar', maxWidth: 640, borderRadius: 8, themePreset: 'monochrome-pro', fontFamily: 'serif', buttonShape: 'sharp' },
+    5: { design: 'classic', format: 'landscape', layout: 'split-avatar', maxWidth: 660, borderRadius: 18, themePreset: 'rose-gold', fontFamily: 'grotesk', buttonShape: 'pill', titleStyle: 'uppercase' },
+    6: { design: 'lime-panel', format: 'landscape', themePreset: 'emerald-exec', fontFamily: 'sans', buttonShape: 'pill' },
+    7: { design: 'ocean-split', format: 'landscape', themePreset: 'cosmic-blue', fontFamily: 'sans', buttonShape: 'rounded' },
+    8: { design: 'midnight-corner', format: 'landscape', themePreset: 'developer-cyan', fontFamily: 'mono', buttonShape: 'pill' },
+    9: { design: 'teal-ring', format: 'landscape', themePreset: 'minimal-light', fontFamily: 'sans', buttonShape: 'rounded' },
+    10: { design: 'sky-diagonal', format: 'landscape', themePreset: 'slate-tech', fontFamily: 'grotesk', buttonShape: 'rounded' },
+    11: { design: 'slate-hex', format: 'landscape', themePreset: 'monochrome-pro', fontFamily: 'mono', buttonShape: 'sharp' },
+    12: { design: 'sunset-gradient', format: 'landscape', themePreset: 'sunset-amber', fontFamily: 'sans', buttonShape: 'pill' },
+    13: { design: 'violet-pill', format: 'landscape', themePreset: 'violet-studio', fontFamily: 'grotesk', buttonShape: 'pill' }
   };
   const variant = variants[Number(cardId)] || variants[3];
   return { ...base, ...THEME_PRESETS[variant.themePreset], ...variant };
@@ -735,13 +749,36 @@ function renderGallery() {
   if (!target) return;
   const baseIdentity = studioStore ? studioStore.getState() : DEFAULT_SIGNATURE_STATE;
   const cards = [
-    { id: 3, name: 'Developer landscape', description: 'A confident, wide signature for portfolio and technical roles.', layout: 'Landscape' },
-    { id: 1, name: 'Minimal card', description: 'A centered profile presentation with a compact visual footprint.', layout: 'Compact card' },
-    { id: 2, name: 'Executive row', description: 'A concise layout designed for high-volume professional email.', layout: 'Minimal row' },
-    { id: 4, name: 'Boardroom accent', description: 'Distinguished left-accent bar with crisp serif typography and sharp CTA buttons.', layout: 'Accent bar' },
-    { id: 5, name: 'Creative split', description: 'Modern two-column layout highlighting an avatar portrait with pill-shaped links.', layout: 'Split avatar' }
+    { id: 6, name: 'Color Column', description: 'Bold accent column with a framed circular photo and adaptive contrast.', layout: '3 Formats • Color Column' },
+    { id: 7, name: 'Ocean Split', description: 'Crisp light photo panel paired with a rich themed body and accent edge.', layout: '3 Formats • Ocean Split' },
+    { id: 8, name: 'Midnight Corner', description: 'Dark executive card with a top accent rule and geometric corner badge.', layout: '3 Formats • Midnight Corner' },
+    { id: 9, name: 'Teal Ring', description: 'Clean bright surface with a thick double-padded accent ring around the photo.', layout: '3 Formats • Teal Ring' },
+    { id: 10, name: 'Sky Wedge', description: 'Dual-tone diagonal gradient side panel with a double-rule divider.', layout: '3 Formats • Sky Wedge' },
+    { id: 11, name: 'Slate Chamfer', description: 'Dark slate architectural card with a framed square badge and dashed rule.', layout: '3 Formats • Slate Chamfer' },
+    { id: 12, name: 'Sunset Gradient', description: 'Full linear gradient body balanced by a high-contrast photo panel.', layout: '3 Formats • Sunset Gradient' },
+    { id: 13, name: 'Capsule Band', description: 'Pill-shaped container with a vertical accent divider separating role and contacts.', layout: '3 Formats • Capsule Band' },
+    { id: 3, name: 'Developer landscape', description: 'A confident, wide signature for portfolio and technical roles.', layout: 'Classic • Landscape' },
+    { id: 1, name: 'Minimal card', description: 'A centered profile presentation with a compact visual footprint.', layout: 'Classic • Compact card' },
+    { id: 2, name: 'Executive row', description: 'A concise layout designed for high-volume professional email.', layout: 'Classic • Minimal row' },
+    { id: 4, name: 'Boardroom accent', description: 'Distinguished left-accent bar with crisp serif typography and sharp CTA buttons.', layout: 'Classic • Accent bar' },
+    { id: 5, name: 'Creative split', description: 'Modern two-column layout highlighting an avatar portrait with pill-shaped links.', layout: 'Classic • Split avatar' }
   ];
   target.innerHTML = cards.map(card => `<article class="template-card"><div class="template-card-preview">${renderSignatureHTML(loadPresetByCardId(card.id, baseIdentity))}</div><div><h2>${card.name}</h2><p>${card.description}</p></div><div class="template-card-footer"><span>${card.layout}</span><button type="button" class="button button-secondary" data-template="${card.id}">Use template</button></div></article>`).join('');
+}
+
+export function renderMultiFormatPreview(state = DEFAULT_SIGNATURE_STATE) {
+  const all = renderAllFormats(state);
+  return `<div class="multi-format-showcase">
+    ${DESIGN_FORMATS.map(fmt => `
+      <div class="multi-format-block" data-format-block="${fmt.id}">
+        <div class="multi-format-header">
+          <span class="multi-format-badge">${escapeHTML(fmt.label)}</span>
+          <button type="button" class="multi-format-select-btn" data-select-format="${fmt.id}">Focus ${escapeHTML(fmt.label)}</button>
+        </div>
+        <div class="multi-format-body">${all[fmt.id]}</div>
+      </div>
+    `).join('')}
+  </div>`;
 }
 
 function setView(view) { if (view === 'gallery') renderGallery(); ['home','studio','gallery'].forEach(name => { const section = document.getElementById(`${name}-view`); if (section) section.hidden = name !== view; }); [...document.body.classList].filter(name => name.startsWith('view-mode-')).forEach(name => document.body.classList.remove(name)); document.body.classList.add(`view-mode-${view}`); if (view === 'home') document.getElementById('home').scrollIntoView({ behavior:'smooth' }); else window.scrollTo({ top:0, behavior:'smooth' }); }
@@ -749,6 +786,46 @@ function setView(view) { if (view === 'gallery') renderGallery(); ['home','studi
 async function copyRichSignature() { const preview = document.getElementById('studio-preview-card'); if (!preview || !validate(studioStore.getState(), true)) return; const html = renderSignatureHTML(studioStore.getState()).trim(); try { if (navigator.clipboard && window.ClipboardItem) { await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([html],{type:'text/html'}), 'text/plain':new Blob(['Email signature'],{type:'text/plain'}) })]); showStudioToast('Signature copied. Paste it into your email settings.'); return; } throw new Error('Rich clipboard unavailable'); } catch { const range = document.createRange(); const holder = document.createElement('div'); holder.style.cssText = 'position:fixed;left:-9999px;top:0;'; holder.innerHTML = html; document.body.appendChild(holder); range.selectNodeContents(holder); const selection = getSelection(); selection.removeAllRanges(); selection.addRange(range); document.execCommand('copy'); selection.removeAllRanges(); holder.remove(); showStudioToast('Signature copied. Paste it into your email settings.'); } }
 function copyRawHTML() { const html = renderSignatureHTML(studioStore.getState()).trim(); navigator.clipboard.writeText(html).then(() => showStudioToast('HTML copied to clipboard.')).catch(() => showStudioToast('Copy failed. Please try again.')); }
 function downloadHTML() { if (!validate(studioStore.getState(), true)) return; const html = renderSignatureHTML(studioStore.getState()).trim(); const blob = new Blob([html],{type:'text/html;charset=utf-8'}); const url = URL.createObjectURL(blob); const link = Object.assign(document.createElement('a'),{href:url,download:'email-signature.html'}); link.click(); URL.revokeObjectURL(url); showStudioToast('HTML file downloaded.'); }
+
+export function buildAllFormatsHTMLSheet(state = DEFAULT_SIGNATURE_STATE) {
+  const all = renderAllFormats(state);
+  const designObj = DESIGN_FAMILIES.find(d => d.id === state.design) || DESIGN_FAMILIES[0];
+  const title = `${escapeHTML(state.fullName || 'Email Signature')} — ${escapeHTML(designObj.label)} (All 3 Formats)`;
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${title}</title>
+<style>
+  body { margin: 0; padding: 36px 24px; font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; }
+  .sheet { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 24px; }
+  .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #38bdf8; margin: 0 0 14px 0; }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <h1>${title}</h1>
+    <div class="card"><p class="label">1. Landscape (Wide Desktop Banner)</p>${all.landscape}</div>
+    <div class="card"><p class="label">2. Portrait (Vertical Profile Card)</p>${all.portrait}</div>
+    <div class="card"><p class="label">3. Compact (Slim Reply Strip)</p>${all.compact}</div>
+  </div>
+</body>
+</html>`;
+}
+
+export function downloadAllFormatsHTML() {
+  if (!studioStore || !validate(studioStore.getState(), true)) return;
+  const state = studioStore.getState();
+  const sheetHtml = buildAllFormatsHTMLSheet(state);
+  const blob = new Blob([sheetHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = Object.assign(document.createElement('a'), { href: url, download: 'email-signature-all-3-formats.html' });
+  link.click();
+  URL.revokeObjectURL(url);
+  showStudioToast('All 3 formats (Landscape, Portrait & Compact) downloaded.');
+}
 
 export function downloadVCard() {
   if (!studioStore || !validate(studioStore.getState(), true)) return;
@@ -909,15 +986,16 @@ export function initStudio() {
   studioStore.subscribe(state => {
     const logoChanged = state.logoUrl !== lastLogoUrl;
     lastLogoUrl = state.logoUrl;
-    const html = renderSignatureHTML(state);
+    const singleHtml = renderSignatureHTML(state);
+    const previewHtml = state.format === 'all' ? renderMultiFormatPreview(state) : singleHtml;
     if (preview) {
-      preview.innerHTML = html;
+      preview.innerHTML = previewHtml;
       attachPreviewLogoLoader(preview, logoChanged, ok => {
         if (ok) updateMediaStatusPill(studioStore.getState(), false);
       });
     }
     if (heroPreview) {
-      heroPreview.innerHTML = html;
+      heroPreview.innerHTML = singleHtml;
       attachPreviewLogoLoader(heroPreview, logoChanged);
     }
     savedSlotsCache[activeSlotId] = clone(state);
@@ -1609,7 +1687,15 @@ export function initStudio() {
   document.getElementById('btn-wiz-copy-primary')?.addEventListener('click', copyRichSignature);
   document.getElementById('btn-wiz-download-png')?.addEventListener('click', exportSignaturePNG);
   document.getElementById('btn-wiz-download-html')?.addEventListener('click', downloadHTML);
+  document.getElementById('btn-wiz-download-all-formats')?.addEventListener('click', downloadAllFormatsHTML);
   document.getElementById('btn-wiz-download-vcf')?.addEventListener('click', downloadVCard);
+
+  preview?.addEventListener?.('click', event => {
+    const focusBtn = event.target?.closest?.('[data-select-format]');
+    if (focusBtn && focusBtn.dataset.selectFormat) {
+      studioStore.setField('format', focusBtn.dataset.selectFormat);
+    }
+  });
 
   // Accessible theme toggle with dynamic state & ARIA attributes
   const darkToggle = document.getElementById('btn-toggle-dark');
@@ -1648,6 +1734,7 @@ export function initStudio() {
   document.getElementById('btn-studio-copy-primary').addEventListener('click', copyRichSignature);
   document.getElementById('btn-studio-copy-html').addEventListener('click', copyRawHTML);
   document.getElementById('btn-studio-download').addEventListener('click', downloadHTML);
+  document.getElementById('btn-studio-download-all-formats')?.addEventListener('click', downloadAllFormatsHTML);
   document.getElementById('btn-studio-download-png')?.addEventListener('click', exportSignaturePNG);
   document.getElementById('btn-studio-download-vcf')?.addEventListener('click', downloadVCard);
   document.getElementById('btn-export-draft').addEventListener('click', exportDraft);

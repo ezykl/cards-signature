@@ -1109,14 +1109,26 @@ test('advanced-controls-pane provides consistent vertical gap between progress b
 
 test('index.html exposes design chips and format toggles in wizard, advanced panel, and live preview', () => {
   const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
-  for (const id of ['classic', 'lime-panel', 'ocean-split', 'midnight-corner', 'teal-ring']) {
+  for (const id of [
+    'classic',
+    'lime-panel',
+    'ocean-split',
+    'midnight-corner',
+    'teal-ring',
+    'sky-diagonal',
+    'slate-hex',
+    'sunset-gradient',
+    'violet-pill'
+  ]) {
     const count = html.split(`data-design="${id}"`).length - 1;
     assert.equal(count, 2, `${id} chip should exist in wizard and advanced panes`);
   }
-  for (const fmt of ['landscape', 'portrait', 'compact']) {
+  for (const fmt of ['landscape', 'portrait', 'compact', 'all']) {
     const count = html.split(`data-format="${fmt}"`).length - 1;
     assert.equal(count, 3, `${fmt} toggle should exist in wizard, advanced panel, and preview bar`);
   }
+  assert.ok(html.includes('id="btn-studio-download-all-formats"'));
+  assert.ok(html.includes('id="btn-wiz-download-all-formats"'));
 });
 
 test('syncControls highlights the active design and format everywhere', () => {
@@ -1130,8 +1142,8 @@ test('syncControls highlights the active design and format everywhere', () => {
       setAttribute(k, v) { this.attrs[k] = v; }
     };
   };
-  const designs = ['classic', 'lime-panel', 'teal-ring'].map(design => mk({ design }));
-  const formats = ['landscape', 'portrait', 'compact'].map(format => mk({ format }));
+  const designs = ['classic', 'lime-panel', 'teal-ring', 'violet-pill'].map(design => mk({ design }));
+  const formats = ['landscape', 'portrait', 'compact', 'all'].map(format => mk({ format }));
   globalThis.document = {
     activeElement: null,
     getElementById: () => null,
@@ -1139,11 +1151,11 @@ test('syncControls highlights the active design and format everywhere', () => {
     querySelector: () => null
   };
   try {
-    syncControls({ ...DEFAULT_SIGNATURE_STATE, design: 'teal-ring', format: 'compact' });
-    assert.equal(designs[2].classes.has('active'), true);
-    assert.equal(designs[2].attrs['aria-checked'], 'true');
+    syncControls({ ...DEFAULT_SIGNATURE_STATE, design: 'violet-pill', format: 'all' });
+    assert.equal(designs[3].classes.has('active'), true);
+    assert.equal(designs[3].attrs['aria-checked'], 'true');
     assert.equal(designs[0].classes.has('active'), false);
-    assert.equal(formats[2].classes.has('active'), true);
+    assert.equal(formats[3].classes.has('active'), true);
     assert.equal(formats[0].classes.has('active'), false);
   } finally {
     delete globalThis.document;

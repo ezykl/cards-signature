@@ -1,19 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_SIGNATURE_STATE, renderSignatureHTML } from '../js/studio-templates.js';
-import { DESIGN_FAMILIES, DESIGN_FORMATS, renderAllFormats } from '../js/studio-designs.js';
+import { DESIGN_FAMILIES, DESIGN_FORMATS, renderAllFormats, renderDesignArtSVG } from '../js/studio-designs.js';
+import { renderMultiFormatPreview, buildAllFormatsHTMLSheet, loadPresetByCardId } from '../js/studio.js';
 
 const NEW_FAMILIES = DESIGN_FAMILIES.filter(f => f.id !== 'classic').map(f => f.id);
 const FORMATS = DESIGN_FORMATS.map(f => f.id);
 const render = (design, format, extra = {}) =>
   renderSignatureHTML({ ...DEFAULT_SIGNATURE_STATE, design, format, ...extra });
 
-test('design registry exposes classic plus 4 art-directed families and 3 formats', () => {
-  assert.deepEqual(DESIGN_FAMILIES.map(f => f.id), ['classic', 'lime-panel', 'ocean-split', 'midnight-corner', 'teal-ring']);
+test('design registry exposes classic plus 8 art-directed families and 3 formats', () => {
+  assert.deepEqual(DESIGN_FAMILIES.map(f => f.id), [
+    'classic',
+    'lime-panel',
+    'ocean-split',
+    'midnight-corner',
+    'teal-ring',
+    'sky-diagonal',
+    'slate-hex',
+    'sunset-gradient',
+    'violet-pill'
+  ]);
   assert.deepEqual(FORMATS, ['landscape', 'portrait', 'compact']);
 });
 
-test('every family renders email-safe table markup in every format', () => {
+test('every family renders email-safe table markup in every format (24 combinations)', () => {
   for (const design of NEW_FAMILIES) {
     for (const format of FORMATS) {
       const html = render(design, format);
@@ -27,7 +38,7 @@ test('every family renders email-safe table markup in every format', () => {
   }
 });
 
-test('families and formats produce visibly different markup', () => {
+test('all 8 families x 3 formats produce 24 visibly distinct HTML outputs', () => {
   const seen = new Set();
   for (const design of NEW_FAMILIES) {
     for (const format of FORMATS) seen.add(render(design, format));
@@ -96,4 +107,42 @@ test('renderAllFormats returns landscape, portrait and compact variants', () => 
   assert.deepEqual(Object.keys(all), ['landscape', 'portrait', 'compact']);
   assert.notEqual(all.landscape, all.portrait);
   assert.notEqual(all.portrait, all.compact);
+});
+
+test('renderDesignArtSVG generates valid standalone SVG with theme colors and format geometry', () => {
+  for (const design of NEW_FAMILIES) {
+    for (const format of FORMATS) {
+      const svg = renderDesignArtSVG({
+        ...DEFAULT_SIGNATURE_STATE,
+        design,
+        format,
+        accentColor: '#12ab34'
+      });
+      assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+      assert.match(svg, /#12ab34/i);
+      assert.ok(svg.includes(DEFAULT_SIGNATURE_STATE.fullName));
+    }
+  }
+});
+
+test('renderMultiFormatPreview and buildAllFormatsHTMLSheet generate all 3 formats simultaneously', () => {
+  const state = { ...DEFAULT_SIGNATURE_STATE, design: 'violet-pill', format: 'all' };
+  const previewHtml = renderMultiFormatPreview(state);
+  assert.ok(previewHtml.includes('data-format-block="landscape"'));
+  assert.ok(previewHtml.includes('data-format-block="portrait"'));
+  assert.ok(previewHtml.includes('data-format-block="compact"'));
+
+  const sheetHtml = buildAllFormatsHTMLSheet(state);
+  assert.match(sheetHtml, /<!DOCTYPE html>/i);
+  assert.ok(sheetHtml.includes('1. Landscape'));
+  assert.ok(sheetHtml.includes('2. Portrait'));
+  assert.ok(sheetHtml.includes('3. Compact'));
+});
+
+test('loadPresetByCardId supports all 8 art-directed design family gallery cards (6..13)', () => {
+  for (let cardId = 6; cardId <= 13; cardId++) {
+    const presetState = loadPresetByCardId(cardId, DEFAULT_SIGNATURE_STATE);
+    assert.notEqual(presetState.design, 'classic');
+    assert.ok(NEW_FAMILIES.includes(presetState.design));
+  }
 });
