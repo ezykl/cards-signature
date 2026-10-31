@@ -3,6 +3,10 @@
  * Produces email-client safe table markup with inline CSS and hosted PNG icons.
  */
 
+// Circular with studio-designs.js by design: both modules only touch each other's
+// exports inside functions (never at module-evaluation time).
+import { renderDesignHTML } from './studio-designs.js';
+
 export const THEME_PRESETS = {
   'developer-cyan': {
     name: 'Developer Cyan',
@@ -272,6 +276,8 @@ export const BUTTON_ICON_MAP = {
 };
 
 export const DEFAULT_SIGNATURE_STATE = {
+  design: 'classic', // 'classic' | 'lime-panel' | 'ocean-split' | 'midnight-corner' | 'teal-ring'
+  format: 'landscape', // 'landscape' | 'portrait' | 'compact'
   layout: 'landscape-v2', // 'landscape-v2' | 'compact-card' | 'minimal-row'
   widthMode: 'responsive', // 'responsive' | 'fixed'
   maxWidth: 680,
@@ -335,14 +341,14 @@ export function getTitleStyleAttr(styleKey, baseColor = '#93c5fd') {
 }
 
 /** Escape user-provided text before it becomes part of exported HTML. */
-function escapeHTML(value = '') {
+export function escapeHTML(value = '') {
   return String(value).replace(/[&<>'"]/g, character => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
   })[character]);
 }
 
 /** Only allow URL schemes supported by email clients and this editor. */
-function safeUrl(value, fallback = '') {
+export function safeUrl(value, fallback = '') {
   const raw = String(value || '').trim();
   if (!raw) return fallback;
   if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,[a-z0-9+/=\s]+$/i.test(raw)) {
@@ -352,14 +358,14 @@ function safeUrl(value, fallback = '') {
   return /^(https?:|mailto:|tel:)/i.test(resolved) ? escapeHTML(resolved) : fallback;
 }
 
-function safeHex(value, fallback) {
+export function safeHex(value, fallback) {
   return /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : fallback;
 }
 
 /**
  * Strips '#' from hex code for URL interpolation.
  */
-function cleanHex(color) {
+export function cleanHex(color) {
   return safeHex(color, '#38bdf8').slice(1);
 }
 
@@ -627,7 +633,7 @@ function hexToRgb(hex) {
 /**
  * Solid (non-alpha) border color: base blended 14% toward white for dark themes, or 12% toward black for light themes.
  */
-function getBorderColor(state) {
+export function getBorderColor(state) {
   const bg = safeHex(state.bgColor, '#000440');
   const rgb = hexToRgb(bg) || { r: 0, g: 4, b: 64 };
   const lum = getLuminance(bg);
@@ -670,7 +676,7 @@ export function getBackgroundStyle(state) {
 /**
  * Builds contact rows markup with accent-colored hosted PNG icons and theme-adaptive accessible text colors.
  */
-function renderContactRows(contactFields, accentColor, textColorSecondary = '#93c5fd', textColorPrimary = '#ffffff', bgColor = '#000440') {
+export function renderContactRows(contactFields, accentColor, textColorSecondary = '#93c5fd', textColorPrimary = '#ffffff', bgColor = '#000440') {
   if (!contactFields || contactFields.length === 0) return '';
   const hex = cleanHex(accentColor);
 
@@ -709,7 +715,7 @@ function renderContactRows(contactFields, accentColor, textColorSecondary = '#93
 /**
  * Builds modular action buttons row markup.
  */
-function renderActionButtons(buttons, state) {
+export function renderActionButtons(buttons, state) {
   if (!buttons || buttons.length === 0) return '';
 
   const count = buttons.length;
@@ -775,7 +781,7 @@ function renderActionButtons(buttons, state) {
 /**
  * Computes table width attribute and inline CSS based on widthMode.
  */
-function getTableWidthConfig(state, defaultWidth = 680, minResponsiveWidth = 280) {
+export function getTableWidthConfig(state, defaultWidth = 680, minResponsiveWidth = 280) {
   const isFixed = state.widthMode === 'fixed';
   const widthVal = state.maxWidth || defaultWidth;
 
@@ -1129,7 +1135,18 @@ export function renderSignatureHTML(state = DEFAULT_SIGNATURE_STATE) {
     titleStyle: ['regular', 'uppercase', 'italic'].includes(state.titleStyle) ? state.titleStyle : 'regular',
     buttonShape: ['rounded', 'pill', 'sharp'].includes(state.buttonShape) ? state.buttonShape : 'rounded'
   };
-  const layout = safeState.layout || 'landscape-v2';
+  const format = ['landscape', 'portrait', 'compact'].includes(safeState.format) ? safeState.format : 'landscape';
+  safeState.format = format;
+
+  if (safeState.design && safeState.design !== 'classic') {
+    const designHtml = renderDesignHTML(safeState);
+    if (designHtml) return designHtml;
+  }
+
+  // Classic design: portrait / compact formats reuse the existing portrait-style layouts.
+  let layout = safeState.layout || 'landscape-v2';
+  if (format === 'portrait') layout = 'compact-card';
+  else if (format === 'compact') layout = 'minimal-row';
 
   switch (layout) {
     case 'compact-card':

@@ -516,6 +516,20 @@ export function syncControls(state) {
     btn.classList.toggle('active', isActive);
     btn.setAttribute('aria-checked', String(isActive));
   });
+
+  const activeDesign = state.design || 'classic';
+  document.querySelectorAll?.('[data-design]')?.forEach(btn => {
+    const isActive = btn.dataset.design === activeDesign;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-checked', String(isActive));
+  });
+
+  const activeFormat = state.format || 'landscape';
+  document.querySelectorAll?.('[data-format]')?.forEach(btn => {
+    const isActive = btn.dataset.format === activeFormat;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-checked', String(isActive));
+  });
   
   const angleVal = document.getElementById('val-bg-gradient-angle');
   if (angleVal) angleVal.value = `${state.bgGradientAngle ?? 135}°`;
@@ -1192,6 +1206,16 @@ export function initStudio() {
   document.querySelectorAll('[data-logo-align]').forEach(btn => {
     btn.addEventListener('click', () => {
       studioStore.setField('logoAlignment', btn.dataset.logoAlign);
+    });
+  });
+  document.querySelectorAll('[data-design]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      studioStore.setField('design', btn.dataset.design);
+    });
+  });
+  document.querySelectorAll('[data-format]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      studioStore.setField('format', btn.dataset.format);
     });
   });
 

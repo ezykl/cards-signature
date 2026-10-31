@@ -1107,6 +1107,63 @@ test('advanced-controls-pane provides consistent vertical gap between progress b
   assert.match(css, /\.advanced-controls-pane\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*gap:\s*14px;/);
 });
 
+test('index.html exposes design chips and format toggles in wizard, advanced panel, and live preview', () => {
+  const html = fs.readFileSync(path.resolve('index.html'), 'utf8');
+  for (const id of ['classic', 'lime-panel', 'ocean-split', 'midnight-corner', 'teal-ring']) {
+    const count = html.split(`data-design="${id}"`).length - 1;
+    assert.equal(count, 2, `${id} chip should exist in wizard and advanced panes`);
+  }
+  for (const fmt of ['landscape', 'portrait', 'compact']) {
+    const count = html.split(`data-format="${fmt}"`).length - 1;
+    assert.equal(count, 3, `${fmt} toggle should exist in wizard, advanced panel, and preview bar`);
+  }
+});
+
+test('syncControls highlights the active design and format everywhere', () => {
+  const mk = dataset => {
+    const classes = new Set();
+    return {
+      dataset,
+      attrs: {},
+      classes,
+      classList: { toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)) },
+      setAttribute(k, v) { this.attrs[k] = v; }
+    };
+  };
+  const designs = ['classic', 'lime-panel', 'teal-ring'].map(design => mk({ design }));
+  const formats = ['landscape', 'portrait', 'compact'].map(format => mk({ format }));
+  globalThis.document = {
+    activeElement: null,
+    getElementById: () => null,
+    querySelectorAll: sel => (sel === '[data-design]' ? designs : sel === '[data-format]' ? formats : []),
+    querySelector: () => null
+  };
+  try {
+    syncControls({ ...DEFAULT_SIGNATURE_STATE, design: 'teal-ring', format: 'compact' });
+    assert.equal(designs[2].classes.has('active'), true);
+    assert.equal(designs[2].attrs['aria-checked'], 'true');
+    assert.equal(designs[0].classes.has('active'), false);
+    assert.equal(formats[2].classes.has('active'), true);
+    assert.equal(formats[0].classes.has('active'), false);
+  } finally {
+    delete globalThis.document;
+  }
+});
+
+test('store keeps design and format and undo restores the previous design', () => {
+  const store = createStudioStore();
+  assert.equal(store.getState().design, 'classic');
+  assert.equal(store.getState().format, 'landscape');
+  store.setField('design', 'ocean-split');
+  store.setField('format', 'portrait');
+  assert.equal(store.getState().design, 'ocean-split');
+  assert.equal(store.getState().format, 'portrait');
+  store.undo();
+  assert.equal(store.getState().format, 'landscape');
+  assert.equal(store.getState().design, 'ocean-split');
+});
+
+
 
 
 
