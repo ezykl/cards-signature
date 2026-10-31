@@ -645,11 +645,13 @@ export function syncControls(state) {
     if (heroLayoutTitle || heroLayoutCounter || heroLayoutIndicator) {
       const layoutIdx = LAYOUT_CYCLE.findIndex(l => l.id === state.layout);
       const curr = layoutIdx >= 0 ? LAYOUT_CYCLE[layoutIdx] : LAYOUT_CYCLE[0];
+      const designObj = DESIGN_FAMILIES.find(d => d.id === state.design);
+      const displayLabel = (state.design && state.design !== 'classic' && designObj) ? designObj.label : curr.label;
       const themeName = THEME_PRESETS[state.themePreset]?.name || state.themePreset || '';
       const idxDisplay = (layoutIdx >= 0 ? layoutIdx : 0) + 1;
       if (heroLayoutTitle) heroLayoutTitle.textContent = `Layout: ${curr.label}`;
       if (heroLayoutCounter) heroLayoutCounter.textContent = `${idxDisplay} / ${LAYOUT_CYCLE.length}`;
-      if (heroLayoutIndicator) heroLayoutIndicator.textContent = themeName ? `${curr.label} • ${themeName}` : curr.label;
+      if (heroLayoutIndicator) heroLayoutIndicator.textContent = themeName ? `${displayLabel} • ${themeName}` : displayLabel;
     }
   }
 }
@@ -1381,7 +1383,8 @@ export function initStudio() {
     const compCard = event.target.closest('[data-comparator-layout]');
     if (!compCard || !compCard.dataset.comparatorLayout) return;
     const targetLayout = compCard.dataset.comparatorLayout;
-    studioStore.setField('layout', targetLayout);
+    const current = studioStore.getState();
+    studioStore.setState({ ...current, design: 'classic', layout: targetLayout });
     const cardName = compCard.querySelector('.comparator-name, .chip-title')?.textContent || targetLayout;
     showStudioToast(`Switched layout to ${cardName}`);
   });
@@ -1408,8 +1411,11 @@ export function initStudio() {
   document.getElementById('btn-hero-shuffle-design')?.addEventListener('click', () => {
     const result = studioStore.shuffleDesign();
     const themeName = THEME_PRESETS[result.theme]?.name || result.theme;
-    const layoutLabel = LAYOUT_CYCLE.find(l => l.id === result.layout)?.label || result.layout;
-    showStudioToast(`Shuffled: ${layoutLabel} • ${themeName}`);
+    const designObj = DESIGN_FAMILIES.find(d => d.id === result.design);
+    const label = (result.design && result.design !== 'classic' && designObj)
+      ? designObj.label
+      : (LAYOUT_CYCLE.find(l => l.id === result.layout)?.label || result.layout);
+    showStudioToast(`Shuffled: ${label} • ${themeName}`);
   });
 
   // Hero Preview Use This Template button
