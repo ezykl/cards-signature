@@ -267,6 +267,11 @@ button { cursor:pointer; }
 .wizard-step-panel[hidden] {
   display: none !important;
 }
+.advanced-controls-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 .guided-wizard-pane[hidden],
 .advanced-controls-pane[hidden] {
   display: none !important;

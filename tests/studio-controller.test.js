@@ -1102,6 +1102,12 @@ test('Live preview top bar keeps only desktop and mobile viewport toggle and omi
   assert.ok(!html.includes('inbox-sim-toggle'));
 });
 
+test('advanced-controls-pane provides consistent vertical gap between progress bar and control sections', () => {
+  const css = fs.readFileSync(path.resolve('css/studio.css'), 'utf8');
+  assert.match(css, /\.advanced-controls-pane\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*gap:\s*14px;/);
+});
+
+
 
 
 
